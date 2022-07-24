@@ -14,7 +14,7 @@ pub trait Application {
     fn render(&self, context: &WebGl2RenderingContext);
 }
 
-pub type AppCreator = dyn FnOnce(&WebGl2RenderingContext) -> Box<dyn Application>;
+pub type AppCreator = dyn FnOnce(&WebGl2RenderingContext) -> Result<Box<dyn Application>>;
 
 pub struct Loop {
     previous_time: f64,
@@ -28,7 +28,7 @@ impl Loop {
     pub fn run(canvas: &HtmlCanvasElement, creator: Box<AppCreator>) -> Result<()> {
         let context = get_webgl2_context(&canvas)?;
         log_gl_strings(&context)?;
-        let mut app = creator(&context);
+        let mut app = creator(&context)?;
         let mut state = Loop {
             previous_time: web::now()?,
             lag: 0.0,

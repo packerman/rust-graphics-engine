@@ -6,6 +6,7 @@ mod point;
 use crate::core::application::Loop;
 
 use base_test::TestApp;
+use point::PointApp;
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::core::web::get_canvas_by_id;
@@ -20,7 +21,7 @@ pub fn main_js() -> Result<(), JsValue> {
 
     let canvas = get_canvas_by_id("canvas").unwrap();
 
-    Loop::run(&canvas, Box::new(TestApp::create)).unwrap();
+    Loop::run(&canvas, Box::new(PointApp::create)).expect("Cannot run application");
 
     Ok(())
 }

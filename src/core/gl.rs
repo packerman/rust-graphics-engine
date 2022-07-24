@@ -1,7 +1,9 @@
 use anyhow::anyhow;
+use anyhow::Ok;
 use anyhow::Result;
 
 use web_sys::WebGl2RenderingContext;
+use web_sys::WebGlProgram;
 use web_sys::WebGlShader;
 
 use super::color::Color;
@@ -29,11 +31,11 @@ pub fn compile_shader(
         .ok_or_else(|| anyhow!("Cannot create shader object"))?;
     context.shader_source(&shader, source);
     context.compile_shader(&shader);
-    let compile_successful = context
+    let compile_success = context
         .get_shader_parameter(&shader, WebGl2RenderingContext::COMPILE_STATUS)
         .as_bool()
         .unwrap_or(false);
-    if compile_successful {
+    if compile_success {
         Ok(shader)
     } else {
         let info_log = context
@@ -42,4 +44,48 @@ pub fn compile_shader(
         context.delete_shader(Some(&shader));
         Err(anyhow!(info_log))
     }
+}
+
+pub fn link_program(
+    context: &WebGl2RenderingContext,
+    vertex_shader: &WebGlShader,
+    fragment_shader: &WebGlShader,
+) -> Result<WebGlProgram> {
+    let program = context
+        .create_program()
+        .ok_or_else(|| anyhow!("Cannot create program object"))?;
+    context.attach_shader(&program, vertex_shader);
+    context.attach_shader(&program, fragment_shader);
+    context.link_program(&program);
+    let link_success = context
+        .get_program_parameter(&program, WebGl2RenderingContext::LINK_STATUS)
+        .as_bool()
+        .unwrap_or(false);
+    if link_success {
+        Ok(program)
+    } else {
+        let info_log = context
+            .get_program_info_log(&program)
+            .unwrap_or_else(|| String::from("Unknown error creating program"));
+        context.delete_program(Some(&program));
+        Err(anyhow!(info_log))
+    }
+}
+
+pub fn build_program(
+    context: &WebGl2RenderingContext,
+    vertex_shader_source: &str,
+    fragment_shader_source: &str,
+) -> Result<WebGlProgram> {
+    let vertex_shader = compile_shader(
+        context,
+        WebGl2RenderingContext::VERTEX_SHADER,
+        vertex_shader_source,
+    )?;
+    let fragment_shader = compile_shader(
+        context,
+        WebGl2RenderingContext::FRAGMENT_SHADER,
+        fragment_shader_source,
+    )?;
+    link_program(context, &vertex_shader, &fragment_shader)
 }
