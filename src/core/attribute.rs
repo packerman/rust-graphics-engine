@@ -1,22 +1,30 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Ok, Result};
 use js_sys::Float32Array;
-use web_sys::{WebGl2RenderingContext, WebGlBuffer};
+use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
 
-struct DataType {
-    size: usize,
-    base_type: usize,
+pub struct DataType {
+    size: i32,
+    base_type: u32,
 }
 
-type VertexData<'a, const N: usize> = &'a [[f32; N]];
+impl DataType {
+    const fn new(size: i32, base_type: u32) -> DataType {
+        DataType { size, base_type }
+    }
 
-struct Attribute<'a, const N: usize> {
+    pub const VEC3: DataType = DataType::new(3, WebGl2RenderingContext::FLOAT);
+}
+
+pub type VertexData<'a, const N: usize> = &'a [[f32; N]];
+
+pub struct Attribute<'a, const N: usize> {
     data_type: &'a DataType,
     data: VertexData<'a, N>,
     buffer: WebGlBuffer,
 }
 
 impl<'a, const N: usize> Attribute<'a, N> {
-    fn new_with_data(
+    pub fn new_with_data(
         context: &WebGl2RenderingContext,
         data_type: &'a DataType,
         data: VertexData<'a, N>,
@@ -36,11 +44,7 @@ impl<'a, const N: usize> Attribute<'a, N> {
 
     pub fn upload_data(&self, context: &WebGl2RenderingContext) {
         context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
-        let flat_data = self
-            .data
-            .into_iter()
-            .flat_map(|item| item.to_vec())
-            .collect::<Vec<f32>>();
+        let flat_data = flatten_data(self.data);
         unsafe {
             let buffer_view = Float32Array::view(&flat_data);
             context.buffer_data_with_array_buffer_view(
@@ -50,4 +54,31 @@ impl<'a, const N: usize> Attribute<'a, N> {
             );
         }
     }
+
+    pub fn associate_variable(
+        &self,
+        context: &WebGl2RenderingContext,
+        program: &WebGlProgram,
+        variable: &str,
+    ) -> Result<()> {
+        let location = context
+            .get_attrib_location(program, variable)
+            .try_into()
+            .map_err(|err| anyhow!("Cannot convert to u32 {:#?}", err))?;
+        context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
+        context.vertex_attrib_pointer_with_i32(
+            location,
+            self.data_type.size,
+            self.data_type.base_type,
+            false,
+            0,
+            0,
+        );
+        context.enable_vertex_attrib_array(location);
+        Ok(())
+    }
+}
+
+fn flatten_data<'a, const N: usize>(data: VertexData<'a, N>) -> Vec<f32> {
+    data.into_iter().flat_map(|item| item.to_vec()).collect()
 }

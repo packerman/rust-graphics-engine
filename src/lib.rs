@@ -1,11 +1,13 @@
 #[macro_use]
 mod core;
 mod base_test;
+mod hexagon_points;
 mod point;
 
 use crate::core::application::Loop;
 
 use base_test::TestApp;
+use hexagon_points::HexagonPoints;
 use point::PointApp;
 use wasm_bindgen::{prelude::*, JsCast};
 
@@ -21,7 +23,7 @@ pub fn main_js() -> Result<(), JsValue> {
 
     let canvas = get_canvas_by_id("canvas").unwrap();
 
-    Loop::run(&canvas, Box::new(PointApp::create)).expect("Cannot run application");
+    Loop::run(&canvas, Box::new(HexagonPoints::create)).expect("Cannot run application");
 
     Ok(())
 }

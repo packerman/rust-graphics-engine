@@ -5,6 +5,7 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 use web_sys::WebGlProgram;
 use web_sys::WebGlShader;
+use web_sys::WebGlVertexArrayObject;
 
 use super::color::Color;
 
@@ -88,4 +89,10 @@ pub fn build_program(
         fragment_shader_source,
     )?;
     link_program(context, &vertex_shader, &fragment_shader)
+}
+
+pub fn create_vertex_array(context: &WebGl2RenderingContext) -> Result<WebGlVertexArrayObject> {
+    context
+        .create_vertex_array()
+        .ok_or_else(|| anyhow!("Cannot create vertex array object"))
 }
