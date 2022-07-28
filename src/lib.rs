@@ -4,7 +4,7 @@ mod examples;
 
 use crate::core::application::Loop;
 
-use examples::e04_two_shapes::TwoShapes;
+use examples::e05_vertex_colors::VertexColors;
 use wasm_bindgen::prelude::*;
 
 use crate::core::web::get_canvas_by_id;
@@ -19,7 +19,7 @@ pub fn main_js() -> Result<(), JsValue> {
 
     let canvas = get_canvas_by_id("canvas").unwrap();
 
-    Loop::run(&canvas, Box::new(TwoShapes::create)).expect("Cannot run application");
+    Loop::run(&canvas, Box::new(VertexColors::create)).expect("Cannot run application");
 
     Ok(())
 }

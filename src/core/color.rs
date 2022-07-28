@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use nalgebra_glm::{vec4, TVec4};
+use nalgebra_glm::{vec4, vec4_to_vec3, TVec3, TVec4};
 
 pub type Color = TVec4<f32>;
 
@@ -43,4 +43,12 @@ pub fn gray() -> Color {
 
 pub fn green() -> Color {
     from_rgb(0, 128, 0)
+}
+
+pub fn orange() -> Color {
+    from_rgb(255, 165, 0)
+}
+
+pub fn to_rgb(color: &Color) -> TVec3<f32> {
+    vec4_to_vec3(&color)
 }
