@@ -1,15 +1,11 @@
 #[macro_use]
 mod core;
-mod base_test;
-mod hexagon_points;
-mod point;
+mod examples;
 
 use crate::core::application::Loop;
 
-use base_test::TestApp;
-use hexagon_points::HexagonPoints;
-use point::PointApp;
-use wasm_bindgen::{prelude::*, JsCast};
+use examples::hexagon_points::HexagonPoints;
+use wasm_bindgen::prelude::*;
 
 use crate::core::web::get_canvas_by_id;
 
