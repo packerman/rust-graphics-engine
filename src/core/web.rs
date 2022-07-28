@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
-use wasm_bindgen::{prelude::Closure, JsCast};
+use wasm_bindgen::prelude::Closure;
+use wasm_bindgen::JsCast;
 use web_sys::{Document, HtmlCanvasElement, Performance, WebGl2RenderingContext, Window};
 
 // Straight taken from https://rustwasm.github.io/book/game-of-life/debugging.html
