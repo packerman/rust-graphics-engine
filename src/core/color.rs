@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use nalgebra_glm::{vec4, TVec4};
 
 pub type Color = TVec4<f32>;

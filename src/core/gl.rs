@@ -3,6 +3,7 @@ use anyhow::Ok;
 use anyhow::Result;
 
 use web_sys::WebGl2RenderingContext;
+use web_sys::WebGlBuffer;
 use web_sys::WebGlProgram;
 use web_sys::WebGlShader;
 use web_sys::WebGlVertexArrayObject;
@@ -91,8 +92,25 @@ pub fn build_program(
     link_program(context, &vertex_shader, &fragment_shader)
 }
 
+pub fn create_buffer(context: &WebGl2RenderingContext) -> Result<WebGlBuffer> {
+    context
+        .create_buffer()
+        .ok_or_else(|| anyhow!("Cannot create buffer"))
+}
+
 pub fn create_vertex_array(context: &WebGl2RenderingContext) -> Result<WebGlVertexArrayObject> {
     context
         .create_vertex_array()
         .ok_or_else(|| anyhow!("Cannot create vertex array object"))
+}
+
+pub fn get_attrib_location(
+    context: &WebGl2RenderingContext,
+    program: &WebGlProgram,
+    variable: &str,
+) -> Result<u32> {
+    context
+        .get_attrib_location(program, variable)
+        .try_into()
+        .map_err(|err| anyhow!("Cannot convert to u32 {:#?}", err))
 }

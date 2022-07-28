@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
@@ -32,6 +32,7 @@ pub struct HexagonPoints {
 }
 
 impl HexagonPoints {
+    #[allow(dead_code)]
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initialized");
         set_clear_color(context, &color::black());

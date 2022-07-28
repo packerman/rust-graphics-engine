@@ -1,6 +1,8 @@
-use anyhow::{anyhow, Ok, Result};
+use anyhow::{Ok, Result};
 use js_sys::Float32Array;
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
+
+use super::gl::{create_buffer, get_attrib_location};
 
 pub struct DataType {
     size: i32,
@@ -29,9 +31,7 @@ impl<'a, const N: usize> Attribute<'a, N> {
         data_type: &'a DataType,
         data: VertexData<'a, N>,
     ) -> Result<Attribute<'a, N>> {
-        let buffer = context
-            .create_buffer()
-            .ok_or_else(|| anyhow!("Cannot create buffer"))?;
+        let buffer = create_buffer(context)?;
 
         let attribute = Attribute {
             data_type,
@@ -61,10 +61,7 @@ impl<'a, const N: usize> Attribute<'a, N> {
         program: &WebGlProgram,
         variable: &str,
     ) -> Result<()> {
-        let location = context
-            .get_attrib_location(program, variable)
-            .try_into()
-            .map_err(|err| anyhow!("Cannot convert to u32 {:#?}", err))?;
+        let location = get_attrib_location(context, program, variable)?;
         context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
         context.vertex_attrib_pointer_with_i32(
             location,
