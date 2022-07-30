@@ -3,7 +3,7 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
 use super::gl::get_uniform_location;
 
-struct UniformData(Box<dyn Fn(&WebGl2RenderingContext, &WebGlUniformLocation)>);
+pub struct UniformData(Box<dyn Fn(&WebGl2RenderingContext, &WebGlUniformLocation)>);
 
 impl From<i32> for UniformData {
     fn from(data: i32) -> Self {
@@ -53,13 +53,13 @@ impl From<[f32; 4]> for UniformData {
     }
 }
 
-struct Uniform {
+pub struct Uniform {
     data: UniformData,
     location: WebGlUniformLocation,
 }
 
 impl Uniform {
-    fn new_with_data(
+    pub fn new_with_data(
         context: &WebGl2RenderingContext,
         data: UniformData,
         program: &WebGlProgram,
@@ -80,7 +80,7 @@ impl Uniform {
         Ok(())
     }
 
-    fn upload_data(&self, context: &WebGl2RenderingContext) {
+    pub fn upload_data(&self, context: &WebGl2RenderingContext) {
         self.data.0(context, &self.location);
     }
 }
