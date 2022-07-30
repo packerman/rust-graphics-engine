@@ -6,6 +6,7 @@ use web_sys::WebGl2RenderingContext;
 use web_sys::WebGlBuffer;
 use web_sys::WebGlProgram;
 use web_sys::WebGlShader;
+use web_sys::WebGlUniformLocation;
 use web_sys::WebGlVertexArrayObject;
 
 use super::color::Color;
@@ -113,4 +114,14 @@ pub fn get_attrib_location(
         .get_attrib_location(program, variable)
         .try_into()
         .map_err(|err| anyhow!("Cannot convert to u32 {:#?}", err))
+}
+
+pub fn get_uniform_location(
+    context: &WebGl2RenderingContext,
+    program: &WebGlProgram,
+    name: &str,
+) -> Result<WebGlUniformLocation> {
+    context
+        .get_uniform_location(program, name)
+        .ok_or_else(|| anyhow!("Cannot find uniform location {:#?}", name))
 }
