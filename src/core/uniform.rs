@@ -5,23 +5,63 @@ use super::gl::get_uniform_location;
 
 struct UniformData(Box<dyn Fn(&WebGl2RenderingContext, &WebGlUniformLocation)>);
 
-impl UniformData {
-    fn vec3(data: [f32; 3]) -> UniformData {
+impl From<i32> for UniformData {
+    fn from(data: i32) -> Self {
+        UniformData(Box::new(move |context, location| {
+            context.uniform1i(Some(location), data);
+        }))
+    }
+}
+
+impl From<bool> for UniformData {
+    fn from(data: bool) -> Self {
+        UniformData(Box::new(move |context, location| {
+            context.uniform1i(Some(location), data.into());
+        }))
+    }
+}
+
+impl From<f32> for UniformData {
+    fn from(data: f32) -> Self {
+        UniformData(Box::new(move |context, location| {
+            context.uniform1f(Some(location), data);
+        }))
+    }
+}
+
+impl From<[f32; 2]> for UniformData {
+    fn from(data: [f32; 2]) -> Self {
+        UniformData(Box::new(move |context, location| {
+            context.uniform2fv_with_f32_array(Some(location), &data);
+        }))
+    }
+}
+
+impl From<[f32; 3]> for UniformData {
+    fn from(data: [f32; 3]) -> Self {
         UniformData(Box::new(move |context, location| {
             context.uniform3fv_with_f32_array(Some(location), &data);
         }))
     }
 }
 
+impl From<[f32; 4]> for UniformData {
+    fn from(data: [f32; 4]) -> Self {
+        UniformData(Box::new(move |context, location| {
+            context.uniform4fv_with_f32_array(Some(location), &data);
+        }))
+    }
+}
+
 struct Uniform {
-    data: Box<UniformData>,
+    data: UniformData,
     location: WebGlUniformLocation,
 }
 
 impl Uniform {
     fn new_with_data(
         context: &WebGl2RenderingContext,
-        data: Box<UniformData>,
+        data: UniformData,
         program: &WebGlProgram,
         name: &str,
     ) -> Result<Uniform> {
