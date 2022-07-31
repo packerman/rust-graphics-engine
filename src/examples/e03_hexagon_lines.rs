@@ -3,7 +3,7 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::application::Application;
 use crate::core::attribute::{Attribute, DataType};
-use crate::core::color;
+use crate::core::color::black;
 use crate::core::gl::{build_program, create_vertex_array, set_clear_color};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -33,7 +33,7 @@ impl HexagonLines {
     #[allow(dead_code)]
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initialized");
-        set_clear_color(context, &color::black());
+        set_clear_color(context, &black());
         let program = build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         context.line_width(4.0);
         let vao = create_vertex_array(context)?;

@@ -1,5 +1,7 @@
+extern crate nalgebra_glm as glm;
+
 use anyhow::Result;
-use nalgebra_glm::{Vec3, Vec4};
+use glm::{Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
 use super::gl::get_uniform_location;
@@ -21,6 +23,7 @@ impl<T> Uniform<T> {
         Ok(uniform)
     }
 
+    #[allow(dead_code)]
     pub fn locate_variable(
         &mut self,
         context: &WebGl2RenderingContext,

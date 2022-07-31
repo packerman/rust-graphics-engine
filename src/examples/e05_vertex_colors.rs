@@ -3,7 +3,7 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::application::Application;
 use crate::core::attribute::{Attribute, DataType};
-use crate::core::color;
+use crate::core::color::gray;
 use crate::core::gl::{build_program, create_vertex_array, set_clear_color};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -37,7 +37,7 @@ impl VertexColors {
     #[allow(dead_code)]
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
-        set_clear_color(context, &color::gray());
+        set_clear_color(context, &gray());
         let program = build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         context.line_width(4.0);
         let vao = create_vertex_array(context)?;

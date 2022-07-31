@@ -3,8 +3,7 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::application::Application;
 use crate::core::attribute::{Attribute, DataType};
-use crate::core::color;
-use crate::core::color::Color;
+use crate::core::color::{blue, gray, red, Color};
 use crate::core::gl::{build_program, create_vertex_array, set_clear_color};
 use crate::core::uniform::{Uniform, UploadData};
 
@@ -40,7 +39,7 @@ impl TwoTriangles {
     #[allow(dead_code)]
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
-        set_clear_color(context, &color::gray());
+        set_clear_color(context, &gray());
         let program = build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));
@@ -53,8 +52,8 @@ impl TwoTriangles {
             Uniform::new_with_data(context, [-0.5_f32, 0.0, 0.0], &program, "translation")?;
         let translation2 =
             Uniform::new_with_data(context, [0.5_f32, 0.0, 0.0], &program, "translation")?;
-        let base_color1 = Uniform::new_with_data(context, color::red(), &program, "baseColor")?;
-        let base_color2 = Uniform::new_with_data(context, color::blue(), &program, "baseColor")?;
+        let base_color1 = Uniform::new_with_data(context, red(), &program, "baseColor")?;
+        let base_color2 = Uniform::new_with_data(context, blue(), &program, "baseColor")?;
 
         Ok(Box::new(TwoTriangles {
             program,

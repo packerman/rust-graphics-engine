@@ -4,7 +4,7 @@ mod examples;
 
 use crate::core::application::Loop;
 
-use examples::e07_animate_triangle::AnimateTriangle;
+use examples::e08_animate_triangle_time::AnimateTriangleTime;
 use wasm_bindgen::prelude::*;
 
 use crate::core::web::get_canvas_by_id;
@@ -19,7 +19,7 @@ pub fn main_js() -> Result<(), JsValue> {
 
     let canvas = get_canvas_by_id("canvas").unwrap();
 
-    Loop::run(&canvas, Box::new(AnimateTriangle::create)).expect("Cannot run application");
+    Loop::run(&canvas, Box::new(AnimateTriangleTime::create)).expect("Cannot run application");
 
     Ok(())
 }
