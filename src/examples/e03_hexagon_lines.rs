@@ -1,12 +1,10 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use crate::core::{
-    application::Application,
-    attribute::{Attribute, DataType},
-    color,
-    gl::{build_program, create_vertex_array, set_clear_color},
-};
+use crate::core::application::Application;
+use crate::core::attribute::{Attribute, DataType};
+use crate::core::color;
+use crate::core::gl::{build_program, create_vertex_array, set_clear_color};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 in vec4 position;
@@ -26,12 +24,13 @@ void main()
 }
 "##;
 
-pub struct HexagonPoints {
+pub struct HexagonLines {
     program: WebGlProgram,
     vertex_count: usize,
 }
 
-impl HexagonPoints {
+impl HexagonLines {
+    #[allow(dead_code)]
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initialized");
         set_clear_color(context, &color::black());
@@ -51,14 +50,14 @@ impl HexagonPoints {
         let position_attribute =
             Attribute::new_with_data(context, &DataType::VEC3, &position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
-        Ok(Box::new(HexagonPoints {
+        Ok(Box::new(HexagonLines {
             program,
             vertex_count,
         }))
     }
 }
 
-impl Application for HexagonPoints {
+impl Application for HexagonLines {
     fn update(&mut self) {}
     fn render(&self, context: &WebGl2RenderingContext) {
         context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
