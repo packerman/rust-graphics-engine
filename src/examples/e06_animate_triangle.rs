@@ -5,6 +5,7 @@ use crate::core::application::Application;
 use crate::core::attribute::{Attribute, DataType};
 use crate::core::color::{gray, red, Color};
 use crate::core::gl::{build_program, create_vertex_array, set_clear_color};
+use crate::core::input::KeyState;
 use crate::core::uniform::{Uniform, UploadData};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -60,7 +61,7 @@ impl AnimateTriangle {
 }
 
 impl Application for AnimateTriangle {
-    fn update(&mut self) {
+    fn update(&mut self, key_state: &KeyState) {
         self.translation.data[0] += 0.01;
         if self.translation.data[0] > 1.2 {
             self.translation.data[0] = -1.2;

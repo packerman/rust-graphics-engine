@@ -5,6 +5,7 @@ use crate::core::application::Application;
 use crate::core::attribute::{Attribute, DataType};
 use crate::core::color::{gray, red, Color};
 use crate::core::gl::{build_program, create_vertex_array, set_clear_color};
+use crate::core::input::KeyState;
 use crate::core::uniform::{Uniform, UploadData};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -62,7 +63,7 @@ impl AnimateTriangleTime {
 }
 
 impl Application for AnimateTriangleTime {
-    fn update(&mut self) {
+    fn update(&mut self, key_state: &KeyState) {
         let t = self.frame as f32 / 60.0;
         self.translation.data[0] = 0.75 * t.cos();
         self.translation.data[1] = 0.75 * t.sin();

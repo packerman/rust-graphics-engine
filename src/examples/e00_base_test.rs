@@ -4,6 +4,7 @@ use web_sys::WebGl2RenderingContext;
 use crate::core::application::Application;
 use crate::core::color::black;
 use crate::core::gl::set_clear_color;
+use crate::core::input::KeyState;
 
 pub struct TestApp;
 
@@ -17,7 +18,8 @@ impl TestApp {
 }
 
 impl Application for TestApp {
-    fn update(&mut self) {}
+    fn update(&mut self, key_state: &KeyState) {}
+
     fn render(&self, context: &WebGl2RenderingContext) {
         context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
     }

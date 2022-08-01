@@ -5,6 +5,7 @@ use crate::core::application::Application;
 use crate::core::attribute::{Attribute, DataType};
 use crate::core::color::gray;
 use crate::core::gl::{build_program, create_vertex_array, set_clear_color};
+use crate::core::input::KeyState;
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 in vec3 position;
@@ -74,7 +75,8 @@ impl VertexColors {
 }
 
 impl Application for VertexColors {
-    fn update(&mut self) {}
+    fn update(&mut self, key_state: &KeyState) {}
+
     fn render(&self, context: &WebGl2RenderingContext) {
         context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
         context.use_program(Some(&self.program));
