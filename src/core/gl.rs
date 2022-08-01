@@ -1,18 +1,14 @@
-use anyhow::anyhow;
-use anyhow::Ok;
-use anyhow::Result;
+use anyhow::{anyhow, Ok, Result};
 
-use web_sys::WebGl2RenderingContext;
-use web_sys::WebGlBuffer;
-use web_sys::WebGlProgram;
-use web_sys::WebGlShader;
-use web_sys::WebGlUniformLocation;
-use web_sys::WebGlVertexArrayObject;
+use web_sys::{
+    WebGl2RenderingContext, WebGlBuffer, WebGlProgram, WebGlShader, WebGlUniformLocation,
+    WebGlVertexArrayObject,
+};
 
 use super::color::Color;
 
 pub fn set_clear_color(context: &WebGl2RenderingContext, color: &Color) {
-    context.clear_color(color.x, color.y, color.z, color.w)
+    context.clear_color(color.x, color.y, color.z, color.w);
 }
 
 pub fn get_string_parameter(context: &WebGl2RenderingContext, pname: u32) -> Result<String> {
