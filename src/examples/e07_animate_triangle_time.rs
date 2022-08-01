@@ -63,7 +63,7 @@ impl AnimateTriangleTime {
 }
 
 impl Application for AnimateTriangleTime {
-    fn update(&mut self, key_state: &KeyState) {
+    fn update(&mut self, _key_state: &KeyState) {
         let t = self.frame as f32 / 60.0;
         self.translation.data[0] = 0.75 * t.cos();
         self.translation.data[1] = 0.75 * t.sin();

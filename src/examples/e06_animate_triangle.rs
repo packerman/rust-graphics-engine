@@ -61,7 +61,7 @@ impl AnimateTriangle {
 }
 
 impl Application for AnimateTriangle {
-    fn update(&mut self, key_state: &KeyState) {
+    fn update(&mut self, _key_state: &KeyState) {
         self.translation.data[0] += 0.01;
         if self.translation.data[0] > 1.2 {
             self.translation.data[0] = -1.2;

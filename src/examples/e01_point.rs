@@ -42,7 +42,7 @@ impl PointApp {
 }
 
 impl Application for PointApp {
-    fn update(&mut self, key_state: &KeyState) {}
+    fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {
         context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);

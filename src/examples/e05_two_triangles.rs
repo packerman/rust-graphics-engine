@@ -68,7 +68,7 @@ impl TwoTriangles {
 }
 
 impl Application for TwoTriangles {
-    fn update(&mut self, key_state: &KeyState) {}
+    fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {
         context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
