@@ -1,12 +1,14 @@
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use crate::core::application::Application;
-use crate::core::attribute::{Attribute, DataType};
-use crate::core::color::{blue, gray, red, Color};
-use crate::core::gl::{build_program, create_vertex_array, set_clear_color};
-use crate::core::input::KeyState;
-use crate::core::uniform::{Uniform, UploadData};
+use crate::core::{
+    application::Application,
+    attribute::{Attribute, DataType},
+    color::{blue, gray, red, Color},
+    gl::{build_program, create_vertex_array, set_clear_color},
+    input::KeyState,
+    uniform::{Uniform, UploadData},
+};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 in vec3 position;

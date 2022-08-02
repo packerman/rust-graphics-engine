@@ -1,10 +1,7 @@
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::application::Application;
-use crate::core::color::black;
-use crate::core::gl::set_clear_color;
-use crate::core::input::KeyState;
+use crate::core::{application::Application, color::black, gl::set_clear_color, input::KeyState};
 
 pub struct TestApp;
 

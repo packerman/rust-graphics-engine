@@ -5,8 +5,7 @@ mod run_example;
 
 use wasm_bindgen::prelude::*;
 
-use crate::core::web::get_canvas_by_id;
-use crate::run_example::run_example;
+use crate::{core::web::get_canvas_by_id, run_example::run_example};
 
 // This is like the `main` function, except for JavaScript.
 #[wasm_bindgen(start)]

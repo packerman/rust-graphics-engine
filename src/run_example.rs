@@ -1,15 +1,15 @@
 use anyhow::{anyhow, Result};
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 
-use crate::core::application::{Application, Loop};
-use crate::examples::e00_base_test::TestApp;
-use crate::examples::e01_point::PointApp;
-use crate::examples::e02_hexagon_lines::HexagonLines;
-use crate::examples::e03_two_shapes::TwoShapes;
-use crate::examples::e04_vertex_colors::VertexColors;
-use crate::examples::e05_two_triangles::TwoTriangles;
-use crate::examples::e06_animate_triangle::AnimateTriangle;
-use crate::examples::e07_animate_triangle_time::AnimateTriangleTime;
+use crate::{
+    core::application::{Application, Loop},
+    examples::{
+        e00_base_test::TestApp, e01_point::PointApp, e02_hexagon_lines::HexagonLines,
+        e03_two_shapes::TwoShapes, e04_vertex_colors::VertexColors,
+        e05_two_triangles::TwoTriangles, e06_animate_triangle::AnimateTriangle,
+        e07_animate_triangle_time::AnimateTriangleTime,
+    },
+};
 
 pub fn run_example(canvas: &HtmlCanvasElement) -> Result<()> {
     run_example_by_index(canvas, None)

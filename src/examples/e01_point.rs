@@ -1,10 +1,12 @@
 use anyhow::{anyhow, Result};
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use crate::core::application::Application;
-use crate::core::color::black;
-use crate::core::gl::{build_program, set_clear_color};
-use crate::core::input::KeyState;
+use crate::core::{
+    application::Application,
+    color::black,
+    gl::{build_program, set_clear_color},
+    input::KeyState,
+};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 void main()
