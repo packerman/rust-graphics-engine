@@ -39,7 +39,6 @@ pub struct TwoTriangles {
 }
 
 impl TwoTriangles {
-    #[allow(dead_code)]
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
         set_clear_color(context, &gray());

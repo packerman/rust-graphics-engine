@@ -6,7 +6,6 @@ use crate::core::{application::Application, color::black, gl::set_clear_color, i
 pub struct TestApp;
 
 impl TestApp {
-    #[allow(dead_code)]
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initialized");
         set_clear_color(context, &black());

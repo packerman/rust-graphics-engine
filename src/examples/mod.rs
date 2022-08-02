@@ -6,3 +6,4 @@ pub mod e04_vertex_colors;
 pub mod e05_two_triangles;
 pub mod e06_animate_triangle;
 pub mod e07_animate_triangle_time;
+pub mod e08_keyboard_input;

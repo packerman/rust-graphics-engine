@@ -36,7 +36,6 @@ pub struct TwoShapes {
 }
 
 impl TwoShapes {
-    #[allow(dead_code)]
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initialized");
         set_clear_color(context, &black());

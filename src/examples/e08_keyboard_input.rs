@@ -29,14 +29,16 @@ void main()
 }
 "##;
 
-pub struct AnimateTriangle {
+pub struct KeyboardInput {
     program: WebGlProgram,
     vertex_count: usize,
     translation: Uniform<[f32; 3]>,
     base_color: Uniform<Color>,
 }
 
-impl AnimateTriangle {
+impl KeyboardInput {
+    const SPEED: f32 = 0.5;
+
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
         set_clear_color(context, &gray());
@@ -52,7 +54,7 @@ impl AnimateTriangle {
             Uniform::new_with_data(context, [-0.5_f32, 0.0, 0.0], &program, "translation")?;
         let base_color = Uniform::new_with_data(context, red(), &program, "baseColor")?;
 
-        Ok(Box::new(AnimateTriangle {
+        Ok(Box::new(KeyboardInput {
             program,
             vertex_count: position_data.len(),
             translation,
@@ -61,11 +63,20 @@ impl AnimateTriangle {
     }
 }
 
-impl Application for AnimateTriangle {
-    fn update(&mut self, _key_state: &KeyState) {
-        self.translation.data[0] += 0.01;
-        if self.translation.data[0] > 1.2 {
-            self.translation.data[0] = -1.2;
+impl Application for KeyboardInput {
+    fn update(&mut self, key_state: &KeyState) {
+        let distance = Self::SPEED / 60.0;
+        if key_state.is_pressed("ArrowLeft") {
+            self.translation.data[0] -= distance;
+        }
+        if key_state.is_pressed("ArrowRight") {
+            self.translation.data[0] += distance;
+        }
+        if key_state.is_pressed("ArrowDown") {
+            self.translation.data[1] -= distance;
+        }
+        if key_state.is_pressed("ArrowUp") {
+            self.translation.data[1] += distance;
         }
     }
 

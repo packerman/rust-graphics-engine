@@ -33,7 +33,6 @@ pub struct HexagonLines {
 }
 
 impl HexagonLines {
-    #[allow(dead_code)]
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initialized");
         set_clear_color(context, &black());

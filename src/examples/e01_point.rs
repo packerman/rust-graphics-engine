@@ -31,7 +31,6 @@ pub struct PointApp {
 }
 
 impl PointApp {
-    #[allow(dead_code)]
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         set_clear_color(context, &black());
         let program = build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;

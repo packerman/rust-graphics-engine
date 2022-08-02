@@ -72,10 +72,7 @@ impl KeyboardInput {
         loop {
             match self.receiver.try_next() {
                 Ok(None) => break,
-                Err(error) => {
-                    error!("Cannot receive key event: {:#?}", error);
-                    break;
-                }
+                Err(_error) => break,
                 Ok(Some(event)) => match event {
                     KeyEvent::Up(event) => state.set_released(&event.code()),
                     KeyEvent::Down(event) => state.set_pressed(&event.code(), event),
