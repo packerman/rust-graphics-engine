@@ -4,4 +4,5 @@ pub mod application;
 pub mod attribute;
 pub mod color;
 pub mod gl;
+pub mod input;
 pub mod uniform;

@@ -1,5 +1,4 @@
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 use anyhow::{anyhow, Ok, Result};
 use wasm_bindgen::prelude::Closure;
@@ -7,10 +6,13 @@ use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 
 use crate::core::gl::get_string_parameter;
 
-use super::web::{self, get_webgl2_context, request_animation_frame};
+use super::{
+    input::{KeyState, KeyboardInput},
+    web::{self, get_webgl2_context, request_animation_frame},
+};
 
 pub trait Application {
-    fn update(&mut self);
+    fn update(&mut self, key_state: &KeyState);
     fn render(&self, context: &WebGl2RenderingContext);
 }
 
@@ -33,14 +35,17 @@ impl Loop {
             previous_time: web::now()?,
             lag: 0.0,
         };
+        let mut key_state = KeyState::new();
+        let mut keyboard_input = KeyboardInput::prepare(canvas);
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move |current_time| {
+            keyboard_input.process(&mut key_state);
             let elapsed = current_time - state.previous_time;
             state.previous_time = current_time;
             state.lag += elapsed;
             while state.lag >= Self::MS_PER_UPDATE {
-                app.update();
+                app.update(&key_state);
                 state.lag -= Self::MS_PER_UPDATE;
             }
             app.render(&context);

@@ -1,9 +1,12 @@
 use anyhow::{anyhow, Result};
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use crate::core::application::Application;
-use crate::core::color::black;
-use crate::core::gl::{build_program, set_clear_color};
+use crate::core::{
+    application::Application,
+    color::black,
+    gl::{build_program, set_clear_color},
+    input::KeyState,
+};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 void main()
@@ -28,7 +31,6 @@ pub struct PointApp {
 }
 
 impl PointApp {
-    #[allow(dead_code)]
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         set_clear_color(context, &black());
         let program = build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
@@ -41,7 +43,8 @@ impl PointApp {
 }
 
 impl Application for PointApp {
-    fn update(&mut self) {}
+    fn update(&mut self, _key_state: &KeyState) {}
+
     fn render(&self, context: &WebGl2RenderingContext) {
         context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
         context.use_program(Some(&self.program));

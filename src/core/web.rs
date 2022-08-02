@@ -1,12 +1,17 @@
 use anyhow::{anyhow, Result};
-use wasm_bindgen::prelude::Closure;
-use wasm_bindgen::JsCast;
+use wasm_bindgen::{prelude::Closure, JsCast};
 use web_sys::{Document, HtmlCanvasElement, Performance, WebGl2RenderingContext, Window};
 
 // Straight taken from https://rustwasm.github.io/book/game-of-life/debugging.html
 macro_rules! log {
     ( $( $t:tt )* ) => {
         web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
+}
+
+macro_rules! error {
+    ( $( $t:tt )* ) => {
+        web_sys::console::error_1(&format!( $( $t )* ).into());
     }
 }
 

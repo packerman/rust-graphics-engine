@@ -1,10 +1,13 @@
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use crate::core::application::Application;
-use crate::core::attribute::{Attribute, DataType};
-use crate::core::color::gray;
-use crate::core::gl::{build_program, create_vertex_array, set_clear_color};
+use crate::core::{
+    application::Application,
+    attribute::{Attribute, DataType},
+    color::gray,
+    gl::{build_program, create_vertex_array, set_clear_color},
+    input::KeyState,
+};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 in vec3 position;
@@ -34,7 +37,6 @@ pub struct VertexColors {
 }
 
 impl VertexColors {
-    #[allow(dead_code)]
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
         set_clear_color(context, &gray());
@@ -74,7 +76,8 @@ impl VertexColors {
 }
 
 impl Application for VertexColors {
-    fn update(&mut self) {}
+    fn update(&mut self, _key_state: &KeyState) {}
+
     fn render(&self, context: &WebGl2RenderingContext) {
         context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
         context.use_program(Some(&self.program));
