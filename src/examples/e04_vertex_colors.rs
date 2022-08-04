@@ -3,7 +3,7 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
     application::Application,
-    attribute::{Attribute, DataType},
+    attribute::Attribute,
     color::gray,
     gl::{build_program, create_vertex_array, set_clear_color},
     input::KeyState,
@@ -53,8 +53,7 @@ impl VertexColors {
             [0.4, -0.6, 0.0],
         ];
         let vertex_count = position_data.len();
-        let position_attribute =
-            Attribute::new_with_data(context, &DataType::VEC3, &position_data)?;
+        let position_attribute = Attribute::new_with_data(context, &position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
         let color_data = [
@@ -65,7 +64,7 @@ impl VertexColors {
             [0.0, 0.0, 1.0],
             [0.5, 0.0, 1.0],
         ];
-        let color_attribute = Attribute::new_with_data(context, &DataType::VEC3, &color_data)?;
+        let color_attribute = Attribute::new_with_data(context, &color_data)?;
         color_attribute.associate_variable(context, &program, "vertexColor")?;
 
         Ok(Box::new(VertexColors {
