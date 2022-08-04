@@ -13,28 +13,38 @@ impl DataType {
     const fn new(size: i32, base_type: u32) -> DataType {
         DataType { size, base_type }
     }
-
-    pub const VEC3: DataType = DataType::new(3, WebGl2RenderingContext::FLOAT);
+}
+pub trait AttributeData {
+    fn data_type(&self) -> DataType;
+    fn buffer_data(&self, context: &WebGl2RenderingContext);
 }
 
-pub type VertexData<'a, const N: usize> = &'a [[f32; N]];
+impl<const N: usize, const K: usize> AttributeData for &[[f32; N]; K] {
+    fn data_type(&self) -> DataType {
+        DataType::new(N.try_into().unwrap(), WebGl2RenderingContext::FLOAT)
+    }
 
-pub struct Attribute<'a, const N: usize> {
-    data_type: &'a DataType,
-    data: VertexData<'a, N>,
+    fn buffer_data(&self, context: &WebGl2RenderingContext) {
+        let flat_data = flatten_data(self);
+        unsafe {
+            let buffer_view = Float32Array::view(&flat_data);
+            buffer_data(context, &buffer_view);
+        }
+    }
+}
+
+pub struct Attribute<D> {
+    data_type: DataType,
+    data: D,
     buffer: WebGlBuffer,
 }
 
-impl<'a, const N: usize> Attribute<'a, N> {
-    pub fn new_with_data(
-        context: &WebGl2RenderingContext,
-        data_type: &'a DataType,
-        data: VertexData<'a, N>,
-    ) -> Result<Attribute<'a, N>> {
+impl<D: AttributeData> Attribute<D> {
+    pub fn new_with_data(context: &WebGl2RenderingContext, data: D) -> Result<Attribute<D>> {
         let buffer = create_buffer(context)?;
 
         let attribute = Attribute {
-            data_type,
+            data_type: data.data_type(),
             data,
             buffer,
         };
@@ -44,15 +54,7 @@ impl<'a, const N: usize> Attribute<'a, N> {
 
     pub fn upload_data(&self, context: &WebGl2RenderingContext) {
         context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
-        let flat_data = flatten_data(self.data);
-        unsafe {
-            let buffer_view = Float32Array::view(&flat_data);
-            context.buffer_data_with_array_buffer_view(
-                WebGl2RenderingContext::ARRAY_BUFFER,
-                &buffer_view,
-                WebGl2RenderingContext::STATIC_DRAW,
-            );
-        }
+        self.data.buffer_data(context);
     }
 
     pub fn associate_variable(
@@ -76,6 +78,14 @@ impl<'a, const N: usize> Attribute<'a, N> {
     }
 }
 
-fn flatten_data<'a, const N: usize>(data: VertexData<'a, N>) -> Vec<f32> {
+fn flatten_data<T: Clone, const N: usize, const K: usize>(data: &[[T; N]; K]) -> Vec<T> {
     data.into_iter().flat_map(|item| item.to_vec()).collect()
+}
+
+fn buffer_data(context: &WebGl2RenderingContext, buffer_view: &js_sys::Object) {
+    context.buffer_data_with_array_buffer_view(
+        WebGl2RenderingContext::ARRAY_BUFFER,
+        buffer_view,
+        WebGl2RenderingContext::STATIC_DRAW,
+    );
 }

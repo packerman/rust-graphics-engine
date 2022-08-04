@@ -3,7 +3,7 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlVertexArrayObject};
 
 use crate::core::{
     application::Application,
-    attribute::{Attribute, DataType},
+    attribute::Attribute,
     color::black,
     gl::{build_program, create_vertex_array, set_clear_color},
     input::KeyState,
@@ -47,7 +47,7 @@ impl TwoShapes {
         let position_data_triangle = [[-0.5_f32, 0.8, 0.0], [-0.2, 0.2, 0.0], [-0.8, 0.2, 0.0]];
         let vertex_count_triangle = position_data_triangle.len();
         let position_attribute_triangle =
-            Attribute::new_with_data(context, &DataType::VEC3, &position_data_triangle)?;
+            Attribute::new_with_data(context, &position_data_triangle)?;
         position_attribute_triangle.associate_variable(context, &program, "position")?;
 
         let vao_square = create_vertex_array(context)?;
@@ -59,8 +59,7 @@ impl TwoShapes {
             [0.2, 0.8, 0.0],
         ];
         let vertex_count_square = position_data_square.len();
-        let position_attribute_square =
-            Attribute::new_with_data(context, &DataType::VEC3, &position_data_square)?;
+        let position_attribute_square = Attribute::new_with_data(context, &position_data_square)?;
         position_attribute_square.associate_variable(context, &program, "position")?;
 
         Ok(Box::new(TwoShapes {

@@ -3,7 +3,7 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
     application::Application,
-    attribute::{Attribute, DataType},
+    attribute::Attribute,
     color::{gray, red, Color},
     gl::{build_program, create_vertex_array, set_clear_color},
     input::KeyState,
@@ -45,8 +45,7 @@ impl AnimateTriangleTime {
         let vao = create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));
         let position_data = [[0.0_f32, 0.2, 0.0], [0.2, -0.2, 0.0], [-0.2, -0.2, 0.0]];
-        let position_attribute =
-            Attribute::new_with_data(context, &DataType::VEC3, &position_data)?;
+        let position_attribute = Attribute::new_with_data(context, &position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
         let translation =

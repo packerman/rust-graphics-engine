@@ -1,9 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use futures::channel::{
-    mpsc::UnboundedReceiver,
-    {self},
-};
+use futures::channel::{self, mpsc::UnboundedReceiver};
 use wasm_bindgen::{prelude::Closure, JsCast};
 use web_sys::{HtmlCanvasElement, KeyboardEvent};
 
