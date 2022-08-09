@@ -4,11 +4,11 @@ use anyhow::{anyhow, Ok, Result};
 use wasm_bindgen::prelude::Closure;
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 
-use crate::core::gl::get_string_parameter;
+use crate::core::gl;
 
 use super::{
     input::{KeyState, KeyboardInput},
-    web::{self, get_webgl2_context, request_animation_frame},
+    web,
 };
 
 pub trait Application {
@@ -28,7 +28,7 @@ impl Loop {
     const MS_PER_UPDATE: f64 = 1000.0 / (Self::FRAMES_PER_SECOND as f64);
 
     pub fn run(canvas: &HtmlCanvasElement, creator: Box<AppCreator>) -> Result<()> {
-        let context = get_webgl2_context(&canvas)?;
+        let context = web::get_webgl2_context(&canvas)?;
         log_gl_strings(&context)?;
         let mut app = creator(&context)?;
         let mut state = Loop {
@@ -49,14 +49,14 @@ impl Loop {
                 state.lag -= Self::MS_PER_UPDATE;
             }
             app.render(&context);
-            request_animation_frame(
+            web::request_animation_frame(
                 f.borrow()
                     .as_ref()
                     .expect("Empty reference to the `requestAnimationFrame` callback"),
             )
             .expect("Cannot run `requestAnimationFrame`");
         }) as Box<dyn FnMut(f64)>));
-        request_animation_frame(
+        web::request_animation_frame(
             g.borrow().as_ref().ok_or_else(|| {
                 anyhow!("Empty reference to the `requestAnimationFrame` callback")
             })?,
@@ -68,19 +68,19 @@ impl Loop {
 fn log_gl_strings(context: &WebGl2RenderingContext) -> Result<()> {
     log!(
         "GL vendor = {}",
-        get_string_parameter(context, WebGl2RenderingContext::VENDOR)?
+        gl::get_string_parameter(context, WebGl2RenderingContext::VENDOR)?
     );
     log!(
         "GL renderer = {}",
-        get_string_parameter(context, WebGl2RenderingContext::RENDERER)?
+        gl::get_string_parameter(context, WebGl2RenderingContext::RENDERER)?
     );
     log!(
         "GL version = {}",
-        get_string_parameter(context, WebGl2RenderingContext::VERSION)?
+        gl::get_string_parameter(context, WebGl2RenderingContext::VERSION)?
     );
     log!(
         "GLSL version = {}",
-        get_string_parameter(&context, WebGl2RenderingContext::SHADING_LANGUAGE_VERSION)?
+        gl::get_string_parameter(&context, WebGl2RenderingContext::SHADING_LANGUAGE_VERSION)?
     );
     Ok(())
 }

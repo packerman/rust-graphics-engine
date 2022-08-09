@@ -1,13 +1,7 @@
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlVertexArrayObject};
 
-use crate::core::{
-    application::Application,
-    attribute::Attribute,
-    color::black,
-    gl::{build_program, create_vertex_array, set_clear_color},
-    input::KeyState,
-};
+use crate::core::{application::Application, attribute::Attribute, color, gl, input::KeyState};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 in vec4 position;
@@ -38,11 +32,11 @@ pub struct TwoShapes {
 impl TwoShapes {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initialized");
-        set_clear_color(context, &black());
-        let program = build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
+        gl::set_clear_color(context, &color::black());
+        let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         context.line_width(4.0);
 
-        let vao_triangle = create_vertex_array(context)?;
+        let vao_triangle = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao_triangle));
         let position_data_triangle = [[-0.5_f32, 0.8, 0.0], [-0.2, 0.2, 0.0], [-0.8, 0.2, 0.0]];
         let vertex_count_triangle = position_data_triangle.len();
@@ -50,7 +44,7 @@ impl TwoShapes {
             Attribute::new_with_data(context, &position_data_triangle)?;
         position_attribute_triangle.associate_variable(context, &program, "position")?;
 
-        let vao_square = create_vertex_array(context)?;
+        let vao_square = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao_square));
         let position_data_square = [
             [0.8_f32, 0.8, 0.0],

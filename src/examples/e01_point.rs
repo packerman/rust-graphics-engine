@@ -1,12 +1,7 @@
 use anyhow::{anyhow, Result};
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use crate::core::{
-    application::Application,
-    color::black,
-    gl::{build_program, set_clear_color},
-    input::KeyState,
-};
+use crate::core::{application::Application, color, gl, input::KeyState};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 void main()
@@ -32,8 +27,8 @@ pub struct PointApp {
 
 impl PointApp {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
-        set_clear_color(context, &black());
-        let program = build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
+        gl::set_clear_color(context, &color::black());
+        let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = context
             .create_vertex_array()
             .ok_or_else(|| anyhow!("Cannot create vertex array object"))?;

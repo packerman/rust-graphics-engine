@@ -2,7 +2,7 @@ use anyhow::{Ok, Result};
 use js_sys::Float32Array;
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
 
-use super::gl::{create_buffer, get_attrib_location};
+use super::gl;
 
 pub struct DataType {
     size: i32,
@@ -41,7 +41,7 @@ pub struct Attribute<D> {
 
 impl<D: AttributeData> Attribute<D> {
     pub fn new_with_data(context: &WebGl2RenderingContext, data: D) -> Result<Attribute<D>> {
-        let buffer = create_buffer(context)?;
+        let buffer = gl::create_buffer(context)?;
 
         let attribute = Attribute {
             data_type: data.data_type(),
@@ -63,7 +63,7 @@ impl<D: AttributeData> Attribute<D> {
         program: &WebGlProgram,
         variable: &str,
     ) -> Result<()> {
-        let location = get_attrib_location(context, program, variable)?;
+        let location = gl::get_attrib_location(context, program, variable)?;
         context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
         context.vertex_attrib_pointer_with_i32(
             location,

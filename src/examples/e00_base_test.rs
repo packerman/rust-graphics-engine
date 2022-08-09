@@ -1,14 +1,14 @@
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{application::Application, color::black, gl::set_clear_color, input::KeyState};
+use crate::core::{application::Application, color, gl, input::KeyState};
 
 pub struct TestApp;
 
 impl TestApp {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initialized");
-        set_clear_color(context, &black());
+        gl::set_clear_color(context, &color::black());
         Ok(Box::new(TestApp))
     }
 }

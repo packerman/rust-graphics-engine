@@ -1,13 +1,7 @@
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use crate::core::{
-    application::Application,
-    attribute::Attribute,
-    color::gray,
-    gl::{build_program, create_vertex_array, set_clear_color},
-    input::KeyState,
-};
+use crate::core::{application::Application, attribute::Attribute, color, gl, input::KeyState};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 in vec3 position;
@@ -39,10 +33,10 @@ pub struct VertexColors {
 impl VertexColors {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
-        set_clear_color(context, &gray());
-        let program = build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
+        gl::set_clear_color(context, &color::gray());
+        let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         context.line_width(4.0);
-        let vao = create_vertex_array(context)?;
+        let vao = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));
         let position_data = [
             [0.8_f32, 0.0, 0.0],

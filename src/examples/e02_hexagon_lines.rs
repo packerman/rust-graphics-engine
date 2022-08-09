@@ -1,13 +1,7 @@
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use crate::core::{
-    application::Application,
-    attribute::Attribute,
-    color::black,
-    gl::{build_program, create_vertex_array, set_clear_color},
-    input::KeyState,
-};
+use crate::core::{application::Application, attribute::Attribute, color, gl, input::KeyState};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 in vec4 position;
@@ -35,10 +29,10 @@ pub struct HexagonLines {
 impl HexagonLines {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initialized");
-        set_clear_color(context, &black());
-        let program = build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
+        gl::set_clear_color(context, &color::black());
+        let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         context.line_width(4.0);
-        let vao = create_vertex_array(context)?;
+        let vao = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));
         let position_data = [
             [0.8_f32, 0.0, 0.0],
