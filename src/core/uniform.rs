@@ -1,5 +1,5 @@
 use anyhow::Result;
-use glm::{Vec3, Vec4};
+use glm::{Mat4, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
 use super::gl;
@@ -56,5 +56,11 @@ impl UploadData for Vec3 {
 impl UploadData for Vec4 {
     fn upload_data(&self, context: &WebGl2RenderingContext, location: &WebGlUniformLocation) {
         context.uniform4f(Some(location), self.x, self.y, self.z, self.w);
+    }
+}
+
+impl UploadData for Mat4 {
+    fn upload_data(&self, context: &WebGl2RenderingContext, location: &WebGlUniformLocation) {
+        context.uniform_matrix4fv_with_f32_array(Some(location), false, self.into());
     }
 }
