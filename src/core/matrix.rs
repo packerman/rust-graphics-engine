@@ -1,4 +1,5 @@
 use glm::Mat4;
+use num_traits::Float;
 
 pub fn identity() -> Mat4 {
     glm::identity()
@@ -24,9 +25,21 @@ pub fn scale(s: f32) -> Mat4 {
     glm::scaling(&glm::vec3(s, s, s))
 }
 
+pub struct Angle<F>(F);
+
+impl<F: Float> Angle<F> {
+    pub fn from_degrees(degrees: F) -> Self {
+        Self(degrees.to_radians())
+    }
+
+    pub fn to_radians(&self) -> F {
+        self.0
+    }
+}
+
 pub struct Perspective {
     pub aspect_ratio: f32,
-    pub angle_of_view_degrees: f32,
+    pub angle_of_view: Angle<f32>,
     pub near: f32,
     pub far: f32,
 }
@@ -44,7 +57,7 @@ impl Default for Perspective {
     fn default() -> Self {
         Self {
             aspect_ratio: 1.0,
-            angle_of_view_degrees: 60.0,
+            angle_of_view: Angle::from_degrees(60.0),
             near: 0.1,
             far: 1000.0,
         }
@@ -55,7 +68,7 @@ impl From<Perspective> for Mat4 {
     fn from(perspective: Perspective) -> Self {
         glm::perspective(
             perspective.aspect_ratio,
-            perspective.angle_of_view_degrees.to_radians(),
+            perspective.angle_of_view.to_radians(),
             perspective.near,
             perspective.far,
         )
