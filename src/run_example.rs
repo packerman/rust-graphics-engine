@@ -8,6 +8,7 @@ use crate::{
         e03_two_shapes::TwoShapes, e04_vertex_colors::VertexColors,
         e05_two_triangles::TwoTriangles, e06_animate_triangle::AnimateTriangle,
         e07_animate_triangle_time::AnimateTriangleTime, e08_keyboard_input::KeyboardInput,
+        e09_move_triangle::MoveTriangle,
     },
 };
 
@@ -26,6 +27,7 @@ fn examples() -> Vec<Box<dyn Fn(&WebGl2RenderingContext) -> Result<Box<dyn Appli
         Box::new(AnimateTriangle::create),
         Box::new(AnimateTriangleTime::create),
         Box::new(KeyboardInput::create),
+        Box::new(MoveTriangle::create),
     ]
 }
 

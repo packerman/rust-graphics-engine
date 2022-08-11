@@ -51,12 +51,12 @@ impl VertexColors {
         position_attribute.associate_variable(context, &program, "position")?;
 
         let color_data = [
-            [1.0_f32, 0.0, 0.0],
-            [1.0, 0.5, 0.0],
-            [1.0, 1.0, 0.0],
-            [0.0, 1.0, 0.0],
-            [0.0, 0.0, 1.0],
-            [0.5, 0.0, 1.0],
+            color::to_array3(&color::red()),
+            color::to_array3(&color::dark_orange()),
+            color::to_array3(&color::yellow()),
+            color::to_array3(&color::lime()),
+            color::to_array3(&color::blue()),
+            color::to_array3(&color::blue_violet()),
         ];
         let color_attribute = Attribute::new_with_data(context, &color_data)?;
         color_attribute.associate_variable(context, &program, "vertexColor")?;
