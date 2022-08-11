@@ -296,7 +296,6 @@ dependencies = [
  "futures",
  "js-sys",
  "nalgebra-glm",
- "num-traits",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",

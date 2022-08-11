@@ -1,6 +1,6 @@
 use glm::Mat4;
-use num_traits::Float;
 
+#[allow(dead_code)]
 pub fn identity() -> Mat4 {
     glm::identity()
 }
@@ -9,10 +9,12 @@ pub fn translation(x: f32, y: f32, z: f32) -> Mat4 {
     glm::translation(&glm::vec3(x, y, z))
 }
 
+#[allow(dead_code)]
 pub fn rotation_x(angle: f32) -> Mat4 {
     glm::rotation(angle, &glm::vec3(1.0, 0.0, 0.0))
 }
 
+#[allow(dead_code)]
 pub fn rotation_y(angle: f32) -> Mat4 {
     glm::rotation(angle, &glm::vec3(0.0, 1.0, 0.0))
 }
@@ -21,25 +23,26 @@ pub fn rotation_z(angle: f32) -> Mat4 {
     glm::rotation(angle, &glm::vec3(0.0, 0.0, 1.0))
 }
 
+#[allow(dead_code)]
 pub fn scale(s: f32) -> Mat4 {
     glm::scaling(&glm::vec3(s, s, s))
 }
 
-pub struct Angle<F>(F);
+pub struct Angle(f32);
 
-impl<F: Float> Angle<F> {
-    pub fn from_degrees(degrees: F) -> Self {
+impl Angle {
+    pub fn from_degrees(degrees: f32) -> Self {
         Self(degrees.to_radians())
     }
 
-    pub fn to_radians(&self) -> F {
+    pub fn to_radians(&self) -> f32 {
         self.0
     }
 }
 
 pub struct Perspective {
     pub aspect_ratio: f32,
-    pub angle_of_view: Angle<f32>,
+    pub angle_of_view: Angle,
     pub near: f32,
     pub far: f32,
 }
