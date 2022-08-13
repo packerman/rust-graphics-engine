@@ -1,5 +1,6 @@
 use std::{
     cell::RefCell,
+    ptr,
     rc::{Rc, Weak},
 };
 
@@ -27,18 +28,18 @@ impl Node {
         *child.parent.borrow_mut() = Rc::downgrade(parent);
     }
 
-    pub fn remove_child(parent: &Rc<Node>, child: &Rc<Node>) {
-        if let Some(index) = Self::find_child_index(parent, child) {
-            parent.children.borrow_mut().swap_remove(index);
-            *child.parent.borrow_mut() = Weak::new();
+    pub fn remove_child(&self, child: &Node) {
+        if let Some(index) = Self::find_child_index(self, child) {
+            self.children.borrow_mut().swap_remove(index);
+            drop(child.parent.borrow_mut());
         }
     }
 
-    fn find_child_index(parent: &Node, child: &Rc<Node>) -> Option<usize> {
+    fn find_child_index(parent: &Node, child: &Node) -> Option<usize> {
         parent
             .children
             .borrow()
             .iter()
-            .position(|node| Rc::ptr_eq(node, child))
+            .position(|node| ptr::eq(Rc::as_ptr(node), child))
     }
 }
