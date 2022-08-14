@@ -5,13 +5,18 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use glm::Mat4;
+use glm::{vec3, Mat4, Vec3};
 
-use super::matrix;
+use super::matrix::{self, Angle};
+
+pub enum Transform {
+    Local,
+    Global,
+}
 
 struct Node {
     me: Weak<Node>,
-    transform: Mat4,
+    transform: RefCell<Mat4>,
     parent: RefCell<Weak<Node>>,
     children: RefCell<Vec<Rc<Node>>>,
 }
@@ -20,7 +25,7 @@ impl Node {
     pub fn new() -> Rc<Self> {
         Rc::new_cyclic(|me| Node {
             me: me.clone(),
-            transform: matrix::identity(),
+            transform: RefCell::new(matrix::identity()),
             parent: RefCell::new(Weak::new()),
             children: RefCell::new(vec![]),
         })
@@ -40,9 +45,9 @@ impl Node {
 
     pub fn world_matrix(&self) -> Mat4 {
         if let Some(parent) = self.parent.borrow().upgrade() {
-            parent.world_matrix() * self.transform
+            parent.world_matrix() * *self.transform.borrow()
         } else {
-            self.transform
+            *self.transform.borrow()
         }
     }
 
@@ -62,6 +67,55 @@ impl Node {
             extend_queue(&mut queue, &node.children.borrow());
         }
         result
+    }
+
+    pub fn appply_matrix(&self, matrix: &Mat4, transform: Transform) {
+        match transform {
+            Transform::Local => self.transform.replace_with(|&mut old| old * matrix),
+            Transform::Global => self.transform.replace_with(|&mut old| matrix * old),
+        };
+    }
+
+    pub fn translate(&self, x: f32, y: f32, z: f32, transform: Transform) {
+        let m = matrix::translation(x, y, z);
+        self.appply_matrix(&m, transform);
+    }
+
+    pub fn rotate_x(&self, angle: Angle, transform: Transform) {
+        let m = matrix::rotation_x(angle);
+        self.appply_matrix(&m, transform);
+    }
+
+    pub fn rotate_y(&self, angle: Angle, transform: Transform) {
+        let m = matrix::rotation_y(angle);
+        self.appply_matrix(&m, transform);
+    }
+
+    pub fn rotate_z(&self, angle: Angle, transform: Transform) {
+        let m = matrix::rotation_z(angle);
+        self.appply_matrix(&m, transform);
+    }
+
+    pub fn scale(&self, s: f32, transform: Transform) {
+        let m = matrix::scale(s);
+        self.appply_matrix(&m, transform);
+    }
+
+    pub fn get_position(&self) -> Vec3 {
+        let transform = self.transform.borrow();
+        vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])
+    }
+
+    pub fn get_world_position(&self) -> Vec3 {
+        let transform = self.world_matrix();
+        vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])
+    }
+
+    pub fn set_position(&self, position: &Vec3) {
+        let mut transform = self.transform.borrow_mut();
+        transform[(0, 3)] = position[0];
+        transform[(1, 3)] = position[1];
+        transform[(2, 3)] = position[2];
     }
 
     fn find_child_index(parent: &Node, child: &Node) -> Option<usize> {
