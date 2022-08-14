@@ -1,6 +1,7 @@
+use std::ops::{Mul, Neg};
+
 use glm::Mat4;
 
-#[allow(dead_code)]
 pub fn identity() -> Mat4 {
     glm::identity()
 }
@@ -9,25 +10,7 @@ pub fn translation(x: f32, y: f32, z: f32) -> Mat4 {
     glm::translation(&glm::vec3(x, y, z))
 }
 
-#[allow(dead_code)]
-pub fn rotation_x(angle: f32) -> Mat4 {
-    glm::rotation(angle, &glm::vec3(1.0, 0.0, 0.0))
-}
-
-#[allow(dead_code)]
-pub fn rotation_y(angle: f32) -> Mat4 {
-    glm::rotation(angle, &glm::vec3(0.0, 1.0, 0.0))
-}
-
-pub fn rotation_z(angle: f32) -> Mat4 {
-    glm::rotation(angle, &glm::vec3(0.0, 0.0, 1.0))
-}
-
-#[allow(dead_code)]
-pub fn scale(s: f32) -> Mat4 {
-    glm::scaling(&glm::vec3(s, s, s))
-}
-
+#[derive(Clone, Copy)]
 pub struct Angle(f32);
 
 impl Angle {
@@ -35,9 +18,48 @@ impl Angle {
         Self(degrees.to_radians())
     }
 
+    pub fn from_radians(radians: f32) -> Self {
+        Self(radians)
+    }
+
     pub fn to_radians(&self) -> f32 {
         self.0
     }
+}
+
+impl Mul<f32> for Angle {
+    type Output = Self;
+
+    fn mul(self, s: f32) -> Self::Output {
+        Self(self.0 * s)
+    }
+}
+
+impl Neg for Angle {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self(-self.0)
+    }
+}
+
+#[allow(dead_code)]
+pub fn rotation_x(angle: Angle) -> Mat4 {
+    glm::rotation(angle.to_radians(), &glm::vec3(1.0, 0.0, 0.0))
+}
+
+#[allow(dead_code)]
+pub fn rotation_y(angle: Angle) -> Mat4 {
+    glm::rotation(angle.to_radians(), &glm::vec3(0.0, 1.0, 0.0))
+}
+
+pub fn rotation_z(angle: Angle) -> Mat4 {
+    glm::rotation(angle.to_radians(), &glm::vec3(0.0, 0.0, 1.0))
+}
+
+#[allow(dead_code)]
+pub fn scale(s: f32) -> Mat4 {
+    glm::scaling(&glm::vec3(s, s, s))
 }
 
 pub struct Perspective {

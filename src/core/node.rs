@@ -28,7 +28,7 @@ impl Node {
 
     pub fn add_child(&self, child: &Rc<Node>) {
         self.children.borrow_mut().push(Rc::clone(child));
-        *child.parent.borrow_mut() = self.me.clone();
+        *child.parent.borrow_mut() = Weak::clone(&self.me);
     }
 
     pub fn remove_child(&self, child: &Node) {
@@ -50,11 +50,14 @@ impl Node {
         fn extend_queue(queue: &mut VecDeque<Weak<Node>>, nodes: &Vec<Rc<Node>>) {
             queue.extend(nodes.iter().map(|child| Rc::downgrade(&child)));
         }
+        fn pop_front(queue: &mut VecDeque<Weak<Node>>) -> Rc<Node> {
+            queue.pop_front().unwrap().upgrade().unwrap()
+        }
         let mut result = vec![];
         let mut queue = VecDeque::new();
         queue.push_back(Rc::downgrade(&node));
         while !queue.is_empty() {
-            let node = queue.pop_front().unwrap().upgrade().unwrap();
+            let node = pop_front(&mut queue);
             result.push(Rc::clone(&node));
             extend_queue(&mut queue, &node.children.borrow());
         }

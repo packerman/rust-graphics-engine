@@ -82,7 +82,7 @@ impl MoveTriangle {
 impl Application for MoveTriangle {
     fn update(&mut self, key_state: &KeyState) {
         let move_amount = self.move_speed * Self::DELTA_TIME_SEC;
-        let turn_mount = self.turn_speed.to_radians() * Self::DELTA_TIME_SEC;
+        let turn_mount = self.turn_speed * Self::DELTA_TIME_SEC;
         // global
         if key_state.is_pressed("KeyW") {
             let m = matrix::translation(0.0, move_amount, 0.0);
