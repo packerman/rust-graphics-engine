@@ -2,7 +2,6 @@ use glm::{Vec3, Vec4};
 
 pub type Color = Vec4;
 
-#[allow(dead_code)]
 pub fn white() -> Color {
     from_rgb(255, 255, 255)
 }
@@ -42,7 +41,6 @@ pub fn lime() -> Color {
     from_rgb(0, 255, 0)
 }
 
-#[allow(dead_code)]
 pub fn green() -> Color {
     from_rgb(0, 128, 0)
 }

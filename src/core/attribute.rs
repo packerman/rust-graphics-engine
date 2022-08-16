@@ -17,6 +17,7 @@ impl DataType {
 pub trait AttributeData {
     fn data_type(&self) -> DataType;
     fn buffer_data(&self, context: &WebGl2RenderingContext);
+    fn vertex_count(&self) -> usize;
 }
 
 impl<const N: usize, const K: usize> AttributeData for &[[f32; N]; K] {
@@ -31,16 +32,20 @@ impl<const N: usize, const K: usize> AttributeData for &[[f32; N]; K] {
             buffer_data(context, &buffer_view);
         }
     }
+
+    fn vertex_count(&self) -> usize {
+        self.len()
+    }
 }
 
-pub struct Attribute<D> {
+pub struct Attribute {
     data_type: DataType,
-    data: D,
     buffer: WebGlBuffer,
+    pub vertex_count: usize,
 }
 
-impl<D> Attribute<D> {
-    pub fn new_with_data(context: &WebGl2RenderingContext, data: D) -> Result<Attribute<D>>
+impl Attribute {
+    pub fn new_with_data<D>(context: &WebGl2RenderingContext, data: D) -> Result<Attribute>
     where
         D: AttributeData,
     {
@@ -48,19 +53,19 @@ impl<D> Attribute<D> {
 
         let attribute = Attribute {
             data_type: data.data_type(),
-            data,
             buffer,
+            vertex_count: data.vertex_count(),
         };
-        attribute.upload_data(context);
+        attribute.upload_data(context, data);
         Ok(attribute)
     }
 
-    pub fn upload_data(&self, context: &WebGl2RenderingContext)
+    fn upload_data<D>(&self, context: &WebGl2RenderingContext, data: D)
     where
         D: AttributeData,
     {
         context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
-        self.data.buffer_data(context);
+        data.buffer_data(context);
     }
 
     pub fn associate_variable(

@@ -11,19 +11,23 @@ pub fn translation(x: f32, y: f32, z: f32) -> Mat4 {
 }
 
 #[derive(Clone, Copy)]
-pub struct Angle(f32);
+pub struct Angle {
+    radians: f32,
+}
 
 impl Angle {
     pub fn from_degrees(degrees: f32) -> Self {
-        Self(degrees.to_radians())
+        Self {
+            radians: degrees.to_radians(),
+        }
     }
 
     pub fn from_radians(radians: f32) -> Self {
-        Self(radians)
+        Self { radians }
     }
 
     pub fn to_radians(&self) -> f32 {
-        self.0
+        self.radians
     }
 }
 
@@ -31,7 +35,9 @@ impl Mul<f32> for Angle {
     type Output = Self;
 
     fn mul(self, s: f32) -> Self::Output {
-        Self(self.0 * s)
+        Self {
+            radians: self.radians * s,
+        }
     }
 }
 
@@ -39,7 +45,9 @@ impl Neg for Angle {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Self(-self.0)
+        Self {
+            radians: -self.radians,
+        }
     }
 }
 
