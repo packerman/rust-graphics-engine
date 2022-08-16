@@ -14,11 +14,16 @@ pub enum Transform {
     Global,
 }
 
+pub enum NodeType {
+    Group,
+}
+
 struct Node {
     me: Weak<Node>,
     transform: RefCell<Mat4>,
     parent: RefCell<Weak<Node>>,
     children: RefCell<Vec<Rc<Node>>>,
+    node_type: NodeType,
 }
 
 impl Node {
@@ -28,6 +33,7 @@ impl Node {
             transform: RefCell::new(matrix::identity()),
             parent: RefCell::new(Weak::new()),
             children: RefCell::new(vec![]),
+            node_type: NodeType::Group,
         })
     }
 

@@ -62,6 +62,7 @@ pub fn scale(s: f32) -> Mat4 {
     glm::scaling(&glm::vec3(s, s, s))
 }
 
+#[derive(Clone, Copy)]
 pub struct Perspective {
     pub aspect_ratio: f32,
     pub angle_of_view: Angle,

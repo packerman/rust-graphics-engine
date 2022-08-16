@@ -39,8 +39,11 @@ pub struct Attribute<D> {
     buffer: WebGlBuffer,
 }
 
-impl<D: AttributeData> Attribute<D> {
-    pub fn new_with_data(context: &WebGl2RenderingContext, data: D) -> Result<Attribute<D>> {
+impl<D> Attribute<D> {
+    pub fn new_with_data(context: &WebGl2RenderingContext, data: D) -> Result<Attribute<D>>
+    where
+        D: AttributeData,
+    {
         let buffer = gl::create_buffer(context)?;
 
         let attribute = Attribute {
@@ -52,7 +55,10 @@ impl<D: AttributeData> Attribute<D> {
         Ok(attribute)
     }
 
-    pub fn upload_data(&self, context: &WebGl2RenderingContext) {
+    pub fn upload_data(&self, context: &WebGl2RenderingContext)
+    where
+        D: AttributeData,
+    {
         context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
         self.data.buffer_data(context);
     }
