@@ -13,7 +13,6 @@ impl Color {
         Self::from_rgb(255, 255, 255)
     }
 
-    #[allow(dead_code)]
     pub fn silver() -> Color {
         Self::from_rgb(192, 192, 192)
     }
@@ -30,7 +29,6 @@ impl Color {
         Self::from_rgb(255, 0, 0)
     }
 
-    #[allow(dead_code)]
     pub fn maroon() -> Color {
         Self::from_rgb(128, 0, 0)
     }
@@ -39,7 +37,6 @@ impl Color {
         Self::from_rgb(255, 255, 0)
     }
 
-    #[allow(dead_code)]
     pub fn olive() -> Color {
         Self::from_rgb(128, 128, 0)
     }
@@ -52,12 +49,10 @@ impl Color {
         Self::from_rgb(0, 128, 0)
     }
 
-    #[allow(dead_code)]
     pub fn aqua() -> Color {
         Self::from_rgb(0, 255, 255)
     }
 
-    #[allow(dead_code)]
     pub fn teal() -> Color {
         Self::from_rgb(0, 128, 128)
     }
@@ -66,17 +61,14 @@ impl Color {
         Self::from_rgb(0, 0, 255)
     }
 
-    #[allow(dead_code)]
     pub fn navy() -> Color {
         Self::from_rgb(0, 0, 128)
     }
 
-    #[allow(dead_code)]
     pub fn fuchsia() -> Color {
         Self::from_rgb(255, 0, 255)
     }
 
-    #[allow(dead_code)]
     pub fn purple() -> Color {
         Self::from_rgb(128, 0, 128)
     }
@@ -87,6 +79,18 @@ impl Color {
 
     pub fn blue_violet() -> Color {
         Self::from_rgb(138, 43, 226)
+    }
+
+    pub fn light_coral() -> Color {
+        Self::from_rgb(240, 128, 128)
+    }
+
+    pub fn light_green() -> Color {
+        Self::from_rgb(144, 238, 144)
+    }
+
+    pub fn medium_slate_blue() -> Color {
+        Self::from_rgb(123, 104, 238)
     }
 
     fn from_rgb(red: u8, green: u8, blue: u8) -> Color {
