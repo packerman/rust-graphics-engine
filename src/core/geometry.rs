@@ -19,12 +19,12 @@ impl<'a> Geometry {
     fn from_attributes<const N: usize>(attributes: [(&str, Attribute); N]) -> Self {
         let mut map = HashMap::new();
         for (name, attribute) in attributes {
-            map.insert(name, attribute);
+            map.insert(String::from(name), attribute);
         }
         Geometry { attributes: map }
     }
 
-    pub fn attributes(&self) -> hash_map::Iter<&str, Attribute> {
+    pub fn attributes(&self) -> hash_map::Iter<String, Attribute> {
         self.attributes.iter()
     }
 

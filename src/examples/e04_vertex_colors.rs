@@ -28,6 +28,7 @@ void main()
 pub struct VertexColors {
     program: WebGlProgram,
     position_attribute: Attribute,
+    #[allow(dead_code)]
     color_attribute: Attribute,
 }
 
