@@ -2,7 +2,7 @@ use anyhow::Result;
 use glm::{Mat4, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
-use super::gl;
+use super::{color::Color, gl};
 
 pub struct Uniform<T> {
     pub data: T,
@@ -56,6 +56,12 @@ impl UploadData for Vec3 {
 impl UploadData for Vec4 {
     fn upload_data(&self, context: &WebGl2RenderingContext, location: &WebGlUniformLocation) {
         context.uniform4f(Some(location), self.x, self.y, self.z, self.w);
+    }
+}
+
+impl UploadData for Color {
+    fn upload_data(&self, context: &WebGl2RenderingContext, location: &WebGlUniformLocation) {
+        context.uniform4f(Some(location), self[0], self[1], self[2], self[3]);
     }
 }
 

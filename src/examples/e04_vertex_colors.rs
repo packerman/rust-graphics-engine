@@ -1,7 +1,9 @@
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use crate::core::{application::Application, attribute::Attribute, color, gl, input::KeyState};
+use crate::core::{
+    application::Application, attribute::Attribute, color::Color, gl, input::KeyState,
+};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 in vec3 position;
@@ -35,7 +37,7 @@ pub struct VertexColors {
 impl VertexColors {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
-        gl::set_clear_color(context, &color::gray());
+        gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         context.line_width(4.0);
         let vao = gl::create_vertex_array(context)?;
@@ -52,12 +54,12 @@ impl VertexColors {
         position_attribute.associate_variable(context, &program, "position")?;
 
         let color_data = [
-            color::to_array3(&color::red()),
-            color::to_array3(&color::dark_orange()),
-            color::to_array3(&color::yellow()),
-            color::to_array3(&color::lime()),
-            color::to_array3(&color::blue()),
-            color::to_array3(&color::blue_violet()),
+            Color::red().into(),
+            Color::dark_orange().into(),
+            Color::yellow().into(),
+            Color::lime().into(),
+            Color::blue().into(),
+            Color::blue_violet().into(),
         ];
         let color_attribute = Attribute::from_array(context, &color_data)?;
         color_attribute.associate_variable(context, &program, "vertexColor")?;

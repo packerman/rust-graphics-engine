@@ -5,7 +5,8 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram};
 use crate::core::{
     application::Application,
     attribute::Attribute,
-    color, gl,
+    color::Color,
+    gl,
     input::KeyState,
     matrix::{self, Angle, Perspective},
     uniform::Uniform,
@@ -44,7 +45,7 @@ impl MoveTriangle {
 
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
-        gl::set_clear_color(context, &color::black());
+        gl::set_clear_color(context, &Color::black());
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = gl::create_vertex_array(context)?;

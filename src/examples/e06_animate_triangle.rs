@@ -2,11 +2,7 @@ use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::Application,
-    attribute::Attribute,
-    color::{self, Color},
-    gl,
-    input::KeyState,
+    application::Application, attribute::Attribute, color::Color, gl, input::KeyState,
     uniform::Uniform,
 };
 
@@ -39,7 +35,7 @@ pub struct AnimateTriangle {
 impl AnimateTriangle {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
-        gl::set_clear_color(context, &color::gray());
+        gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));
@@ -49,7 +45,7 @@ impl AnimateTriangle {
 
         let translation =
             Uniform::new_with_data(context, [-0.5_f32, 0.0, 0.0], &program, "translation")?;
-        let base_color = Uniform::new_with_data(context, color::red(), &program, "baseColor")?;
+        let base_color = Uniform::new_with_data(context, Color::red(), &program, "baseColor")?;
 
         Ok(Box::new(AnimateTriangle {
             program,

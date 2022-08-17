@@ -1,7 +1,9 @@
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlVertexArrayObject};
 
-use crate::core::{application::Application, attribute::Attribute, color, gl, input::KeyState};
+use crate::core::{
+    application::Application, attribute::Attribute, color::Color, gl, input::KeyState,
+};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 in vec4 position;
@@ -32,7 +34,7 @@ pub struct TwoShapes {
 impl TwoShapes {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initialized");
-        gl::set_clear_color(context, &color::black());
+        gl::set_clear_color(context, &Color::black());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         context.line_width(4.0);
 

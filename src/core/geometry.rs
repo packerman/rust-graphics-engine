@@ -3,7 +3,7 @@ use std::collections::{hash_map, HashMap};
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use super::{attribute::Attribute, color};
+use super::{attribute::Attribute, color::Color};
 
 pub struct Geometry {
     attributes: HashMap<String, Attribute>,
@@ -61,10 +61,10 @@ impl<'a> ToGeometry<'a> for Rectangle {
         let p1 = [self.width / 2.0, -self.height / 2.0, 0.0];
         let p2 = [-self.width / 2.0, self.height / 2.0, 0.0];
         let p3 = [self.width / 2.0, self.height / 2.0, 0.0];
-        let c0 = color::to_array3(&color::white());
-        let c1 = color::to_array3(&color::red());
-        let c2 = color::to_array3(&color::lime());
-        let c3 = color::to_array3(&color::blue());
+        let c0 = Color::white().into();
+        let c1 = Color::red().into();
+        let c2 = Color::lime().into();
+        let c3 = Color::blue().into();
         let position_data = [p0, p1, p3, p0, p3, p2];
         let color_data = [c0, c1, c3, c0, c3, c2];
         let geometry = Geometry::from_attributes([
