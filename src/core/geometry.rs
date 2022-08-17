@@ -1,8 +1,4 @@
-use std::{
-    collections::{hash_map, HashMap},
-    iter::{self, Repeat, Take},
-    ops::Index,
-};
+use std::collections::{hash_map, HashMap};
 
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
@@ -114,14 +110,15 @@ impl FromWithContext<WebGl2RenderingContext, Box> for Geometry {
             Color::medium_slate_blue().into(),
             Color::navy().into(),
         ];
-        let position_data = select_by_indices(
+        let position_data = util::select_by_indices(
             &points,
             [
                 5, 1, 3, 5, 3, 7, 0, 4, 6, 0, 6, 2, 6, 7, 3, 6, 3, 2, 0, 1, 5, 0, 5, 4, 4, 5, 7, 4,
                 7, 6, 1, 0, 2, 1, 3, 3,
             ],
         );
-        let color_data = select_by_indices(&colors, (0..=5).flat_map(|i| replicate(6, i)));
+        let color_data =
+            util::select_by_indices(&colors, (0..=5).flat_map(|i| util::replicate(6, i)));
         let geometry = Geometry::from_attributes([
             (
                 "vertexPosition",
@@ -133,18 +130,25 @@ impl FromWithContext<WebGl2RenderingContext, Box> for Geometry {
     }
 }
 
-fn select_by_indices<M, K, V, I>(indexed: &M, indices: I) -> Vec<V>
-where
-    M: Index<K, Output = V>,
-    I: IntoIterator<Item = K>,
-    V: Copy,
-{
-    indices.into_iter().map(|k| indexed[k]).collect()
-}
+mod util {
+    use std::{
+        iter::{self, Repeat, Take},
+        ops::Index,
+    };
 
-fn replicate<T>(n: usize, t: T) -> Take<Repeat<T>>
-where
-    T: Clone,
-{
-    iter::repeat(t).take(n)
+    pub fn select_by_indices<M, K, V, I>(indexed: &M, indices: I) -> Vec<V>
+    where
+        M: Index<K, Output = V>,
+        I: IntoIterator<Item = K>,
+        V: Copy,
+    {
+        indices.into_iter().map(|k| indexed[k]).collect()
+    }
+
+    pub fn replicate<T>(n: usize, t: T) -> Take<Repeat<T>>
+    where
+        T: Clone,
+    {
+        iter::repeat(t).take(n)
+    }
 }
