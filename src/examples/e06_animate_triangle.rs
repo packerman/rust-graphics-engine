@@ -31,7 +31,7 @@ void main()
 
 pub struct AnimateTriangle {
     program: WebGlProgram,
-    vertex_count: usize,
+    position: Attribute,
     translation: Uniform<[f32; 3]>,
     base_color: Uniform<Color>,
 }
@@ -44,7 +44,7 @@ impl AnimateTriangle {
         let vao = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));
         let position_data = [[0.0_f32, 0.2, 0.0], [0.2, -0.2, 0.0], [-0.2, -0.2, 0.0]];
-        let position_attribute = Attribute::new_with_data(context, &position_data)?;
+        let position_attribute = Attribute::from_array(context, &position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
         let translation =
@@ -53,7 +53,7 @@ impl AnimateTriangle {
 
         Ok(Box::new(AnimateTriangle {
             program,
-            vertex_count: position_data.len(),
+            position: position_attribute,
             translation,
             base_color,
         }))
@@ -76,12 +76,12 @@ impl Application for AnimateTriangle {
         context.draw_arrays(
             WebGl2RenderingContext::TRIANGLE_FAN,
             0,
-            self.vertex_count.try_into().unwrap(),
+            self.position.vertex_count.try_into().unwrap(),
         );
         context.draw_arrays(
             WebGl2RenderingContext::TRIANGLE_FAN,
             0,
-            self.vertex_count.try_into().unwrap(),
+            self.position.vertex_count.try_into().unwrap(),
         );
     }
 }

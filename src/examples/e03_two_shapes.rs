@@ -23,9 +23,9 @@ void main()
 
 pub struct TwoShapes {
     program: WebGlProgram,
-    vertex_count_triangle: usize,
+    triangle_position: Attribute,
     vao_triangle: WebGlVertexArrayObject,
-    vertex_count_square: usize,
+    square_position: Attribute,
     vao_square: WebGlVertexArrayObject,
 }
 
@@ -39,9 +39,7 @@ impl TwoShapes {
         let vao_triangle = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao_triangle));
         let position_data_triangle = [[-0.5_f32, 0.8, 0.0], [-0.2, 0.2, 0.0], [-0.8, 0.2, 0.0]];
-        let vertex_count_triangle = position_data_triangle.len();
-        let position_attribute_triangle =
-            Attribute::new_with_data(context, &position_data_triangle)?;
+        let position_attribute_triangle = Attribute::from_array(context, &position_data_triangle)?;
         position_attribute_triangle.associate_variable(context, &program, "position")?;
 
         let vao_square = gl::create_vertex_array(context)?;
@@ -52,15 +50,14 @@ impl TwoShapes {
             [0.2, 0.2, 0.0],
             [0.2, 0.8, 0.0],
         ];
-        let vertex_count_square = position_data_square.len();
-        let position_attribute_square = Attribute::new_with_data(context, &position_data_square)?;
+        let position_attribute_square = Attribute::from_array(context, &position_data_square)?;
         position_attribute_square.associate_variable(context, &program, "position")?;
 
         Ok(Box::new(TwoShapes {
             program,
-            vertex_count_triangle,
+            triangle_position: position_attribute_triangle,
             vao_triangle,
-            vertex_count_square,
+            square_position: position_attribute_square,
             vao_square,
         }))
     }
@@ -77,14 +74,14 @@ impl Application for TwoShapes {
         context.draw_arrays(
             WebGl2RenderingContext::LINE_LOOP,
             0,
-            self.vertex_count_triangle.try_into().unwrap(),
+            self.triangle_position.vertex_count.try_into().unwrap(),
         );
 
         context.bind_vertex_array(Some(&self.vao_square));
         context.draw_arrays(
             WebGl2RenderingContext::LINE_LOOP,
             0,
-            self.vertex_count_square.try_into().unwrap(),
+            self.square_position.vertex_count.try_into().unwrap(),
         );
     }
 }

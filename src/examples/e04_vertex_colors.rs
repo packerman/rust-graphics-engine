@@ -27,7 +27,8 @@ void main()
 
 pub struct VertexColors {
     program: WebGlProgram,
-    vertex_count: usize,
+    position_attribute: Attribute,
+    color_attribute: Attribute,
 }
 
 impl VertexColors {
@@ -46,8 +47,7 @@ impl VertexColors {
             [-0.4, -0.6, 0.0],
             [0.4, -0.6, 0.0],
         ];
-        let vertex_count = position_data.len();
-        let position_attribute = Attribute::new_with_data(context, &position_data)?;
+        let position_attribute = Attribute::from_array(context, &position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
         let color_data = [
@@ -58,12 +58,13 @@ impl VertexColors {
             color::to_array3(&color::blue()),
             color::to_array3(&color::blue_violet()),
         ];
-        let color_attribute = Attribute::new_with_data(context, &color_data)?;
+        let color_attribute = Attribute::from_array(context, &color_data)?;
         color_attribute.associate_variable(context, &program, "vertexColor")?;
 
         Ok(Box::new(VertexColors {
             program,
-            vertex_count,
+            position_attribute,
+            color_attribute,
         }))
     }
 }
@@ -77,7 +78,7 @@ impl Application for VertexColors {
         context.draw_arrays(
             WebGl2RenderingContext::TRIANGLE_FAN,
             0,
-            self.vertex_count.try_into().unwrap(),
+            self.position_attribute.vertex_count.try_into().unwrap(),
         );
     }
 }

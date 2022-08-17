@@ -23,7 +23,7 @@ void main()
 
 pub struct HexagonLines {
     program: WebGlProgram,
-    vertex_count: usize,
+    attribute: Attribute,
 }
 
 impl HexagonLines {
@@ -42,12 +42,11 @@ impl HexagonLines {
             [-0.4, -0.6, 0.0],
             [0.4, -0.6, 0.0],
         ];
-        let vertex_count = position_data.len();
-        let position_attribute = Attribute::new_with_data(context, &position_data)?;
+        let position_attribute = Attribute::from_array(context, &position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
         Ok(Box::new(HexagonLines {
             program,
-            vertex_count,
+            attribute: position_attribute,
         }))
     }
 }
@@ -61,7 +60,7 @@ impl Application for HexagonLines {
         context.draw_arrays(
             WebGl2RenderingContext::LINE_LOOP,
             0,
-            self.vertex_count.try_into().unwrap(),
+            self.attribute.vertex_count.try_into().unwrap(),
         );
     }
 }

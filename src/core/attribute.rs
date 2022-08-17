@@ -15,57 +15,60 @@ impl DataType {
     }
 }
 pub trait AttributeData {
-    fn data_type(&self) -> DataType;
     fn buffer_data(&self, context: &WebGl2RenderingContext);
-    fn vertex_count(&self) -> usize;
 }
 
-impl<const N: usize, const K: usize> AttributeData for &[[f32; N]; K] {
-    fn data_type(&self) -> DataType {
-        DataType::new(N.try_into().unwrap(), WebGl2RenderingContext::FLOAT)
-    }
-
+impl AttributeData for Vec<f32> {
     fn buffer_data(&self, context: &WebGl2RenderingContext) {
-        let flat_data = flatten_data(self);
         unsafe {
-            let buffer_view = Float32Array::view(&flat_data);
+            let buffer_view = Float32Array::view(self);
             buffer_data(context, &buffer_view);
         }
-    }
-
-    fn vertex_count(&self) -> usize {
-        self.len()
     }
 }
 
 pub struct Attribute {
     data_type: DataType,
+    data: Box<dyn AttributeData>,
     buffer: WebGlBuffer,
     pub vertex_count: usize,
 }
 
 impl Attribute {
-    pub fn new_with_data<D>(context: &WebGl2RenderingContext, data: D) -> Result<Attribute>
-    where
-        D: AttributeData,
-    {
+    fn new_with_data(
+        context: &WebGl2RenderingContext,
+        data_type: DataType,
+        data: Box<dyn AttributeData>,
+        vertex_count: usize,
+    ) -> Result<Attribute> {
         let buffer = gl::create_buffer(context)?;
 
         let attribute = Attribute {
-            data_type: data.data_type(),
+            data_type,
+            data,
             buffer,
-            vertex_count: data.vertex_count(),
+            vertex_count,
         };
-        attribute.upload_data(context, data);
+        attribute.upload_data(context);
         Ok(attribute)
     }
 
-    fn upload_data<D>(&self, context: &WebGl2RenderingContext, data: D)
-    where
-        D: AttributeData,
-    {
+    pub fn from_array<const N: usize>(
+        context: &WebGl2RenderingContext,
+        data: &[[f32; N]],
+    ) -> Result<Attribute> {
+        let flat_data = Box::new(flatten_data(data));
+        Self::new_with_data(
+            context,
+            DataType::new(N.try_into().unwrap(), WebGl2RenderingContext::FLOAT),
+            flat_data,
+            data.len(),
+        )
+    }
+
+    fn upload_data(&self, context: &WebGl2RenderingContext) {
         context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
-        data.buffer_data(context);
+        self.data.buffer_data(context);
     }
 
     pub fn associate_variable(
@@ -89,7 +92,7 @@ impl Attribute {
     }
 }
 
-fn flatten_data<T: Clone, const N: usize, const K: usize>(data: &[[T; N]; K]) -> Vec<T> {
+fn flatten_data<T: Clone, const N: usize>(data: &[[T; N]]) -> Vec<T> {
     data.into_iter().flat_map(|item| item.to_vec()).collect()
 }
 

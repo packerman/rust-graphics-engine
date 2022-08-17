@@ -32,7 +32,7 @@ void main()
 
 pub struct MoveTriangle {
     program: WebGlProgram,
-    vertex_count: i32,
+    position: Attribute,
     model_matrix: Uniform<Mat4>,
     projection_matrix: Uniform<Mat4>,
     move_speed: f32,
@@ -50,8 +50,7 @@ impl MoveTriangle {
         let vao = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));
         let position_data = [[0.0_f32, 0.2, 0.0], [0.1, -0.2, 0.0], [-0.1, -0.2, 0.0]];
-        let vertex_count = position_data.len();
-        let position_attribute = Attribute::new_with_data(context, &position_data)?;
+        let position_attribute = Attribute::from_array(context, &position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
         let model_matrix = Uniform::new_with_data(
@@ -70,7 +69,7 @@ impl MoveTriangle {
 
         Ok(Box::new(MoveTriangle {
             program,
-            vertex_count: vertex_count.try_into().unwrap(),
+            position: position_attribute,
             model_matrix,
             projection_matrix,
             move_speed: 0.5,
@@ -150,6 +149,10 @@ impl Application for MoveTriangle {
         context.use_program(Some(&self.program));
         self.projection_matrix.upload_data(context);
         self.model_matrix.upload_data(context);
-        context.draw_arrays(WebGl2RenderingContext::TRIANGLES, 0, self.vertex_count);
+        context.draw_arrays(
+            WebGl2RenderingContext::TRIANGLES,
+            0,
+            self.position.vertex_count.try_into().unwrap(),
+        );
     }
 }

@@ -3,23 +3,28 @@ use std::collections::{hash_map, HashMap};
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use super::{
-    attribute::{Attribute, AttributeData},
-    color,
-};
+use super::{attribute::Attribute, color};
 
 pub struct Geometry {
     attributes: HashMap<String, Attribute>,
 }
 
-impl Geometry {
+impl<'a> Geometry {
     fn new() -> Self {
         Geometry {
             attributes: HashMap::new(),
         }
     }
 
-    pub fn attributes(&self) -> hash_map::Iter<String, Attribute> {
+    fn from_attributes<const N: usize>(attributes: [(&str, Attribute); N]) -> Self {
+        let mut map = HashMap::new();
+        for (name, attribute) in attributes {
+            map.insert(name, attribute);
+        }
+        Geometry { attributes: map }
+    }
+
+    pub fn attributes(&self) -> hash_map::Iter<&str, Attribute> {
         self.attributes.iter()
     }
 
@@ -30,23 +35,9 @@ impl Geometry {
             .expect("Expected at least one attribute")
             .vertex_count
     }
-
-    fn add_attribute<D>(
-        &mut self,
-        context: &WebGl2RenderingContext,
-        name: &str,
-        data: D,
-    ) -> Result<()>
-    where
-        D: AttributeData,
-    {
-        self.attributes
-            .insert(String::from(name), Attribute::new_with_data(context, data)?);
-        Ok(())
-    }
 }
 
-trait ToGeometry {
+trait ToGeometry<'a> {
     fn to_geometry(&self, context: &WebGl2RenderingContext) -> Result<Geometry>;
 }
 
@@ -64,7 +55,7 @@ impl Default for Rectangle {
     }
 }
 
-impl ToGeometry for Rectangle {
+impl<'a> ToGeometry<'a> for Rectangle {
     fn to_geometry(&self, context: &WebGl2RenderingContext) -> Result<Geometry> {
         let p0 = [-self.width / 2.0, -self.height / 2.0, 0.0];
         let p1 = [self.width / 2.0, -self.height / 2.0, 0.0];
@@ -76,9 +67,13 @@ impl ToGeometry for Rectangle {
         let c3 = color::to_array3(&color::blue());
         let position_data = [p0, p1, p3, p0, p3, p2];
         let color_data = [c0, c1, c3, c0, c3, c2];
-        let mut geometry = Geometry::new();
-        geometry.add_attribute(context, "vertexPosition", &position_data)?;
-        geometry.add_attribute(context, "vertexColor", &color_data)?;
+        let geometry = Geometry::from_attributes([
+            (
+                "vertexPosition",
+                Attribute::from_array(context, &position_data)?,
+            ),
+            ("vertexColor", Attribute::from_array(context, &color_data)?),
+        ]);
         Ok(geometry)
     }
 }

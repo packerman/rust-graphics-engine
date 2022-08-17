@@ -31,7 +31,7 @@ void main()
 
 pub struct TwoTriangles {
     program: WebGlProgram,
-    vertex_count: usize,
+    position: Attribute,
     translation1: Uniform<[f32; 3]>,
     translation2: Uniform<[f32; 3]>,
     base_color1: Uniform<Color>,
@@ -46,7 +46,7 @@ impl TwoTriangles {
         let vao = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));
         let position_data = [[0.0_f32, 0.2, 0.0], [0.2, -0.2, 0.0], [-0.2, -0.2, 0.0]];
-        let position_attribute = Attribute::new_with_data(context, &position_data)?;
+        let position_attribute = Attribute::from_array(context, &position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
         let translation1 =
@@ -58,7 +58,7 @@ impl TwoTriangles {
 
         Ok(Box::new(TwoTriangles {
             program,
-            vertex_count: position_data.len(),
+            position: position_attribute,
             translation1,
             translation2,
             base_color1,
@@ -78,14 +78,14 @@ impl Application for TwoTriangles {
         context.draw_arrays(
             WebGl2RenderingContext::TRIANGLE_FAN,
             0,
-            self.vertex_count.try_into().unwrap(),
+            self.position.vertex_count.try_into().unwrap(),
         );
         self.translation2.upload_data(context);
         self.base_color2.upload_data(context);
         context.draw_arrays(
             WebGl2RenderingContext::TRIANGLE_FAN,
             0,
-            self.vertex_count.try_into().unwrap(),
+            self.position.vertex_count.try_into().unwrap(),
         );
     }
 }
