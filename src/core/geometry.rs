@@ -1,9 +1,12 @@
-use std::collections::{hash_map, HashMap};
+use std::{
+    collections::{hash_map, HashMap},
+    f32::consts::PI,
+};
 
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use super::{attribute::Attribute, color::Color, convert::FromWithContext};
+use super::{attribute::Attribute, color::Color, convert::FromWithContext, matrix::Angle};
 
 pub struct Geometry {
     attributes: HashMap<String, Attribute>,
@@ -123,6 +126,58 @@ impl FromWithContext<WebGl2RenderingContext, Box> for Geometry {
         );
         let color_data =
             util::select_by_indices(&colors, (0..=5).flat_map(|i| util::replicate(6, i)));
+        let geometry = Geometry::from_attributes([
+            (
+                "vertexPosition",
+                Attribute::from_array(context, &position_data)?,
+            ),
+            ("vertexColor", Attribute::from_array(context, &color_data)?),
+        ]);
+        Ok(geometry)
+    }
+}
+
+struct Polygon {
+    sides: u16,
+    radius: f32,
+}
+
+impl Polygon {
+    fn hexagon(radius: f32) -> Self {
+        Polygon { sides: 6, radius }
+    }
+}
+
+impl Default for Polygon {
+    fn default() -> Self {
+        Self {
+            sides: 3,
+            radius: 1.0,
+        }
+    }
+}
+
+impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
+    fn from(context: &WebGl2RenderingContext, polygon: Polygon) -> Result<Self> {
+        let angle = Angle::from_radians(2.0 * PI) / polygon.sides.into();
+        let mut position_data = Vec::with_capacity((3 * polygon.sides).into());
+        let mut color_data = Vec::with_capacity((3 * polygon.sides).into());
+        for n in 0..polygon.sides {
+            position_data.push([0.0, 0.0, 0.0]);
+            position_data.push([
+                polygon.radius * (angle * n.into()).cos(),
+                polygon.radius * (angle * n.into()).sin(),
+                0.0,
+            ]);
+            position_data.push([
+                polygon.radius * (angle * (n + 1).into()).cos(),
+                polygon.radius * (angle * (n + 1).into()).sin(),
+                0.0,
+            ]);
+            color_data.push(Color::white().into());
+            color_data.push(Color::red().into());
+            color_data.push(Color::blue().into());
+        }
         let geometry = Geometry::from_attributes([
             (
                 "vertexPosition",

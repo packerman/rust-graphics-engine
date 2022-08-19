@@ -1,4 +1,4 @@
-use std::ops::{Mul, Neg};
+use std::ops::{Div, Mul, Neg};
 
 use glm::Mat4;
 
@@ -29,15 +29,29 @@ impl Angle {
     pub fn to_radians(self) -> f32 {
         self.radians
     }
+
+    pub fn sin(&self) -> f32 {
+        self.radians.sin()
+    }
+
+    pub fn cos(&self) -> f32 {
+        self.radians.cos()
+    }
 }
 
 impl Mul<f32> for Angle {
     type Output = Self;
 
     fn mul(self, s: f32) -> Self::Output {
-        Self {
-            radians: self.radians * s,
-        }
+        Self::from_radians(self.radians * s)
+    }
+}
+
+impl Div<f32> for Angle {
+    type Output = Self;
+
+    fn div(self, s: f32) -> Self::Output {
+        Self::from_radians(self.radians / s)
     }
 }
 
@@ -45,9 +59,7 @@ impl Neg for Angle {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Self {
-            radians: -self.radians,
-        }
+        Self::from_radians(-self.radians)
     }
 }
 
