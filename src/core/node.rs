@@ -57,7 +57,7 @@ impl Node {
         }
     }
 
-    pub fn descendants(node: Rc<Node>) -> Vec<Rc<Node>> {
+    pub fn descendants(&self) -> Vec<Rc<Node>> {
         fn extend_queue(queue: &mut VecDeque<Weak<Node>>, nodes: &[Rc<Node>]) {
             queue.extend(nodes.iter().map(Rc::downgrade));
         }
@@ -66,7 +66,7 @@ impl Node {
         }
         let mut result = vec![];
         let mut queue = VecDeque::new();
-        queue.push_back(Rc::downgrade(&node));
+        queue.push_back(self.me.clone());
         while !queue.is_empty() {
             let node = pop_front(&mut queue);
             result.push(Rc::clone(&node));

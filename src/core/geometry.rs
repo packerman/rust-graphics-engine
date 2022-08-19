@@ -53,16 +53,20 @@ impl Default for Rectangle {
 
 impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
     fn from(context: &WebGl2RenderingContext, rectangle: Rectangle) -> Result<Self> {
-        let p0 = [-rectangle.width / 2.0, -rectangle.height / 2.0, 0.0];
-        let p1 = [rectangle.width / 2.0, -rectangle.height / 2.0, 0.0];
-        let p2 = [-rectangle.width / 2.0, rectangle.height / 2.0, 0.0];
-        let p3 = [rectangle.width / 2.0, rectangle.height / 2.0, 0.0];
-        let c0 = Color::white().into();
-        let c1 = Color::red().into();
-        let c2 = Color::lime().into();
-        let c3 = Color::blue().into();
-        let position_data = [p0, p1, p3, p0, p3, p2];
-        let color_data = [c0, c1, c3, c0, c3, c2];
+        let points = [
+            [-rectangle.width / 2.0, -rectangle.height / 2.0, 0.0],
+            [rectangle.width / 2.0, -rectangle.height / 2.0, 0.0],
+            [-rectangle.width / 2.0, rectangle.height / 2.0, 0.0],
+            [rectangle.width / 2.0, rectangle.height / 2.0, 0.0],
+        ];
+        let colors = [
+            Color::white().into(),
+            Color::red().into(),
+            Color::lime().into(),
+            Color::blue().into(),
+        ];
+        let position_data = util::select_by_indices(&points, [0, 1, 3, 0, 3, 2]);
+        let color_data = util::select_by_indices(&colors, [0, 1, 3, 0, 3, 2]);
         let geometry = Geometry::from_attributes([
             (
                 "vertexPosition",
