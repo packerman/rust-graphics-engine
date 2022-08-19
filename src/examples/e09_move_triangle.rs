@@ -119,27 +119,27 @@ impl Application for MoveTriangle {
         // local
         if key_state.is_pressed("KeyI") {
             let m = matrix::translation(0.0, move_amount, 0.0);
-            self.model_matrix.data = self.model_matrix.data * m;
+            self.model_matrix.data *= m;
         }
         if key_state.is_pressed("KeyK") {
             let m = matrix::translation(0.0, -move_amount, 0.0);
-            self.model_matrix.data = self.model_matrix.data * m;
+            self.model_matrix.data *= m;
         }
         if key_state.is_pressed("KeyJ") {
             let m = matrix::translation(-move_amount, 0.0, 0.0);
-            self.model_matrix.data = self.model_matrix.data * m;
+            self.model_matrix.data *= m;
         }
         if key_state.is_pressed("KeyL") {
             let m = matrix::translation(move_amount, 0.0, 0.0);
-            self.model_matrix.data = self.model_matrix.data * m;
+            self.model_matrix.data *= m;
         }
         if key_state.is_pressed("KeyU") {
             let m = matrix::rotation_z(turn_mount);
-            self.model_matrix.data = self.model_matrix.data * m;
+            self.model_matrix.data *= m;
         }
         if key_state.is_pressed("KeyO") {
             let m = matrix::rotation_z(-turn_mount);
-            self.model_matrix.data = self.model_matrix.data * m;
+            self.model_matrix.data *= m;
         }
     }
 

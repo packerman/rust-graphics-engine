@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Result};
-use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
+use web_sys::HtmlCanvasElement;
 
 use crate::{
-    core::application::{Application, Loop},
+    core::application::{ApplicationCreator, Loop},
     examples::{
         e00_base_test::TestApp, e01_point::PointApp, e02_hexagon_lines::HexagonLines,
         e03_two_shapes::TwoShapes, e04_vertex_colors::VertexColors,
@@ -16,7 +16,7 @@ pub fn run_example(canvas: &HtmlCanvasElement) -> Result<()> {
     run_example_by_index(canvas, None)
 }
 
-fn examples() -> Vec<Box<dyn Fn(&WebGl2RenderingContext) -> Result<Box<dyn Application>>>> {
+fn examples() -> Vec<Box<ApplicationCreator>> {
     vec![
         Box::new(TestApp::create),
         Box::new(PointApp::create),
@@ -35,7 +35,7 @@ fn run_example_by_index(canvas: &HtmlCanvasElement, index: Option<usize>) -> Res
     let examples = examples();
 
     Loop::run(
-        &canvas,
+        canvas,
         Box::new(move |context| {
             let example = get_element(&examples, index).expect("Cannot get example");
             example(context)
@@ -43,7 +43,7 @@ fn run_example_by_index(canvas: &HtmlCanvasElement, index: Option<usize>) -> Res
     )
 }
 
-fn get_element<'a, T>(vec: &'a Vec<T>, index: Option<usize>) -> Result<&'a T> {
+fn get_element<T>(vec: &[T], index: Option<usize>) -> Result<&T> {
     match index {
         Some(index) => vec
             .get(index)

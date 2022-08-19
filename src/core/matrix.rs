@@ -26,7 +26,7 @@ impl Angle {
         Self { radians }
     }
 
-    pub fn to_radians(&self) -> f32 {
+    pub fn to_radians(self) -> f32 {
         self.radians
     }
 }

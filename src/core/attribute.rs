@@ -93,7 +93,7 @@ impl Attribute {
 }
 
 fn flatten_data<T: Clone, const N: usize>(data: &[[T; N]]) -> Vec<T> {
-    data.into_iter().flat_map(|item| item.to_vec()).collect()
+    data.iter().flat_map(|item| item.to_vec()).collect()
 }
 
 fn buffer_data(context: &WebGl2RenderingContext, buffer_view: &js_sys::Object) {

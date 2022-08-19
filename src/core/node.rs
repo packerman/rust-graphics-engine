@@ -58,8 +58,8 @@ impl Node {
     }
 
     pub fn descendants(node: Rc<Node>) -> Vec<Rc<Node>> {
-        fn extend_queue(queue: &mut VecDeque<Weak<Node>>, nodes: &Vec<Rc<Node>>) {
-            queue.extend(nodes.iter().map(|child| Rc::downgrade(&child)));
+        fn extend_queue(queue: &mut VecDeque<Weak<Node>>, nodes: &[Rc<Node>]) {
+            queue.extend(nodes.iter().map(Rc::downgrade));
         }
         fn pop_front(queue: &mut VecDeque<Weak<Node>>) -> Rc<Node> {
             queue.pop_front().unwrap().upgrade().unwrap()
