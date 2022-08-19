@@ -1,8 +1,10 @@
 use anyhow::{Ok, Result};
+use glm::Vec3;
 use js_sys::Float32Array;
+use na::SVector;
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
 
-use super::gl;
+use super::{color::Color, gl};
 
 pub struct DataType {
     size: i32,
@@ -20,6 +22,13 @@ pub trait AttributeData {
 
 impl AttributeData for Vec<f32> {
     fn buffer_data(&self, context: &WebGl2RenderingContext) {
+        fn buffer_data(context: &WebGl2RenderingContext, buffer_view: &js_sys::Object) {
+            context.buffer_data_with_array_buffer_view(
+                WebGl2RenderingContext::ARRAY_BUFFER,
+                buffer_view,
+                WebGl2RenderingContext::STATIC_DRAW,
+            );
+        }
         unsafe {
             let buffer_view = Float32Array::view(self);
             buffer_data(context, &buffer_view);
@@ -35,6 +44,41 @@ pub struct Attribute {
 }
 
 impl Attribute {
+    pub fn from_array<const N: usize>(
+        context: &WebGl2RenderingContext,
+        data: &[[f32; N]],
+    ) -> Result<Attribute> {
+        fn flatten_array<T: Clone, const N: usize>(data: &[[T; N]]) -> Vec<T> {
+            data.iter().flat_map(|item| item.to_vec()).collect()
+        }
+        let flat_data = Box::new(flatten_array(data));
+        Self::from_flat_array(context, flat_data, N, data.len())
+    }
+
+    pub fn from_vector_array<const N: usize>(
+        context: &WebGl2RenderingContext,
+        data: &[SVector<f32, N>],
+    ) -> Result<Attribute> {
+        fn flatten_vector<T: Copy, const N: usize>(data: &[SVector<T, N>]) -> Vec<T> {
+            data.iter()
+                .flat_map(|item| item.iter().copied().collect::<Vec<T>>())
+                .collect()
+        }
+        let flat_data = Box::new(flatten_vector(data));
+        Self::from_flat_array(context, flat_data, N, data.len())
+    }
+
+    pub fn from_rgb_color_array(
+        context: &WebGl2RenderingContext,
+        data: &[Color],
+    ) -> Result<Attribute> {
+        fn flatten_color(data: &[Color]) -> Vec<f32> {
+            data.iter().flat_map(|item| item.to_rgb_vec()).collect()
+        }
+        let flat_data = Box::new(flatten_color(data));
+        Self::from_flat_array(context, flat_data, 3, data.len())
+    }
+
     fn new_with_data(
         context: &WebGl2RenderingContext,
         data_type: DataType,
@@ -53,16 +97,17 @@ impl Attribute {
         Ok(attribute)
     }
 
-    pub fn from_array<const N: usize>(
+    fn from_flat_array(
         context: &WebGl2RenderingContext,
-        data: &[[f32; N]],
+        data: Box<dyn AttributeData>,
+        size: usize,
+        length: usize,
     ) -> Result<Attribute> {
-        let flat_data = Box::new(flatten_data(data));
         Self::new_with_data(
             context,
-            DataType::new(N.try_into().unwrap(), WebGl2RenderingContext::FLOAT),
-            flat_data,
-            data.len(),
+            DataType::new(size.try_into().unwrap(), WebGl2RenderingContext::FLOAT),
+            data,
+            length,
         )
     }
 
@@ -90,16 +135,4 @@ impl Attribute {
         context.enable_vertex_attrib_array(location);
         Ok(())
     }
-}
-
-fn flatten_data<T: Clone, const N: usize>(data: &[[T; N]]) -> Vec<T> {
-    data.iter().flat_map(|item| item.to_vec()).collect()
-}
-
-fn buffer_data(context: &WebGl2RenderingContext, buffer_view: &js_sys::Object) {
-    context.buffer_data_with_array_buffer_view(
-        WebGl2RenderingContext::ARRAY_BUFFER,
-        buffer_view,
-        WebGl2RenderingContext::STATIC_DRAW,
-    );
 }

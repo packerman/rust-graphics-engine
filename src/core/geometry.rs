@@ -1,9 +1,11 @@
 use std::{
     collections::{hash_map, HashMap},
     f32::consts::PI,
+    ops::RangeInclusive,
 };
 
 use anyhow::Result;
+use glm::Vec3;
 use web_sys::WebGl2RenderingContext;
 
 use super::{attribute::Attribute, color::Color, convert::FromWithContext, matrix::Angle};
@@ -187,6 +189,49 @@ impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
         ]);
         Ok(geometry)
     }
+}
+
+pub fn parametric_surface(
+    context: &WebGl2RenderingContext,
+    u_range: RangeInclusive<f32>,
+    u_resolution: u16,
+    v_range: RangeInclusive<f32>,
+    v_resolution: u16,
+    function: fn(f32, f32) -> Vec3,
+) -> Result<Geometry> {
+    let u_delta = u_range.end() - u_range.start();
+    let v_delta = v_range.end() - v_range.start();
+    let mut positions = Vec::with_capacity((u_resolution + 1).into());
+    for u_index in 0..=u_resolution {
+        let mut vector = Vec::with_capacity((v_resolution + 1).into());
+        for v_index in 0..=v_resolution {
+            let u = u_range.start() + f32::from(u_index) * u_delta;
+            let v = v_range.start() + f32::from(v_index) * v_delta;
+            vector.push(function(u, v));
+        }
+        positions.extend(vector);
+    }
+    let position_data: Vec<Vec3> = Vec::new();
+    let color_data: Vec<Color> = Vec::new();
+    let colors = [
+        Color::red(),
+        Color::lime(),
+        Color::blue(),
+        Color::aqua(),
+        Color::fuchsia(),
+        Color::yellow(),
+    ];
+    let geometry = Geometry::from_attributes([
+        (
+            "vertexPosition",
+            Attribute::from_vector_array(context, &position_data)?,
+        ),
+        (
+            "vertexColor",
+            Attribute::from_rgb_color_array(context, &color_data)?,
+        ),
+    ]);
+    Ok(geometry)
 }
 
 mod util {

@@ -93,6 +93,10 @@ impl Color {
         Self::from_rgb(123, 104, 238)
     }
 
+    pub fn to_rgb_vec(&self) -> Vec<f32> {
+        vec![self.0.x, self.0.y, self.0.z]
+    }
+
     fn from_rgb(red: u8, green: u8, blue: u8) -> Color {
         Self::new(
             f32::from(red) / 255.0,
