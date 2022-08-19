@@ -34,10 +34,10 @@ fn examples() -> Vec<Box<ApplicationCreator>> {
 fn run_example_by_index(canvas: &HtmlCanvasElement, index: Option<usize>) -> Result<()> {
     let examples = examples();
 
-    Loop::run(
+    Loop::run_with_box(
         canvas,
         Box::new(move |context| {
-            let example = get_element(&examples, index).expect("Cannot get example");
+            let example = get_element(&examples, index)?;
             example(context)
         }),
     )

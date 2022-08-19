@@ -28,7 +28,14 @@ impl Loop {
     const FRAMES_PER_SECOND: i32 = 60;
     const MS_PER_UPDATE: f64 = 1000.0 / (Self::FRAMES_PER_SECOND as f64);
 
-    pub fn run(canvas: &HtmlCanvasElement, creator: Box<ApplicationCreator>) -> Result<()> {
+    pub fn run_with_box(
+        canvas: &HtmlCanvasElement,
+        creator: Box<ApplicationCreator>,
+    ) -> Result<()> {
+        Self::run(canvas, &creator)
+    }
+
+    pub fn run(canvas: &HtmlCanvasElement, creator: &ApplicationCreator) -> Result<()> {
         let context = web::get_webgl2_context(canvas)?;
         log_gl_strings(&context)?;
         let mut app = creator(&context)?;
