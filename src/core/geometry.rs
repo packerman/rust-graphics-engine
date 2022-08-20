@@ -538,6 +538,126 @@ impl FromWithContext<AttributeFactory<'_>, Cylinder> for Geometry {
     }
 }
 
+pub struct Prism {
+    radius: f32,
+    height: f32,
+    sides: u16,
+    height_segments: u16,
+    closed: bool,
+}
+
+impl Default for Prism {
+    fn default() -> Self {
+        Self {
+            radius: 1.0,
+            height: 1.0,
+            sides: 6,
+            height_segments: 4,
+            closed: true,
+        }
+    }
+}
+
+impl From<Prism> for Cylindrical {
+    fn from(prism: Prism) -> Self {
+        Self {
+            radius_top: prism.radius,
+            radius_bottom: prism.radius,
+            height: prism.height,
+            radial_segments: prism.sides,
+            height_segments: prism.height_segments,
+            closed_top: prism.closed,
+            closed_bottom: prism.closed,
+        }
+    }
+}
+
+impl FromWithContext<AttributeFactory<'_>, Prism> for Geometry {
+    fn from_with_context(factory: &AttributeFactory<'_>, prism: Prism) -> Result<Self> {
+        Geometry::from_with_context(factory, Cylindrical::from(prism))
+    }
+}
+
+pub struct Cone {
+    radius: f32,
+    height: f32,
+    radial_segments: u16,
+    height_segments: u16,
+    closed: bool,
+}
+
+impl Default for Cone {
+    fn default() -> Self {
+        Self {
+            radius: 1.0,
+            height: 1.0,
+            radial_segments: 32,
+            height_segments: 4,
+            closed: true,
+        }
+    }
+}
+
+impl From<Cone> for Cylindrical {
+    fn from(cone: Cone) -> Self {
+        Self {
+            radius_top: 0.0,
+            radius_bottom: cone.radius,
+            height: cone.height,
+            radial_segments: cone.radial_segments,
+            height_segments: cone.height_segments,
+            closed_top: false,
+            closed_bottom: cone.closed,
+        }
+    }
+}
+
+impl FromWithContext<AttributeFactory<'_>, Cone> for Geometry {
+    fn from_with_context(factory: &AttributeFactory<'_>, cone: Cone) -> Result<Self> {
+        Geometry::from_with_context(factory, Cylindrical::from(cone))
+    }
+}
+
+pub struct Pyramid {
+    radius: f32,
+    height: f32,
+    sides: u16,
+    height_segments: u16,
+    closed: bool,
+}
+
+impl Default for Pyramid {
+    fn default() -> Self {
+        Self {
+            radius: 1.0,
+            height: 1.0,
+            sides: 4,
+            height_segments: 4,
+            closed: true,
+        }
+    }
+}
+
+impl From<Pyramid> for Cylindrical {
+    fn from(pyramid: Pyramid) -> Self {
+        Self {
+            radius_top: 0.0,
+            radius_bottom: pyramid.radius,
+            height: pyramid.height,
+            radial_segments: pyramid.sides,
+            height_segments: pyramid.height_segments,
+            closed_top: false,
+            closed_bottom: pyramid.closed,
+        }
+    }
+}
+
+impl FromWithContext<AttributeFactory<'_>, Pyramid> for Geometry {
+    fn from_with_context(factory: &AttributeFactory<'_>, pyramid: Pyramid) -> Result<Self> {
+        Geometry::from_with_context(factory, Cylindrical::from(pyramid))
+    }
+}
+
 mod util {
     use std::{
         iter::{self, Repeat, Take},
