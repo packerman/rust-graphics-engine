@@ -1,6 +1,6 @@
 use std::{
     collections::{hash_map, HashMap},
-    f32::consts::PI,
+    f32::consts::{FRAC_PI_2, TAU},
     ops::RangeInclusive,
 };
 
@@ -57,7 +57,7 @@ impl Default for Rectangle {
 }
 
 impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
-    fn from(context: &WebGl2RenderingContext, rectangle: Rectangle) -> Result<Self> {
+    fn from_with_context(context: &WebGl2RenderingContext, rectangle: Rectangle) -> Result<Self> {
         let points = [
             [-rectangle.width / 2.0, -rectangle.height / 2.0, 0.0],
             [rectangle.width / 2.0, -rectangle.height / 2.0, 0.0],
@@ -83,13 +83,13 @@ impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
     }
 }
 
-struct Box {
+struct BoxGeometry {
     width: f32,
     height: f32,
     depth: f32,
 }
 
-impl Default for Box {
+impl Default for BoxGeometry {
     fn default() -> Self {
         Self {
             width: 1.0,
@@ -99,17 +99,52 @@ impl Default for Box {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Box> for Geometry {
-    fn from(context: &WebGl2RenderingContext, value: Box) -> Result<Self> {
+impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
+    fn from_with_context(
+        context: &WebGl2RenderingContext,
+        box_geometry: BoxGeometry,
+    ) -> Result<Self> {
         let points = [
-            [-value.width / 2.0, -value.height / 2.0, -value.depth / 2.0],
-            [value.width / 2.0, -value.height / 2.0, -value.depth / 2.0],
-            [-value.width / 2.0, value.height / 2.0, -value.depth / 2.0],
-            [value.width / 2.0, value.height / 2.0, -value.depth / 2.0],
-            [-value.width / 2.0, -value.height / 2.0, value.depth / 2.0],
-            [value.width / 2.0, -value.height / 2.0, value.depth / 2.0],
-            [-value.width / 2.0, value.height / 2.0, value.depth / 2.0],
-            [value.width / 2.0, value.height / 2.0, value.depth / 2.0],
+            [
+                -box_geometry.width / 2.0,
+                -box_geometry.height / 2.0,
+                -box_geometry.depth / 2.0,
+            ],
+            [
+                box_geometry.width / 2.0,
+                -box_geometry.height / 2.0,
+                -box_geometry.depth / 2.0,
+            ],
+            [
+                -box_geometry.width / 2.0,
+                box_geometry.height / 2.0,
+                -box_geometry.depth / 2.0,
+            ],
+            [
+                box_geometry.width / 2.0,
+                box_geometry.height / 2.0,
+                -box_geometry.depth / 2.0,
+            ],
+            [
+                -box_geometry.width / 2.0,
+                -box_geometry.height / 2.0,
+                box_geometry.depth / 2.0,
+            ],
+            [
+                box_geometry.width / 2.0,
+                -box_geometry.height / 2.0,
+                box_geometry.depth / 2.0,
+            ],
+            [
+                -box_geometry.width / 2.0,
+                box_geometry.height / 2.0,
+                box_geometry.depth / 2.0,
+            ],
+            [
+                box_geometry.width / 2.0,
+                box_geometry.height / 2.0,
+                box_geometry.depth / 2.0,
+            ],
         ];
         let colors = [
             Color::light_coral().into(),
@@ -160,8 +195,8 @@ impl Default for Polygon {
 }
 
 impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
-    fn from(context: &WebGl2RenderingContext, polygon: Polygon) -> Result<Self> {
-        let angle = Angle::from_radians(2.0 * PI) / polygon.sides.into();
+    fn from_with_context(context: &WebGl2RenderingContext, polygon: Polygon) -> Result<Self> {
+        let angle = Angle::from_radians(TAU) / polygon.sides.into();
         let mut position_data = Vec::with_capacity((3 * polygon.sides).into());
         let mut color_data = Vec::with_capacity((3 * polygon.sides).into());
         for n in 0..polygon.sides {
@@ -197,10 +232,10 @@ pub fn parametric_surface(
     u_resolution: u16,
     v_range: RangeInclusive<f32>,
     v_resolution: u16,
-    function: fn(f32, f32) -> Vec3,
+    function: Box<dyn Fn(f32, f32) -> Vec3>,
 ) -> Result<Geometry> {
-    let u_delta = u_range.end() - u_range.start();
-    let v_delta = v_range.end() - v_range.start();
+    let u_delta = (u_range.end() - u_range.start()) / f32::from(u_resolution);
+    let v_delta = (v_range.end() - v_range.start()) / f32::from(v_resolution);
     let mut positions = Vec::with_capacity((u_resolution + 1).into());
     for u_index in 0..=u_resolution {
         let mut vector = Vec::with_capacity((v_resolution + 1).into());
@@ -209,10 +244,10 @@ pub fn parametric_surface(
             let v = v_range.start() + f32::from(v_index) * v_delta;
             vector.push(function(u, v));
         }
-        positions.extend(vector);
+        positions.push(vector);
     }
-    let position_data: Vec<Vec3> = Vec::new();
-    let color_data: Vec<Color> = Vec::new();
+    let mut position_data: Vec<Vec3> = Vec::with_capacity((6 * u_resolution * v_resolution).into());
+    let mut color_data: Vec<Color> = Vec::with_capacity((6 * u_resolution * v_resolution).into());
     let colors = [
         Color::red(),
         Color::lime(),
@@ -221,6 +256,16 @@ pub fn parametric_surface(
         Color::fuchsia(),
         Color::yellow(),
     ];
+    for x_index in 0..usize::from(u_resolution) {
+        for y_index in 0..usize::from(v_resolution) {
+            let p_a = positions[x_index][y_index];
+            let p_b = positions[x_index + 1][y_index];
+            let p_d = positions[x_index][y_index + 1];
+            let p_c = positions[x_index + 1][y_index + 1];
+            position_data.extend([p_a, p_b, p_c, p_a, p_c, p_d]);
+            color_data.extend(colors);
+        }
+    }
     let geometry = Geometry::from_attributes([
         (
             "vertexPosition",
@@ -232,6 +277,157 @@ pub fn parametric_surface(
         ),
     ]);
     Ok(geometry)
+}
+
+pub struct Plane {
+    width: f32,
+    height: f32,
+    width_segments: u16,
+    height_segments: u16,
+}
+
+impl Default for Plane {
+    fn default() -> Self {
+        Self {
+            width: 1.0,
+            height: 1.0,
+            width_segments: 8,
+            height_segments: 8,
+        }
+    }
+}
+
+impl FromWithContext<WebGl2RenderingContext, Plane> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, plane: Plane) -> Result<Self> {
+        parametric_surface(
+            context,
+            (-plane.width / 2.0)..=(plane.width / 2.0),
+            plane.width_segments,
+            (-plane.height / 2.0)..=(plane.height / 2.0),
+            plane.height_segments,
+            Box::new(|u, v| glm::vec3(u, v, 0.0)),
+        )
+    }
+}
+
+pub struct Ellipsoid {
+    width: f32,
+    height: f32,
+    depth: f32,
+    radius_segments: u16,
+    height_segments: u16,
+}
+
+impl Default for Ellipsoid {
+    fn default() -> Self {
+        Self {
+            width: 1.0,
+            height: 1.0,
+            depth: 1.0,
+            radius_segments: 32,
+            height_segments: 16,
+        }
+    }
+}
+
+impl FromWithContext<WebGl2RenderingContext, Ellipsoid> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, ellipsoid: Ellipsoid) -> Result<Self> {
+        parametric_surface(
+            context,
+            0.0..=TAU,
+            ellipsoid.radius_segments,
+            -FRAC_PI_2..=FRAC_PI_2,
+            ellipsoid.height_segments,
+            Box::new(move |u, v| {
+                glm::vec3(
+                    ellipsoid.width / 2.0 * u.sin() * v.cos(),
+                    ellipsoid.height / 2.0 * v.sin(),
+                    ellipsoid.depth / 2.0 * u.cos() * v.sin(),
+                )
+            }),
+        )
+    }
+}
+
+struct Sphere {
+    radius: f32,
+    radius_segments: u16,
+    height_segments: u16,
+}
+
+impl Default for Sphere {
+    fn default() -> Self {
+        Self {
+            radius: 1.0,
+            radius_segments: 32,
+            height_segments: 16,
+        }
+    }
+}
+
+impl From<Sphere> for Ellipsoid {
+    fn from(sphere: Sphere) -> Self {
+        Ellipsoid {
+            width: sphere.radius,
+            height: sphere.radius,
+            depth: sphere.radius,
+            radius_segments: sphere.radius_segments,
+            height_segments: sphere.height_segments,
+        }
+    }
+}
+
+impl FromWithContext<WebGl2RenderingContext, Sphere> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, sphere: Sphere) -> Result<Self> {
+        Geometry::from_with_context(context, Ellipsoid::from(sphere))
+    }
+}
+
+struct Cylinder {
+    radius_top: f32,
+    radius_bottom: f32,
+    height: f32,
+    radial_segments: u16,
+    height_segments: u16,
+    closed_top: bool,
+    closed_bottom: bool,
+}
+
+impl Default for Cylinder {
+    fn default() -> Self {
+        Self {
+            radius_top: 1.0,
+            radius_bottom: 1.0,
+            height: 1.0,
+            radial_segments: 32,
+            height_segments: 4,
+            closed_top: true,
+            closed_bottom: true,
+        }
+    }
+}
+
+impl Cylinder {
+    fn function(&self, u: f32, v: f32) -> Vec3 {
+        glm::vec3(
+            glm::lerp_scalar(self.radius_bottom, self.radius_top, v) * u.sin(),
+            self.height * (v - 0.5),
+            glm::lerp_scalar(self.radius_bottom, self.radius_top, v) * u.cos(),
+        )
+    }
+}
+
+impl FromWithContext<WebGl2RenderingContext, Cylinder> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, cylinder: Cylinder) -> Result<Self> {
+        parametric_surface(
+            context,
+            0.0..=TAU,
+            cylinder.radial_segments,
+            0.0..=1.0,
+            cylinder.height_segments,
+            Box::new(move |u, v| cylinder.function(u, v)),
+        )
+    }
 }
 
 mod util {

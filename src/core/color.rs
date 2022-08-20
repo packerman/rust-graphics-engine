@@ -2,6 +2,7 @@ use std::ops::{Index, IndexMut};
 
 use glm::{Vec3, Vec4};
 
+#[derive(Clone, Copy)]
 pub struct Color(Vec4);
 
 impl Color {
@@ -93,7 +94,7 @@ impl Color {
         Self::from_rgb(123, 104, 238)
     }
 
-    pub fn to_rgb_vec(&self) -> Vec<f32> {
+    pub fn to_rgb_vec(self) -> Vec<f32> {
         vec![self.0.x, self.0.y, self.0.z]
     }
 
