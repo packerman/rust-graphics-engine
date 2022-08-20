@@ -5,10 +5,14 @@ use std::{
 };
 
 use anyhow::Result;
-use glm::Vec3;
-use web_sys::WebGl2RenderingContext;
+use glm::{Mat4, Vec4};
 
-use super::{attribute::Attribute, color::Color, convert::FromWithContext, matrix::Angle};
+use super::{
+    attribute::{Attribute, AttributeFactory},
+    color::Color,
+    convert::FromWithContext,
+    matrix::{self, Angle},
+};
 
 pub struct Geometry {
     attributes: HashMap<String, Attribute>,
@@ -56,8 +60,8 @@ impl Default for Rectangle {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
-    fn from_with_context(context: &WebGl2RenderingContext, rectangle: Rectangle) -> Result<Self> {
+impl FromWithContext<AttributeFactory<'_>, Rectangle> for Geometry {
+    fn from_with_context(factory: &AttributeFactory, rectangle: Rectangle) -> Result<Self> {
         let points = [
             [-rectangle.width / 2.0, -rectangle.height / 2.0, 0.0],
             [rectangle.width / 2.0, -rectangle.height / 2.0, 0.0],
@@ -73,11 +77,8 @@ impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
         let position_data = util::select_by_indices(&points, [0, 1, 3, 0, 3, 2]);
         let color_data = util::select_by_indices(&colors, [0, 1, 3, 0, 3, 2]);
         let geometry = Geometry::from_attributes([
-            (
-                "vertexPosition",
-                Attribute::from_array(context, &position_data)?,
-            ),
-            ("vertexColor", Attribute::from_array(context, &color_data)?),
+            ("vertexPosition", factory.with_array(&position_data)?),
+            ("vertexColor", factory.with_array(&color_data)?),
         ]);
         Ok(geometry)
     }
@@ -99,11 +100,8 @@ impl Default for BoxGeometry {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
-    fn from_with_context(
-        context: &WebGl2RenderingContext,
-        box_geometry: BoxGeometry,
-    ) -> Result<Self> {
+impl FromWithContext<AttributeFactory<'_>, BoxGeometry> for Geometry {
+    fn from_with_context(factory: &AttributeFactory, box_geometry: BoxGeometry) -> Result<Self> {
         let points = [
             [
                 -box_geometry.width / 2.0,
@@ -164,11 +162,8 @@ impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
         let color_data =
             util::select_by_indices(&colors, (0..=5).flat_map(|i| util::replicate(6, i)));
         let geometry = Geometry::from_attributes([
-            (
-                "vertexPosition",
-                Attribute::from_array(context, &position_data)?,
-            ),
-            ("vertexColor", Attribute::from_array(context, &color_data)?),
+            ("vertexPosition", factory.with_array(&position_data)?),
+            ("vertexColor", factory.with_array(&color_data)?),
         ]);
         Ok(geometry)
     }
@@ -180,8 +175,47 @@ struct Polygon {
 }
 
 impl Polygon {
+    fn new(sides: u16, radius: f32) -> Self {
+        Self { sides, radius }
+    }
+
     fn hexagon(radius: f32) -> Self {
         Polygon { sides: 6, radius }
+    }
+
+    pub fn copy_into_vectors(
+        &self,
+        position_data: &mut Vec<Vec4>,
+        color_data: &mut Vec<Color>,
+        matrix: &Mat4,
+    ) {
+        let angle = Angle::from_radians(TAU) / self.sides.into();
+        for n in 0..self.sides {
+            util::push_transformed(position_data, &glm::vec4(0.0, 0.0, 0.0, 1.0), matrix);
+            util::push_transformed(
+                position_data,
+                &glm::vec4(
+                    self.radius * (angle * n.into()).cos(),
+                    self.radius * (angle * n.into()).sin(),
+                    0.0,
+                    1.0,
+                ),
+                matrix,
+            );
+            util::push_transformed(
+                position_data,
+                &glm::vec4(
+                    self.radius * (angle * (n + 1).into()).cos(),
+                    self.radius * (angle * (n + 1).into()).sin(),
+                    0.0,
+                    1.0,
+                ),
+                matrix,
+            );
+            color_data.push(Color::white());
+            color_data.push(Color::red());
+            color_data.push(Color::blue());
+        }
     }
 }
 
@@ -194,89 +228,80 @@ impl Default for Polygon {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
-    fn from_with_context(context: &WebGl2RenderingContext, polygon: Polygon) -> Result<Self> {
-        let angle = Angle::from_radians(TAU) / polygon.sides.into();
+impl FromWithContext<AttributeFactory<'_>, Polygon> for Geometry {
+    fn from_with_context(factory: &AttributeFactory, polygon: Polygon) -> Result<Self> {
         let mut position_data = Vec::with_capacity((3 * polygon.sides).into());
         let mut color_data = Vec::with_capacity((3 * polygon.sides).into());
-        for n in 0..polygon.sides {
-            position_data.push([0.0, 0.0, 0.0]);
-            position_data.push([
-                polygon.radius * (angle * n.into()).cos(),
-                polygon.radius * (angle * n.into()).sin(),
-                0.0,
-            ]);
-            position_data.push([
-                polygon.radius * (angle * (n + 1).into()).cos(),
-                polygon.radius * (angle * (n + 1).into()).sin(),
-                0.0,
-            ]);
-            color_data.push(Color::white().into());
-            color_data.push(Color::red().into());
-            color_data.push(Color::blue().into());
-        }
+        polygon.copy_into_vectors(&mut position_data, &mut color_data, &matrix::identity());
         let geometry = Geometry::from_attributes([
-            (
-                "vertexPosition",
-                Attribute::from_array(context, &position_data)?,
-            ),
-            ("vertexColor", Attribute::from_array(context, &color_data)?),
+            ("vertexPosition", factory.with_vector_array(&position_data)?),
+            ("vertexColor", factory.with_rgba_color_array(&color_data)?),
         ]);
         Ok(geometry)
     }
 }
 
-pub fn parametric_surface(
-    context: &WebGl2RenderingContext,
+struct ParametricSurface {
     u_range: RangeInclusive<f32>,
     u_resolution: u16,
     v_range: RangeInclusive<f32>,
     v_resolution: u16,
-    function: Box<dyn Fn(f32, f32) -> Vec3>,
-) -> Result<Geometry> {
-    let u_delta = (u_range.end() - u_range.start()) / f32::from(u_resolution);
-    let v_delta = (v_range.end() - v_range.start()) / f32::from(v_resolution);
-    let mut positions = Vec::with_capacity((u_resolution + 1).into());
-    for u_index in 0..=u_resolution {
-        let mut vector = Vec::with_capacity((v_resolution + 1).into());
-        for v_index in 0..=v_resolution {
-            let u = u_range.start() + f32::from(u_index) * u_delta;
-            let v = v_range.start() + f32::from(v_index) * v_delta;
-            vector.push(function(u, v));
+    function: Box<dyn Fn(f32, f32) -> Vec4>,
+}
+
+impl ParametricSurface {
+    pub fn copy_into_vectors(
+        &self,
+        position_data: &mut Vec<Vec4>,
+        color_data: &mut Vec<Color>,
+        matrix: &Mat4,
+    ) {
+        let u_delta = (self.u_range.end() - self.u_range.start()) / f32::from(self.u_resolution);
+        let v_delta = (self.v_range.end() - self.v_range.start()) / f32::from(self.v_resolution);
+        let mut positions = Vec::with_capacity((self.u_resolution + 1).into());
+        for u_index in 0..=self.u_resolution {
+            let mut vector = Vec::with_capacity((self.v_resolution + 1).into());
+            for v_index in 0..=self.v_resolution {
+                let u = self.u_range.start() + f32::from(u_index) * u_delta;
+                let v = self.v_range.start() + f32::from(v_index) * v_delta;
+                util::push_transformed(&mut vector, &(self.function)(u, v), matrix)
+            }
+            positions.push(vector);
         }
-        positions.push(vector);
-    }
-    let mut position_data: Vec<Vec3> = Vec::with_capacity((6 * u_resolution * v_resolution).into());
-    let mut color_data: Vec<Color> = Vec::with_capacity((6 * u_resolution * v_resolution).into());
-    let colors = [
-        Color::red(),
-        Color::lime(),
-        Color::blue(),
-        Color::aqua(),
-        Color::fuchsia(),
-        Color::yellow(),
-    ];
-    for x_index in 0..usize::from(u_resolution) {
-        for y_index in 0..usize::from(v_resolution) {
-            let p_a = positions[x_index][y_index];
-            let p_b = positions[x_index + 1][y_index];
-            let p_d = positions[x_index][y_index + 1];
-            let p_c = positions[x_index + 1][y_index + 1];
-            position_data.extend([p_a, p_b, p_c, p_a, p_c, p_d]);
-            color_data.extend(colors);
+        let colors = [
+            Color::red(),
+            Color::lime(),
+            Color::blue(),
+            Color::aqua(),
+            Color::fuchsia(),
+            Color::yellow(),
+        ];
+        for x_index in 0..usize::from(self.u_resolution) {
+            for y_index in 0..usize::from(self.v_resolution) {
+                let p_a = positions[x_index][y_index];
+                let p_b = positions[x_index + 1][y_index];
+                let p_d = positions[x_index][y_index + 1];
+                let p_c = positions[x_index + 1][y_index + 1];
+                position_data.extend([p_a, p_b, p_c, p_a, p_c, p_d]);
+                color_data.extend(colors);
+            }
         }
     }
-    let geometry = Geometry::from_attributes([
-        (
-            "vertexPosition",
-            Attribute::from_vector_array(context, &position_data)?,
-        ),
-        (
-            "vertexColor",
-            Attribute::from_rgb_color_array(context, &color_data)?,
-        ),
-    ]);
-    Ok(geometry)
+}
+
+impl FromWithContext<AttributeFactory<'_>, ParametricSurface> for Geometry {
+    fn from_with_context(factory: &AttributeFactory, surface: ParametricSurface) -> Result<Self> {
+        let mut position_data: Vec<Vec4> =
+            Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
+        let mut color_data: Vec<Color> =
+            Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
+        surface.copy_into_vectors(&mut position_data, &mut color_data, &matrix::identity());
+        let geometry = Geometry::from_attributes([
+            ("vertexPosition", factory.with_vector_array(&position_data)?),
+            ("vertexColor", factory.with_rgba_color_array(&color_data)?),
+        ]);
+        Ok(geometry)
+    }
 }
 
 pub struct Plane {
@@ -297,16 +322,21 @@ impl Default for Plane {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Plane> for Geometry {
-    fn from_with_context(context: &WebGl2RenderingContext, plane: Plane) -> Result<Self> {
-        parametric_surface(
-            context,
-            (-plane.width / 2.0)..=(plane.width / 2.0),
-            plane.width_segments,
-            (-plane.height / 2.0)..=(plane.height / 2.0),
-            plane.height_segments,
-            Box::new(|u, v| glm::vec3(u, v, 0.0)),
-        )
+impl From<Plane> for ParametricSurface {
+    fn from(plane: Plane) -> Self {
+        ParametricSurface {
+            u_range: (-plane.width / 2.0)..=(plane.width / 2.0),
+            u_resolution: plane.width_segments,
+            v_range: (-plane.height / 2.0)..=(plane.height / 2.0),
+            v_resolution: plane.height_segments,
+            function: Box::new(|u, v| glm::vec4(u, v, 0.0, 1.0)),
+        }
+    }
+}
+
+impl FromWithContext<AttributeFactory<'_>, Plane> for Geometry {
+    fn from_with_context(factory: &AttributeFactory, plane: Plane) -> Result<Self> {
+        Geometry::from_with_context(factory, ParametricSurface::from(plane))
     }
 }
 
@@ -330,22 +360,28 @@ impl Default for Ellipsoid {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Ellipsoid> for Geometry {
-    fn from_with_context(context: &WebGl2RenderingContext, ellipsoid: Ellipsoid) -> Result<Self> {
-        parametric_surface(
-            context,
-            0.0..=TAU,
-            ellipsoid.radius_segments,
-            -FRAC_PI_2..=FRAC_PI_2,
-            ellipsoid.height_segments,
-            Box::new(move |u, v| {
-                glm::vec3(
+impl From<Ellipsoid> for ParametricSurface {
+    fn from(ellipsoid: Ellipsoid) -> Self {
+        ParametricSurface {
+            u_range: 0.0..=TAU,
+            u_resolution: ellipsoid.radius_segments,
+            v_range: -FRAC_PI_2..=FRAC_PI_2,
+            v_resolution: ellipsoid.height_segments,
+            function: Box::new(move |u, v| {
+                glm::vec4(
                     ellipsoid.width / 2.0 * u.sin() * v.cos(),
                     ellipsoid.height / 2.0 * v.sin(),
                     ellipsoid.depth / 2.0 * u.cos() * v.sin(),
+                    1.0,
                 )
             }),
-        )
+        }
+    }
+}
+
+impl FromWithContext<AttributeFactory<'_>, Ellipsoid> for Geometry {
+    fn from_with_context(factory: &AttributeFactory, ellipsoid: Ellipsoid) -> Result<Self> {
+        Geometry::from_with_context(factory, ParametricSurface::from(ellipsoid))
     }
 }
 
@@ -377,13 +413,14 @@ impl From<Sphere> for Ellipsoid {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Sphere> for Geometry {
-    fn from_with_context(context: &WebGl2RenderingContext, sphere: Sphere) -> Result<Self> {
-        Geometry::from_with_context(context, Ellipsoid::from(sphere))
+impl FromWithContext<AttributeFactory<'_>, Sphere> for Geometry {
+    fn from_with_context(factory: &AttributeFactory, sphere: Sphere) -> Result<Self> {
+        Geometry::from_with_context(factory, Ellipsoid::from(sphere))
     }
 }
 
-struct Cylinder {
+#[derive(Clone, Copy)]
+struct Cylindrical {
     radius_top: f32,
     radius_bottom: f32,
     height: f32,
@@ -393,7 +430,7 @@ struct Cylinder {
     closed_bottom: bool,
 }
 
-impl Default for Cylinder {
+impl Default for Cylindrical {
     fn default() -> Self {
         Self {
             radius_top: 1.0,
@@ -407,26 +444,97 @@ impl Default for Cylinder {
     }
 }
 
-impl Cylinder {
-    fn function(&self, u: f32, v: f32) -> Vec3 {
-        glm::vec3(
+impl Cylindrical {
+    fn function(&self, u: f32, v: f32) -> Vec4 {
+        glm::vec4(
             glm::lerp_scalar(self.radius_bottom, self.radius_top, v) * u.sin(),
             self.height * (v - 0.5),
             glm::lerp_scalar(self.radius_bottom, self.radius_top, v) * u.cos(),
+            1.0,
         )
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Cylinder> for Geometry {
-    fn from_with_context(context: &WebGl2RenderingContext, cylinder: Cylinder) -> Result<Self> {
-        parametric_surface(
-            context,
-            0.0..=TAU,
-            cylinder.radial_segments,
-            0.0..=1.0,
-            cylinder.height_segments,
-            Box::new(move |u, v| cylinder.function(u, v)),
-        )
+impl From<Cylindrical> for ParametricSurface {
+    fn from(cylinder: Cylindrical) -> Self {
+        ParametricSurface {
+            u_range: 0.0..=TAU,
+            u_resolution: cylinder.radial_segments,
+            v_range: 0.0..=1.0,
+            v_resolution: cylinder.height_segments,
+            function: Box::new(move |u, v| cylinder.function(u, v)),
+        }
+    }
+}
+
+impl FromWithContext<AttributeFactory<'_>, Cylindrical> for Geometry {
+    fn from_with_context(factory: &AttributeFactory, cylinder: Cylindrical) -> Result<Self> {
+        let mut position_data: Vec<Vec4> = Vec::new();
+        let mut color_data: Vec<Color> = Vec::new();
+
+        let surface = ParametricSurface::from(cylinder);
+        surface.copy_into_vectors(&mut position_data, &mut color_data, &matrix::identity());
+
+        if cylinder.closed_top {
+            let top = Polygon::new(cylinder.radial_segments, cylinder.radius_top);
+            let transform = matrix::translation(0.0, cylinder.height / 2.0, 0.0)
+                * matrix::rotation_y(-Angle::RIGHT)
+                * matrix::rotation_x(-Angle::RIGHT);
+            top.copy_into_vectors(&mut position_data, &mut color_data, &transform);
+        }
+        if cylinder.closed_bottom {
+            let bottom = Polygon::new(cylinder.radial_segments, cylinder.radius_top);
+            let transform = matrix::translation(0.0, -cylinder.height / 2.0, 0.0)
+                * matrix::rotation_y(-Angle::RIGHT)
+                * matrix::rotation_x(Angle::RIGHT);
+            bottom.copy_into_vectors(&mut position_data, &mut color_data, &transform);
+        }
+
+        let geometry = Geometry::from_attributes([
+            ("vertexPosition", factory.with_vector_array(&position_data)?),
+            ("vertexColor", factory.with_rgba_color_array(&color_data)?),
+        ]);
+        Ok(geometry)
+    }
+}
+
+pub struct Cylinder {
+    radius: f32,
+    height: f32,
+    radial_segments: u16,
+    height_segments: u16,
+    closed: bool,
+}
+
+impl Default for Cylinder {
+    fn default() -> Self {
+        Self {
+            radius: 1.0,
+            height: 1.0,
+            radial_segments: 32,
+            height_segments: 4,
+            closed: true,
+        }
+    }
+}
+
+impl From<Cylinder> for Cylindrical {
+    fn from(cylinder: Cylinder) -> Self {
+        Self {
+            radius_top: cylinder.radius,
+            radius_bottom: cylinder.radius,
+            height: cylinder.height,
+            radial_segments: cylinder.radial_segments,
+            height_segments: cylinder.height_segments,
+            closed_top: cylinder.closed,
+            closed_bottom: cylinder.closed,
+        }
+    }
+}
+
+impl FromWithContext<AttributeFactory<'_>, Cylinder> for Geometry {
+    fn from_with_context(factory: &AttributeFactory<'_>, cylinder: Cylinder) -> Result<Self> {
+        Geometry::from_with_context(factory, Cylindrical::from(cylinder))
     }
 }
 
@@ -435,6 +543,8 @@ mod util {
         iter::{self, Repeat, Take},
         ops::Index,
     };
+
+    use glm::{Mat4, Vec4};
 
     pub fn select_by_indices<M, K, V, I>(indexed: &M, indices: I) -> Vec<V>
     where
@@ -450,5 +560,9 @@ mod util {
         T: Clone,
     {
         iter::repeat(t).take(n)
+    }
+
+    pub fn push_transformed(vector: &mut Vec<Vec4>, elem: &Vec4, matrix: &Mat4) {
+        vector.push(matrix * elem);
     }
 }

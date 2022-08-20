@@ -1,4 +1,7 @@
-use std::ops::{Div, Mul, Neg};
+use std::{
+    f32::consts::FRAC_PI_2,
+    ops::{Div, Mul, Neg},
+};
 
 use glm::Mat4;
 
@@ -16,13 +19,15 @@ pub struct Angle {
 }
 
 impl Angle {
+    pub const RIGHT: Angle = Angle::from_radians(FRAC_PI_2);
+
     pub fn from_degrees(degrees: f32) -> Self {
         Self {
             radians: degrees.to_radians(),
         }
     }
 
-    pub fn from_radians(radians: f32) -> Self {
+    pub const fn from_radians(radians: f32) -> Self {
         Self { radians }
     }
 

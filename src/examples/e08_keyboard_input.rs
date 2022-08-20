@@ -2,7 +2,11 @@ use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::Application, attribute::Attribute, color::Color, gl, input::KeyState,
+    application::Application,
+    attribute::{Attribute, AttributeFactory},
+    color::Color,
+    gl,
+    input::KeyState,
     uniform::Uniform,
 };
 
@@ -41,8 +45,9 @@ impl KeyboardInput {
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));
+        let factory = AttributeFactory::new(context);
         let position_data = [[0.0_f32, 0.2, 0.0], [0.2, -0.2, 0.0], [-0.2, -0.2, 0.0]];
-        let position_attribute = Attribute::from_array(context, &position_data)?;
+        let position_attribute = factory.with_array(&position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
         let translation =

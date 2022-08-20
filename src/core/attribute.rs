@@ -43,41 +43,6 @@ pub struct Attribute {
 }
 
 impl Attribute {
-    pub fn from_array<const N: usize>(
-        context: &WebGl2RenderingContext,
-        data: &[[f32; N]],
-    ) -> Result<Attribute> {
-        fn flatten_array<T: Clone, const N: usize>(data: &[[T; N]]) -> Vec<T> {
-            data.iter().flat_map(|item| item.to_vec()).collect()
-        }
-        let flat_data = Box::new(flatten_array(data));
-        Self::from_flat_array(context, flat_data, N, data.len())
-    }
-
-    pub fn from_vector_array<const N: usize>(
-        context: &WebGl2RenderingContext,
-        data: &[SVector<f32, N>],
-    ) -> Result<Attribute> {
-        fn flatten_vector<T: Copy, const N: usize>(data: &[SVector<T, N>]) -> Vec<T> {
-            data.iter()
-                .flat_map(|item| item.iter().copied().collect::<Vec<T>>())
-                .collect()
-        }
-        let flat_data = Box::new(flatten_vector(data));
-        Self::from_flat_array(context, flat_data, N, data.len())
-    }
-
-    pub fn from_rgb_color_array(
-        context: &WebGl2RenderingContext,
-        data: &[Color],
-    ) -> Result<Attribute> {
-        fn flatten_color(data: &[Color]) -> Vec<f32> {
-            data.iter().flat_map(|item| item.to_rgb_vec()).collect()
-        }
-        let flat_data = Box::new(flatten_color(data));
-        Self::from_flat_array(context, flat_data, 3, data.len())
-    }
-
     fn new_with_data(
         context: &WebGl2RenderingContext,
         data_type: DataType,
@@ -94,20 +59,6 @@ impl Attribute {
         };
         attribute.upload_data(context);
         Ok(attribute)
-    }
-
-    fn from_flat_array(
-        context: &WebGl2RenderingContext,
-        data: Box<dyn AttributeData>,
-        size: usize,
-        length: usize,
-    ) -> Result<Attribute> {
-        Self::new_with_data(
-            context,
-            DataType::new(size.try_into().unwrap(), WebGl2RenderingContext::FLOAT),
-            data,
-            length,
-        )
     }
 
     fn upload_data(&self, context: &WebGl2RenderingContext) {
@@ -133,5 +84,63 @@ impl Attribute {
         );
         context.enable_vertex_attrib_array(location);
         Ok(())
+    }
+}
+
+pub struct AttributeFactory<'a> {
+    context: &'a WebGl2RenderingContext,
+}
+
+impl<'a> AttributeFactory<'a> {
+    pub fn new(context: &'a WebGl2RenderingContext) -> AttributeFactory {
+        Self { context }
+    }
+
+    pub fn with_array<const N: usize>(&self, data: &[[f32; N]]) -> Result<Attribute> {
+        fn flatten_array<T: Clone, const N: usize>(data: &[[T; N]]) -> Vec<T> {
+            data.iter().flat_map(|item| item.to_vec()).collect()
+        }
+        let flat_data = Box::new(flatten_array(data));
+        self.with_flat_array(flat_data, N, data.len())
+    }
+
+    pub fn with_vector_array<const N: usize>(&self, data: &[SVector<f32, N>]) -> Result<Attribute> {
+        fn flatten_vector<T: Copy, const N: usize>(data: &[SVector<T, N>]) -> Vec<T> {
+            data.iter()
+                .flat_map(|item| item.iter().copied().collect::<Vec<T>>())
+                .collect()
+        }
+        let flat_data = Box::new(flatten_vector(data));
+        self.with_flat_array(flat_data, N, data.len())
+    }
+
+    pub fn with_rgb_color_array(&self, data: &[Color]) -> Result<Attribute> {
+        fn flatten_color(data: &[Color]) -> Vec<f32> {
+            data.iter().flat_map(|item| item.to_rgb_vec()).collect()
+        }
+        let flat_data = Box::new(flatten_color(data));
+        self.with_flat_array(flat_data, 3, data.len())
+    }
+
+    pub fn with_rgba_color_array(&self, data: &[Color]) -> Result<Attribute> {
+        fn flatten_color(data: &[Color]) -> Vec<f32> {
+            data.iter().flat_map(|item| item.to_rgba_vec()).collect()
+        }
+        let flat_data = Box::new(flatten_color(data));
+        self.with_flat_array(flat_data, 4, data.len())
+    }
+
+    fn with_flat_array(
+        &self,
+        data: Box<dyn AttributeData>,
+        size: usize,
+        length: usize,
+    ) -> Result<Attribute> {
+        Attribute::new_with_data(
+            self.context,
+            DataType::new(size.try_into().unwrap(), WebGl2RenderingContext::FLOAT),
+            data,
+            length,
+        )
     }
 }
