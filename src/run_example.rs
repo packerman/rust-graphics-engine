@@ -13,7 +13,7 @@ use crate::{
 };
 
 pub fn run_example(canvas: &HtmlCanvasElement) -> Result<()> {
-    run_example_by_index(canvas, Some(8))
+    run_example_by_index(canvas, None)
 }
 
 fn examples() -> Vec<Box<ApplicationCreator>> {
