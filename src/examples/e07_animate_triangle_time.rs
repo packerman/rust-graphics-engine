@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
@@ -29,15 +31,17 @@ void main()
 }
 "##;
 
-pub struct AnimateTriangleTime {
+pub struct AnimateTriangleTime<'a> {
     program: WebGlProgram,
     position: Attribute,
-    translation: Uniform<[f32; 3]>,
-    base_color: Uniform<Color>,
+    translation_data: Rc<RefCell<[f32; 3]>>,
+    translation: Uniform<'a>,
+    base_color_data: Rc<RefCell<Color>>,
+    base_color: Uniform<'a>,
     frame: usize,
 }
 
-impl AnimateTriangleTime {
+impl AnimateTriangleTime<'_> {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
         gl::set_clear_color(context, &Color::gray());
@@ -49,28 +53,43 @@ impl AnimateTriangleTime {
         let position_attribute = factory.with_array(&position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
-        let translation =
-            Uniform::new_with_data(context, [-0.5_f32, 0.0, 0.0], &program, "translation")?;
-        let base_color = Uniform::new_with_data(context, Color::red(), &program, "baseColor")?;
+        let translation_data = Rc::new(RefCell::new([-0.5_f32, 0.0, 0.0]));
+        let translation = Uniform::new_with_data(
+            context,
+            Rc::clone(&translation_data),
+            &program,
+            "translation",
+        )?;
+        let base_color_data = Rc::new(RefCell::new(Color::red()));
+        let base_color =
+            Uniform::new_with_data(context, Rc::clone(&base_color_data), &program, "baseColor")?;
 
         Ok(Box::new(AnimateTriangleTime {
             program,
             position: position_attribute,
+            translation_data,
             translation,
+            base_color_data,
             base_color,
             frame: 0,
         }))
     }
 }
 
-impl Application for AnimateTriangleTime {
+impl Application for AnimateTriangleTime<'_> {
     fn update(&mut self, _key_state: &KeyState) {
         let t = self.frame as f32 / 60.0;
-        self.translation.data[0] = 0.75 * t.cos();
-        self.translation.data[1] = 0.75 * t.sin();
-        self.base_color.data[0] = (t.sin() + 1.0) / 2.0;
-        self.base_color.data[1] = ((t + 2.1).sin() + 1.0) / 2.0;
-        self.base_color.data[2] = ((t + 4.2).sin() + 1.0) / 2.0;
+        self.translation_data.replace_with(|old: &mut [f32; 3]| {
+            old[0] = 0.75 * t.cos();
+            old[1] = 0.75 * t.sin();
+            *old
+        });
+        self.base_color_data.replace_with(|old| {
+            old[0] = (t.sin() + 1.0) / 2.0;
+            old[1] = ((t + 2.1).sin() + 1.0) / 2.0;
+            old[2] = ((t + 4.2).sin() + 1.0) / 2.0;
+            *old
+        });
         self.frame += 1;
     }
 

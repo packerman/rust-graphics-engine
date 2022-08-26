@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
@@ -29,16 +31,16 @@ void main()
 }
 "##;
 
-pub struct TwoTriangles {
+pub struct TwoTriangles<'a> {
     program: WebGlProgram,
     position: Attribute,
-    translation1: Uniform<[f32; 3]>,
-    translation2: Uniform<[f32; 3]>,
-    base_color1: Uniform<Color>,
-    base_color2: Uniform<Color>,
+    translation1: Uniform<'a>,
+    translation2: Uniform<'a>,
+    base_color1: Uniform<'a>,
+    base_color2: Uniform<'a>,
 }
 
-impl TwoTriangles {
+impl TwoTriangles<'_> {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
         gl::set_clear_color(context, &Color::gray());
@@ -50,12 +52,30 @@ impl TwoTriangles {
         let position_attribute = factory.with_array(&position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
-        let translation1 =
-            Uniform::new_with_data(context, [-0.5_f32, 0.0, 0.0], &program, "translation")?;
-        let translation2 =
-            Uniform::new_with_data(context, [0.5_f32, 0.0, 0.0], &program, "translation")?;
-        let base_color1 = Uniform::new_with_data(context, Color::red(), &program, "baseColor")?;
-        let base_color2 = Uniform::new_with_data(context, Color::blue(), &program, "baseColor")?;
+        let translation1 = Uniform::new_with_data(
+            context,
+            Rc::new(RefCell::new([-0.5_f32, 0.0, 0.0])),
+            &program,
+            "translation",
+        )?;
+        let translation2 = Uniform::new_with_data(
+            context,
+            Rc::new(RefCell::new([0.5_f32, 0.0, 0.0])),
+            &program,
+            "translation",
+        )?;
+        let base_color1 = Uniform::new_with_data(
+            context,
+            Rc::new(RefCell::new(Color::red())),
+            &program,
+            "baseColor",
+        )?;
+        let base_color2 = Uniform::new_with_data(
+            context,
+            Rc::new(RefCell::new(Color::blue())),
+            &program,
+            "baseColor",
+        )?;
 
         Ok(Box::new(TwoTriangles {
             program,
@@ -68,7 +88,7 @@ impl TwoTriangles {
     }
 }
 
-impl Application for TwoTriangles {
+impl Application for TwoTriangles<'_> {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

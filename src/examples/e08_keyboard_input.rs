@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
@@ -29,14 +31,15 @@ void main()
 }
 "##;
 
-pub struct KeyboardInput {
+pub struct KeyboardInput<'a> {
     program: WebGlProgram,
     position: Attribute,
-    translation: Uniform<[f32; 3]>,
-    base_color: Uniform<Color>,
+    translation_data: Rc<RefCell<[f32; 3]>>,
+    translation: Uniform<'a>,
+    base_color: Uniform<'a>,
 }
 
-impl KeyboardInput {
+impl KeyboardInput<'_> {
     const SPEED: f32 = 0.5;
 
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
@@ -50,34 +53,49 @@ impl KeyboardInput {
         let position_attribute = factory.with_array(&position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
-        let translation =
-            Uniform::new_with_data(context, [-0.5_f32, 0.0, 0.0], &program, "translation")?;
-        let base_color = Uniform::new_with_data(context, Color::red(), &program, "baseColor")?;
+        let translation_data = Rc::new(RefCell::new([-0.5_f32, 0.0, 0.0]));
+        let translation = Uniform::new_with_data(
+            context,
+            Rc::clone(&translation_data),
+            &program,
+            "translation",
+        )?;
+        let base_color = Uniform::new_with_data(
+            context,
+            Rc::new(RefCell::new(Color::red())),
+            &program,
+            "baseColor",
+        )?;
 
         Ok(Box::new(KeyboardInput {
             program,
             position: position_attribute,
+            translation_data,
             translation,
             base_color,
         }))
     }
 }
 
-impl Application for KeyboardInput {
+impl Application for KeyboardInput<'_> {
     fn update(&mut self, key_state: &KeyState) {
         let distance = Self::SPEED / 60.0;
-        if key_state.is_pressed("ArrowLeft") {
-            self.translation.data[0] -= distance;
-        }
-        if key_state.is_pressed("ArrowRight") {
-            self.translation.data[0] += distance;
-        }
-        if key_state.is_pressed("ArrowDown") {
-            self.translation.data[1] -= distance;
-        }
-        if key_state.is_pressed("ArrowUp") {
-            self.translation.data[1] += distance;
-        }
+
+        self.translation_data.replace_with(|old| {
+            if key_state.is_pressed("ArrowLeft") {
+                old[0] -= distance;
+            }
+            if key_state.is_pressed("ArrowRight") {
+                old[0] += distance;
+            }
+            if key_state.is_pressed("ArrowDown") {
+                old[1] -= distance;
+            }
+            if key_state.is_pressed("ArrowUp") {
+                old[1] += distance;
+            }
+            *old
+        });
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {

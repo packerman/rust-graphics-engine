@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
@@ -29,14 +31,15 @@ void main()
 }
 "##;
 
-pub struct AnimateTriangle {
+pub struct AnimateTriangle<'a> {
     program: WebGlProgram,
     position: Attribute,
-    translation: Uniform<[f32; 3]>,
-    base_color: Uniform<Color>,
+    translation_data: Rc<RefCell<[f32; 3]>>,
+    translation: Uniform<'a>,
+    base_color: Uniform<'a>,
 }
 
-impl AnimateTriangle {
+impl AnimateTriangle<'_> {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
         gl::set_clear_color(context, &Color::gray());
@@ -48,25 +51,40 @@ impl AnimateTriangle {
         let position_attribute = factory.with_array(&position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
-        let translation =
-            Uniform::new_with_data(context, [-0.5_f32, 0.0, 0.0], &program, "translation")?;
-        let base_color = Uniform::new_with_data(context, Color::red(), &program, "baseColor")?;
+        let translation_data = Rc::new(RefCell::new([-0.5_f32, 0.0, 0.0]));
+
+        let translation = Uniform::new_with_data(
+            context,
+            Rc::clone(&translation_data),
+            &program,
+            "translation",
+        )?;
+        let base_color = Uniform::new_with_data(
+            context,
+            Rc::new(RefCell::new(Color::red())),
+            &program,
+            "baseColor",
+        )?;
 
         Ok(Box::new(AnimateTriangle {
             program,
             position: position_attribute,
+            translation_data,
             translation,
             base_color,
         }))
     }
 }
 
-impl Application for AnimateTriangle {
+impl Application for AnimateTriangle<'_> {
     fn update(&mut self, _key_state: &KeyState) {
-        self.translation.data[0] += 0.01;
-        if self.translation.data[0] > 1.2 {
-            self.translation.data[0] = -1.2;
-        }
+        self.translation_data.replace_with(|old| {
+            old[0] += 0.01;
+            if old[0] > 1.2 {
+                old[0] = -1.2;
+            }
+            *old
+        });
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
