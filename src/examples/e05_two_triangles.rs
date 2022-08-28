@@ -31,16 +31,16 @@ void main()
 }
 "##;
 
-pub struct TwoTriangles<'a> {
+pub struct TwoTriangles {
     program: WebGlProgram,
     position: Attribute,
-    translation1: Uniform<'a>,
-    translation2: Uniform<'a>,
-    base_color1: Uniform<'a>,
-    base_color2: Uniform<'a>,
+    translation1: Uniform,
+    translation2: Uniform,
+    base_color1: Uniform,
+    base_color2: Uniform,
 }
 
-impl TwoTriangles<'_> {
+impl TwoTriangles {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
         gl::set_clear_color(context, &Color::gray());
@@ -52,30 +52,12 @@ impl TwoTriangles<'_> {
         let position_attribute = factory.with_array(&position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
-        let translation1 = Uniform::new_with_data(
-            context,
-            Rc::new(RefCell::new([-0.5_f32, 0.0, 0.0])),
-            &program,
-            "translation",
-        )?;
-        let translation2 = Uniform::new_with_data(
-            context,
-            Rc::new(RefCell::new([0.5_f32, 0.0, 0.0])),
-            &program,
-            "translation",
-        )?;
-        let base_color1 = Uniform::new_with_data(
-            context,
-            Rc::new(RefCell::new(Color::red())),
-            &program,
-            "baseColor",
-        )?;
-        let base_color2 = Uniform::new_with_data(
-            context,
-            Rc::new(RefCell::new(Color::blue())),
-            &program,
-            "baseColor",
-        )?;
+        let translation1 =
+            Uniform::new_with_array3(context, [-0.5_f32, 0.0, 0.0], &program, "translation")?;
+        let translation2 =
+            Uniform::new_with_array3(context, [0.5_f32, 0.0, 0.0], &program, "translation")?;
+        let base_color1 = Uniform::new_with_color(context, Color::red(), &program, "baseColor")?;
+        let base_color2 = Uniform::new_with_color(context, Color::blue(), &program, "baseColor")?;
 
         Ok(Box::new(TwoTriangles {
             program,
@@ -88,7 +70,7 @@ impl TwoTriangles<'_> {
     }
 }
 
-impl Application for TwoTriangles<'_> {
+impl Application for TwoTriangles {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

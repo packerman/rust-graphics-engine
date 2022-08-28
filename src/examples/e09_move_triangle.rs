@@ -33,17 +33,16 @@ void main()
 }
 "##;
 
-pub struct MoveTriangle<'a> {
+pub struct MoveTriangle {
     program: WebGlProgram,
     position: Attribute,
-    model_matrix_data: Rc<RefCell<Mat4>>,
-    model_matrix: Uniform<'a>,
-    projection_matrix: Uniform<'a>,
+    model_matrix: Uniform,
+    projection_matrix: Uniform,
     move_speed: f32,
     turn_speed: Angle,
 }
 
-impl MoveTriangle<'_> {
+impl MoveTriangle {
     const DELTA_TIME_SEC: f32 = 1_f32 / 60.0;
 
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
@@ -58,19 +57,16 @@ impl MoveTriangle<'_> {
         let position_attribute = factory.with_array(&position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
-        let model_matrix_data: Rc<RefCell<Mat4>> =
-            Rc::new(RefCell::new(matrix::translation(0.0, 0.0, -1.0)));
-
-        let model_matrix = Uniform::new_with_data(
+        let model_matrix = Uniform::new_with_mat4(
             context,
-            Rc::clone(&model_matrix_data),
+            matrix::translation(0.0, 0.0, -1.0),
             &program,
             "modelMatrix",
         )?;
 
-        let projection_matrix: Uniform = Uniform::new_with_data(
+        let projection_matrix: Uniform = Uniform::new_with_mat4(
             context,
-            Rc::new(RefCell::new(Mat4::from(Perspective::default()))),
+            Mat4::from(Perspective::default()),
             &program,
             "projectionMatrix",
         )?;
@@ -78,7 +74,6 @@ impl MoveTriangle<'_> {
         Ok(Box::new(MoveTriangle {
             program,
             position: position_attribute,
-            model_matrix_data,
             model_matrix,
             projection_matrix,
             move_speed: 0.5,
@@ -87,67 +82,68 @@ impl MoveTriangle<'_> {
     }
 }
 
-impl Application for MoveTriangle<'_> {
+impl Application for MoveTriangle {
     fn update(&mut self, key_state: &KeyState) {
         let move_amount = self.move_speed * Self::DELTA_TIME_SEC;
         let turn_mount = self.turn_speed * Self::DELTA_TIME_SEC;
+        let model_matrix = self.model_matrix.mat4_mut().unwrap();
         // global
         if key_state.is_pressed("KeyW") {
             let m = matrix::translation(0.0, move_amount, 0.0);
-            self.model_matrix_data.replace_with(|&mut old| m * old);
+            *model_matrix = m * *model_matrix;
         }
         if key_state.is_pressed("KeyS") {
             let m = matrix::translation(0.0, -move_amount, 0.0);
-            self.model_matrix_data.replace_with(|&mut old| m * old);
+            *model_matrix = m * *model_matrix;
         }
         if key_state.is_pressed("KeyA") {
             let m = matrix::translation(-move_amount, 0.0, 0.0);
-            self.model_matrix_data.replace_with(|&mut old| m * old);
+            *model_matrix = m * *model_matrix;
         }
         if key_state.is_pressed("KeyD") {
             let m = matrix::translation(move_amount, 0.0, 0.0);
-            self.model_matrix_data.replace_with(|&mut old| m * old);
+            *model_matrix = m * *model_matrix;
         }
         if key_state.is_pressed("KeyZ") {
             let m = matrix::translation(0.0, 0.0, move_amount);
-            self.model_matrix_data.replace_with(|&mut old| m * old);
+            *model_matrix = m * *model_matrix;
         }
         if key_state.is_pressed("KeyX") {
             let m = matrix::translation(0.0, 0.0, -move_amount);
-            self.model_matrix_data.replace_with(|&mut old| m * old);
+            *model_matrix = m * *model_matrix;
         }
         if key_state.is_pressed("KeyQ") {
             let m = matrix::rotation_z(turn_mount);
-            self.model_matrix_data.replace_with(|&mut old| m * old);
+            *model_matrix = m * *model_matrix;
         }
         if key_state.is_pressed("KeyE") {
             let m = matrix::rotation_z(-turn_mount);
-            self.model_matrix_data.replace_with(|&mut old| m * old);
+            *model_matrix = m * *model_matrix;
         }
         // local
         if key_state.is_pressed("KeyI") {
             let m = matrix::translation(0.0, move_amount, 0.0);
-            self.model_matrix_data.replace_with(|&mut old| old * m);
+            *model_matrix = *model_matrix * m;
         }
         if key_state.is_pressed("KeyK") {
             let m = matrix::translation(0.0, -move_amount, 0.0);
-            self.model_matrix_data.replace_with(|&mut old| old * m);
+            *model_matrix = *model_matrix * m;
         }
         if key_state.is_pressed("KeyJ") {
             let m = matrix::translation(-move_amount, 0.0, 0.0);
-            self.model_matrix_data.replace_with(|&mut old| old * m);
+            *model_matrix = *model_matrix * m;
         }
         if key_state.is_pressed("KeyL") {
             let m = matrix::translation(move_amount, 0.0, 0.0);
-            self.model_matrix_data.replace_with(|&mut old| old * m);
+            *model_matrix = *model_matrix * m;
         }
         if key_state.is_pressed("KeyU") {
             let m = matrix::rotation_z(turn_mount);
-            self.model_matrix_data.replace_with(|&mut old| old * m);
+            *model_matrix = *model_matrix * m;
         }
         if key_state.is_pressed("KeyO") {
             let m = matrix::rotation_z(-turn_mount);
-            self.model_matrix_data.replace_with(|&mut old| old * m);
+            *model_matrix = *model_matrix * m;
         }
     }
 

@@ -4,60 +4,93 @@ use anyhow::Result;
 use glm::{Mat4, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
-use super::{color::Color, gl};
+use super::{attribute::DataType, color::Color, gl};
 
-pub struct Uniform<'a> {
-    pub data: Rc<RefCell<dyn UniformData + 'a>>,
+pub enum UniformData {
+    Array3([f32; 3]),
+    Vec3(Vec3),
+    Vec4(Vec4),
+    Color(Color),
+    Mat4(Mat4),
+}
+
+pub struct Uniform {
+    pub data: UniformData,
     location: WebGlUniformLocation,
 }
 
-impl<'a> Uniform<'a> {
-    pub fn new_with_data<T: UniformData + 'a>(
+impl Uniform {
+    pub fn new_with_array3(
         context: &WebGl2RenderingContext,
-        data: Rc<RefCell<T>>,
+        data: [f32; 3],
         program: &WebGlProgram,
         name: &str,
-    ) -> Result<Uniform<'a>> {
+    ) -> Result<Self> {
+        Self::new_with_data(context, UniformData::Array3(data), program, name)
+    }
+
+    pub fn new_with_color(
+        context: &WebGl2RenderingContext,
+        data: Color,
+        program: &WebGlProgram,
+        name: &str,
+    ) -> Result<Self> {
+        Self::new_with_data(context, UniformData::Color(data), program, name)
+    }
+
+    pub fn new_with_mat4(
+        context: &WebGl2RenderingContext,
+        data: Mat4,
+        program: &WebGlProgram,
+        name: &str,
+    ) -> Result<Self> {
+        Self::new_with_data(context, UniformData::Mat4(data), program, name)
+    }
+
+    fn new_with_data(
+        context: &WebGl2RenderingContext,
+        data: UniformData,
+        program: &WebGlProgram,
+        name: &str,
+    ) -> Result<Self> {
         let location = gl::get_uniform_location(context, program, name)?;
         let uniform = Uniform { data, location };
         Ok(uniform)
     }
 
     pub fn upload_data(&self, context: &WebGl2RenderingContext) {
-        self.data.borrow().upload_data(context, &self.location);
+        let location = Some(&self.location);
+        match self.data {
+            UniformData::Array3(data) => context.uniform1fv_with_f32_array(location, &data),
+            UniformData::Vec3(data) => context.uniform3f(location, data.x, data.y, data.z),
+            UniformData::Vec4(data) => context.uniform4f(location, data.x, data.y, data.z, data.w),
+            UniformData::Color(data) => {
+                context.uniform4f(location, data[0], data[1], data[2], data[3])
+            }
+            UniformData::Mat4(data) => {
+                context.uniform_matrix4fv_with_f32_array(location, false, (&data).into())
+            }
+        }
     }
-}
 
-pub trait UniformData {
-    fn upload_data(&self, context: &WebGl2RenderingContext, location: &WebGlUniformLocation);
-}
-
-impl UniformData for [f32; 3] {
-    fn upload_data(&self, context: &WebGl2RenderingContext, location: &WebGlUniformLocation) {
-        context.uniform3fv_with_f32_array(Some(location), self);
+    pub fn array3_mut(&mut self) -> Option<&mut [f32; 3]> {
+        match &mut self.data {
+            UniformData::Array3(data) => Some(data),
+            _ => None,
+        }
     }
-}
 
-impl UniformData for Vec3 {
-    fn upload_data(&self, context: &WebGl2RenderingContext, location: &WebGlUniformLocation) {
-        context.uniform3f(Some(location), self.x, self.y, self.z);
+    pub fn color_mut(&mut self) -> Option<&mut Color> {
+        match &mut self.data {
+            UniformData::Color(data) => Some(data),
+            _ => None,
+        }
     }
-}
 
-impl UniformData for Vec4 {
-    fn upload_data(&self, context: &WebGl2RenderingContext, location: &WebGlUniformLocation) {
-        context.uniform4f(Some(location), self.x, self.y, self.z, self.w);
-    }
-}
-
-impl UniformData for Color {
-    fn upload_data(&self, context: &WebGl2RenderingContext, location: &WebGlUniformLocation) {
-        context.uniform4f(Some(location), self[0], self[1], self[2], self[3]);
-    }
-}
-
-impl UniformData for Mat4 {
-    fn upload_data(&self, context: &WebGl2RenderingContext, location: &WebGlUniformLocation) {
-        context.uniform_matrix4fv_with_f32_array(Some(location), false, self.into());
+    pub fn mat4_mut(&mut self) -> Option<&mut Mat4> {
+        match &mut self.data {
+            UniformData::Mat4(data) => Some(data),
+            _ => None,
+        }
     }
 }

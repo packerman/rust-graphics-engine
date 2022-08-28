@@ -31,17 +31,15 @@ void main()
 }
 "##;
 
-pub struct AnimateTriangleTime<'a> {
+pub struct AnimateTriangleTime {
     program: WebGlProgram,
     position: Attribute,
-    translation_data: Rc<RefCell<[f32; 3]>>,
-    translation: Uniform<'a>,
-    base_color_data: Rc<RefCell<Color>>,
-    base_color: Uniform<'a>,
+    translation: Uniform,
+    base_color: Uniform,
     frame: usize,
 }
 
-impl AnimateTriangleTime<'_> {
+impl AnimateTriangleTime {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
         gl::set_clear_color(context, &Color::gray());
@@ -53,43 +51,31 @@ impl AnimateTriangleTime<'_> {
         let position_attribute = factory.with_array(&position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
-        let translation_data = Rc::new(RefCell::new([-0.5_f32, 0.0, 0.0]));
-        let translation = Uniform::new_with_data(
-            context,
-            Rc::clone(&translation_data),
-            &program,
-            "translation",
-        )?;
-        let base_color_data = Rc::new(RefCell::new(Color::red()));
-        let base_color =
-            Uniform::new_with_data(context, Rc::clone(&base_color_data), &program, "baseColor")?;
+        let translation =
+            Uniform::new_with_array3(context, [-0.5_f32, 0.0, 0.0], &program, "translation")?;
+        let base_color = Uniform::new_with_color(context, Color::red(), &program, "baseColor")?;
 
         Ok(Box::new(AnimateTriangleTime {
             program,
             position: position_attribute,
-            translation_data,
             translation,
-            base_color_data,
             base_color,
             frame: 0,
         }))
     }
 }
 
-impl Application for AnimateTriangleTime<'_> {
+impl Application for AnimateTriangleTime {
     fn update(&mut self, _key_state: &KeyState) {
         let t = self.frame as f32 / 60.0;
-        self.translation_data.replace_with(|old: &mut [f32; 3]| {
-            old[0] = 0.75 * t.cos();
-            old[1] = 0.75 * t.sin();
-            *old
-        });
-        self.base_color_data.replace_with(|old| {
-            old[0] = (t.sin() + 1.0) / 2.0;
-            old[1] = ((t + 2.1).sin() + 1.0) / 2.0;
-            old[2] = ((t + 4.2).sin() + 1.0) / 2.0;
-            *old
-        });
+        let translation = self.translation.array3_mut().unwrap();
+        translation[0] = 0.75 * t.cos();
+        translation[1] = 0.75 * t.sin();
+
+        let color = self.base_color.color_mut().unwrap();
+        color[0] = (t.sin() + 1.0) / 2.0;
+        color[1] = ((t + 2.1).sin() + 1.0) / 2.0;
+        color[2] = ((t + 4.2).sin() + 1.0) / 2.0;
         self.frame += 1;
     }
 
