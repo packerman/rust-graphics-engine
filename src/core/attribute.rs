@@ -1,4 +1,4 @@
-use anyhow::{Ok, Result};
+use anyhow::Result;
 use js_sys::Float32Array;
 use na::SVector;
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};

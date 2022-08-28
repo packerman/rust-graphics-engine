@@ -1,10 +1,8 @@
-use std::{cell::RefCell, rc::Rc};
-
 use anyhow::Result;
 use glm::{Mat4, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
-use super::{attribute::DataType, color::Color, gl};
+use super::{color::Color, gl};
 
 pub enum UniformData {
     Array3([f32; 3]),
