@@ -6,9 +6,10 @@ use std::{
 
 use anyhow::Result;
 use glm::{Mat4, Vec4};
+use web_sys::WebGl2RenderingContext;
 
 use super::{
-    attribute::{Attribute, AttributeFactory},
+    attribute::Attribute,
     color::Color,
     convert::FromWithContext,
     matrix::{self, Angle},
@@ -60,8 +61,8 @@ impl Default for Rectangle {
     }
 }
 
-impl FromWithContext<AttributeFactory<'_>, Rectangle> for Geometry {
-    fn from_with_context(factory: &AttributeFactory, rectangle: Rectangle) -> Result<Self> {
+impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, rectangle: Rectangle) -> Result<Self> {
         let points = [
             [-rectangle.width / 2.0, -rectangle.height / 2.0, 0.0],
             [rectangle.width / 2.0, -rectangle.height / 2.0, 0.0],
@@ -77,8 +78,11 @@ impl FromWithContext<AttributeFactory<'_>, Rectangle> for Geometry {
         let position_data = util::select_by_indices(&points, [0, 1, 3, 0, 3, 2]);
         let color_data = util::select_by_indices(&colors, [0, 1, 3, 0, 3, 2]);
         let geometry = Geometry::from_attributes([
-            ("vertexPosition", factory.with_array(&position_data)?),
-            ("vertexColor", factory.with_array(&color_data)?),
+            (
+                "vertexPosition",
+                Attribute::with_array(context, &position_data)?,
+            ),
+            ("vertexColor", Attribute::with_array(context, &color_data)?),
         ]);
         Ok(geometry)
     }
@@ -100,8 +104,11 @@ impl Default for BoxGeometry {
     }
 }
 
-impl FromWithContext<AttributeFactory<'_>, BoxGeometry> for Geometry {
-    fn from_with_context(factory: &AttributeFactory, box_geometry: BoxGeometry) -> Result<Self> {
+impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
+    fn from_with_context(
+        context: &WebGl2RenderingContext,
+        box_geometry: BoxGeometry,
+    ) -> Result<Self> {
         let points = [
             [
                 -box_geometry.width / 2.0,
@@ -162,8 +169,11 @@ impl FromWithContext<AttributeFactory<'_>, BoxGeometry> for Geometry {
         let color_data =
             util::select_by_indices(&colors, (0..=5).flat_map(|i| util::replicate(6, i)));
         let geometry = Geometry::from_attributes([
-            ("vertexPosition", factory.with_array(&position_data)?),
-            ("vertexColor", factory.with_array(&color_data)?),
+            (
+                "vertexPosition",
+                Attribute::with_array(context, &position_data)?,
+            ),
+            ("vertexColor", Attribute::with_array(context, &color_data)?),
         ]);
         Ok(geometry)
     }
@@ -228,14 +238,20 @@ impl Default for Polygon {
     }
 }
 
-impl FromWithContext<AttributeFactory<'_>, Polygon> for Geometry {
-    fn from_with_context(factory: &AttributeFactory, polygon: Polygon) -> Result<Self> {
+impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, polygon: Polygon) -> Result<Self> {
         let mut position_data = Vec::with_capacity((3 * polygon.sides).into());
         let mut color_data = Vec::with_capacity((3 * polygon.sides).into());
         polygon.copy_into_vectors(&mut position_data, &mut color_data, &matrix::identity());
         let geometry = Geometry::from_attributes([
-            ("vertexPosition", factory.with_vector_array(&position_data)?),
-            ("vertexColor", factory.with_rgba_color_array(&color_data)?),
+            (
+                "vertexPosition",
+                Attribute::with_vector_array(context, &position_data)?,
+            ),
+            (
+                "vertexColor",
+                Attribute::with_rgba_color_array(context, &color_data)?,
+            ),
         ]);
         Ok(geometry)
     }
@@ -289,16 +305,25 @@ impl ParametricSurface {
     }
 }
 
-impl FromWithContext<AttributeFactory<'_>, ParametricSurface> for Geometry {
-    fn from_with_context(factory: &AttributeFactory, surface: ParametricSurface) -> Result<Self> {
+impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
+    fn from_with_context(
+        context: &WebGl2RenderingContext,
+        surface: ParametricSurface,
+    ) -> Result<Self> {
         let mut position_data: Vec<Vec4> =
             Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
         let mut color_data: Vec<Color> =
             Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
         surface.copy_into_vectors(&mut position_data, &mut color_data, &matrix::identity());
         let geometry = Geometry::from_attributes([
-            ("vertexPosition", factory.with_vector_array(&position_data)?),
-            ("vertexColor", factory.with_rgba_color_array(&color_data)?),
+            (
+                "vertexPosition",
+                Attribute::with_vector_array(context, &position_data)?,
+            ),
+            (
+                "vertexColor",
+                Attribute::with_rgba_color_array(context, &color_data)?,
+            ),
         ]);
         Ok(geometry)
     }
@@ -334,9 +359,9 @@ impl From<Plane> for ParametricSurface {
     }
 }
 
-impl FromWithContext<AttributeFactory<'_>, Plane> for Geometry {
-    fn from_with_context(factory: &AttributeFactory, plane: Plane) -> Result<Self> {
-        Geometry::from_with_context(factory, ParametricSurface::from(plane))
+impl FromWithContext<WebGl2RenderingContext, Plane> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, plane: Plane) -> Result<Self> {
+        Geometry::from_with_context(context, ParametricSurface::from(plane))
     }
 }
 
@@ -379,9 +404,9 @@ impl From<Ellipsoid> for ParametricSurface {
     }
 }
 
-impl FromWithContext<AttributeFactory<'_>, Ellipsoid> for Geometry {
-    fn from_with_context(factory: &AttributeFactory, ellipsoid: Ellipsoid) -> Result<Self> {
-        Geometry::from_with_context(factory, ParametricSurface::from(ellipsoid))
+impl FromWithContext<WebGl2RenderingContext, Ellipsoid> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, ellipsoid: Ellipsoid) -> Result<Self> {
+        Geometry::from_with_context(context, ParametricSurface::from(ellipsoid))
     }
 }
 
@@ -413,9 +438,9 @@ impl From<Sphere> for Ellipsoid {
     }
 }
 
-impl FromWithContext<AttributeFactory<'_>, Sphere> for Geometry {
-    fn from_with_context(factory: &AttributeFactory, sphere: Sphere) -> Result<Self> {
-        Geometry::from_with_context(factory, Ellipsoid::from(sphere))
+impl FromWithContext<WebGl2RenderingContext, Sphere> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, sphere: Sphere) -> Result<Self> {
+        Geometry::from_with_context(context, Ellipsoid::from(sphere))
     }
 }
 
@@ -467,8 +492,8 @@ impl From<Cylindrical> for ParametricSurface {
     }
 }
 
-impl FromWithContext<AttributeFactory<'_>, Cylindrical> for Geometry {
-    fn from_with_context(factory: &AttributeFactory, cylinder: Cylindrical) -> Result<Self> {
+impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, cylinder: Cylindrical) -> Result<Self> {
         let mut position_data: Vec<Vec4> = Vec::new();
         let mut color_data: Vec<Color> = Vec::new();
 
@@ -491,8 +516,14 @@ impl FromWithContext<AttributeFactory<'_>, Cylindrical> for Geometry {
         }
 
         let geometry = Geometry::from_attributes([
-            ("vertexPosition", factory.with_vector_array(&position_data)?),
-            ("vertexColor", factory.with_rgba_color_array(&color_data)?),
+            (
+                "vertexPosition",
+                Attribute::with_vector_array(context, &position_data)?,
+            ),
+            (
+                "vertexColor",
+                Attribute::with_rgba_color_array(context, &color_data)?,
+            ),
         ]);
         Ok(geometry)
     }
@@ -532,9 +563,9 @@ impl From<Cylinder> for Cylindrical {
     }
 }
 
-impl FromWithContext<AttributeFactory<'_>, Cylinder> for Geometry {
-    fn from_with_context(factory: &AttributeFactory<'_>, cylinder: Cylinder) -> Result<Self> {
-        Geometry::from_with_context(factory, Cylindrical::from(cylinder))
+impl FromWithContext<WebGl2RenderingContext, Cylinder> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, cylinder: Cylinder) -> Result<Self> {
+        Geometry::from_with_context(context, Cylindrical::from(cylinder))
     }
 }
 
@@ -572,9 +603,9 @@ impl From<Prism> for Cylindrical {
     }
 }
 
-impl FromWithContext<AttributeFactory<'_>, Prism> for Geometry {
-    fn from_with_context(factory: &AttributeFactory<'_>, prism: Prism) -> Result<Self> {
-        Geometry::from_with_context(factory, Cylindrical::from(prism))
+impl FromWithContext<WebGl2RenderingContext, Prism> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, prism: Prism) -> Result<Self> {
+        Geometry::from_with_context(context, Cylindrical::from(prism))
     }
 }
 
@@ -612,9 +643,9 @@ impl From<Cone> for Cylindrical {
     }
 }
 
-impl FromWithContext<AttributeFactory<'_>, Cone> for Geometry {
-    fn from_with_context(factory: &AttributeFactory<'_>, cone: Cone) -> Result<Self> {
-        Geometry::from_with_context(factory, Cylindrical::from(cone))
+impl FromWithContext<WebGl2RenderingContext, Cone> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, cone: Cone) -> Result<Self> {
+        Geometry::from_with_context(context, Cylindrical::from(cone))
     }
 }
 
@@ -652,9 +683,9 @@ impl From<Pyramid> for Cylindrical {
     }
 }
 
-impl FromWithContext<AttributeFactory<'_>, Pyramid> for Geometry {
-    fn from_with_context(factory: &AttributeFactory<'_>, pyramid: Pyramid) -> Result<Self> {
-        Geometry::from_with_context(factory, Cylindrical::from(pyramid))
+impl FromWithContext<WebGl2RenderingContext, Pyramid> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, pyramid: Pyramid) -> Result<Self> {
+        Geometry::from_with_context(context, Cylindrical::from(pyramid))
     }
 }
 

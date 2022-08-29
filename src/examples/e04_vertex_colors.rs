@@ -2,11 +2,7 @@ use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::Application,
-    attribute::{Attribute, AttributeFactory},
-    color::Color,
-    gl,
-    input::KeyState,
+    application::Application, attribute::Attribute, color::Color, gl, input::KeyState,
 };
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -46,7 +42,6 @@ impl VertexColors {
         context.line_width(4.0);
         let vao = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));
-        let factory = AttributeFactory::new(context);
         let position_data = [
             [0.8_f32, 0.0, 0.0],
             [0.4, 0.6, 0.0],
@@ -55,7 +50,7 @@ impl VertexColors {
             [-0.4, -0.6, 0.0],
             [0.4, -0.6, 0.0],
         ];
-        let position_attribute = factory.with_array(&position_data)?;
+        let position_attribute = Attribute::with_array(context, &position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
         let color_data = [
@@ -66,7 +61,7 @@ impl VertexColors {
             Color::blue().into(),
             Color::blue_violet().into(),
         ];
-        let color_attribute = factory.with_array(&color_data)?;
+        let color_attribute = Attribute::with_array(context, &color_data)?;
         color_attribute.associate_variable(context, &program, "vertexColor")?;
 
         Ok(Box::new(VertexColors {
