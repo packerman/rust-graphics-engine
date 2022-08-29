@@ -1,10 +1,12 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
+use glm::Mat4;
 use js_sys::Float32Array;
 use na::SVector;
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
 
 use super::{color::Color, gl};
 
+#[derive(Debug, PartialEq)]
 pub struct DataType {
     size: i32,
     base_type: u32,
@@ -13,25 +15,6 @@ pub struct DataType {
 impl DataType {
     const fn new(size: i32, base_type: u32) -> DataType {
         DataType { size, base_type }
-    }
-}
-pub trait AttributeData {
-    fn buffer_data(&self, context: &WebGl2RenderingContext);
-}
-
-impl AttributeData for Vec<f32> {
-    fn buffer_data(&self, context: &WebGl2RenderingContext) {
-        fn buffer_data(context: &WebGl2RenderingContext, buffer_view: &js_sys::Object) {
-            context.buffer_data_with_array_buffer_view(
-                WebGl2RenderingContext::ARRAY_BUFFER,
-                buffer_view,
-                WebGl2RenderingContext::STATIC_DRAW,
-            );
-        }
-        unsafe {
-            let buffer_view = Float32Array::view(self);
-            buffer_data(context, &buffer_view);
-        }
     }
 }
 
@@ -119,7 +102,18 @@ impl Attribute {
 
     fn upload_data(&self, context: &WebGl2RenderingContext) {
         context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
-        self.data.buffer_data(context);
+        unsafe {
+            let buffer_view = Float32Array::view(&self.data);
+            Self::buffer_data(context, &buffer_view);
+        }
+    }
+
+    fn buffer_data(context: &WebGl2RenderingContext, buffer_view: &js_sys::Object) {
+        context.buffer_data_with_array_buffer_view(
+            WebGl2RenderingContext::ARRAY_BUFFER,
+            buffer_view,
+            WebGl2RenderingContext::STATIC_DRAW,
+        );
     }
 
     pub fn associate_variable(
@@ -140,5 +134,51 @@ impl Attribute {
         );
         context.enable_vertex_attrib_array(location);
         Ok(())
+    }
+
+    pub fn apply_matrix_mut(&mut self, context: &WebGl2RenderingContext, matrix: &Mat4) {
+        let default_vec4 = glm::vec4(0.0, 0.0, 0.0, 1.0);
+        let size = self.data_type.size.try_into().unwrap();
+        let get_elem = |base: usize, offset: usize| {
+            if offset < size {
+                self.data[base + offset]
+            } else {
+                default_vec4[offset]
+            }
+        };
+        let mut new_data = Vec::with_capacity(self.data.len());
+        for i in (0..self.data.len()).step_by(size) {
+            let new_vec4 = glm::vec4(
+                get_elem(i, 0),
+                get_elem(i, 1),
+                get_elem(i, 2),
+                get_elem(i, 3),
+            );
+            let new_vec4 = matrix * new_vec4;
+            for j in 0..size {
+                new_data[i + j] = new_vec4[j];
+            }
+        }
+        self.data = new_data;
+        self.upload_data(context);
+    }
+
+    pub fn concat_mut(
+        &mut self,
+        context: &WebGl2RenderingContext,
+        other: &Attribute,
+    ) -> Result<()> {
+        if self.data_type == other.data_type {
+            self.data.extend(other.data.iter());
+            self.vertex_count += other.vertex_count;
+            self.upload_data(context);
+            Ok(())
+        } else {
+            Err(anyhow!(
+                "Cannot concat attribute {:?} and {:?}",
+                self.data_type,
+                other.data_type
+            ))
+        }
     }
 }

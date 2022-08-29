@@ -12,9 +12,13 @@ use crate::core::{
 use super::{Material, UpdateRenderSettings};
 
 pub struct BasicMaterial {
+    settings: BasicMaterialSettings,
+    material_type: BasicMaterialType,
+}
+
+pub struct BasicMaterialSettings {
     base_color: Color,
     use_vertex_colors: bool,
-    basic_material_type: BasicMaterialType,
 }
 
 impl UpdateRenderSettings for BasicMaterial {
@@ -36,7 +40,10 @@ impl UpdateRenderSettings for BasicMaterialType {
     }
 }
 
-pub fn point_material(context: &WebGl2RenderingContext) -> Result<Material> {
+pub fn basic_material(
+    context: &WebGl2RenderingContext,
+    basic_material_type: BasicMaterialType,
+) -> Result<Material> {
     let vertex_shader_source = include_str!("basic.vs");
     let fragment_shader_source = include_str!("basic.fs");
     let program = gl::build_program(context, vertex_shader_source, fragment_shader_source)?;
@@ -81,13 +88,22 @@ pub fn point_material(context: &WebGl2RenderingContext) -> Result<Material> {
             "projectionMatrix",
         )?,
         material_type: super::MaterialType::BasicMaterial(BasicMaterial {
-            base_color: Color::white(),
-            use_vertex_colors: false,
-            basic_material_type: BasicMaterialType::Point {
-                point_size: 8.0,
-                rounded_points: false,
+            settings: BasicMaterialSettings {
+                base_color: Color::white(),
+                use_vertex_colors: false,
             },
+            material_type: basic_material_type,
         }),
         program,
     })
+}
+
+pub fn point_material(context: &WebGl2RenderingContext) -> Result<Material> {
+    basic_material(
+        context,
+        BasicMaterialType::Point {
+            point_size: 8.0,
+            rounded_points: false,
+        },
+    )
 }

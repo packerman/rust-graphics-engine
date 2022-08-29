@@ -4,7 +4,7 @@ use std::{
     ops::RangeInclusive,
 };
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use glm::{Mat4, Vec4};
 use web_sys::WebGl2RenderingContext;
 
@@ -44,6 +44,33 @@ impl Geometry {
             .next()
             .expect("Expected at least one attribute")
             .vertex_count
+    }
+
+    pub fn appply_matrix_mut(
+        &mut self,
+        context: &WebGl2RenderingContext,
+        matrix: &Mat4,
+        name: &str,
+    ) -> Result<()> {
+        let attribute = self
+            .attributes
+            .get_mut(name)
+            .ok_or_else(|| anyhow!("Cannot find attribute {}", name))?;
+        attribute.apply_matrix_mut(context, matrix);
+        Ok(())
+    }
+
+    pub fn merge_mut(&mut self, context: &WebGl2RenderingContext, other: Geometry) -> Result<()> {
+        for (name, attribute) in self.attributes.iter_mut() {
+            attribute.concat_mut(
+                context,
+                other
+                    .attributes
+                    .get(name)
+                    .ok_or_else(|| anyhow!("Cannot find attribute {:?}", name))?,
+            )?;
+        }
+        Ok(())
     }
 }
 
@@ -192,41 +219,6 @@ impl Polygon {
     fn hexagon(radius: f32) -> Self {
         Polygon { sides: 6, radius }
     }
-
-    pub fn copy_into_vectors(
-        &self,
-        position_data: &mut Vec<Vec4>,
-        color_data: &mut Vec<Color>,
-        matrix: &Mat4,
-    ) {
-        let angle = Angle::from_radians(TAU) / self.sides.into();
-        for n in 0..self.sides {
-            util::push_transformed(position_data, &glm::vec4(0.0, 0.0, 0.0, 1.0), matrix);
-            util::push_transformed(
-                position_data,
-                &glm::vec4(
-                    self.radius * (angle * n.into()).cos(),
-                    self.radius * (angle * n.into()).sin(),
-                    0.0,
-                    1.0,
-                ),
-                matrix,
-            );
-            util::push_transformed(
-                position_data,
-                &glm::vec4(
-                    self.radius * (angle * (n + 1).into()).cos(),
-                    self.radius * (angle * (n + 1).into()).sin(),
-                    0.0,
-                    1.0,
-                ),
-                matrix,
-            );
-            color_data.push(Color::white());
-            color_data.push(Color::red());
-            color_data.push(Color::blue());
-        }
-    }
 }
 
 impl Default for Polygon {
@@ -242,7 +234,30 @@ impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, polygon: Polygon) -> Result<Self> {
         let mut position_data = Vec::with_capacity((3 * polygon.sides).into());
         let mut color_data = Vec::with_capacity((3 * polygon.sides).into());
-        polygon.copy_into_vectors(&mut position_data, &mut color_data, &matrix::identity());
+
+        let angle = Angle::from_radians(TAU) / polygon.sides.into();
+        for n in 0..polygon.sides {
+            position_data.push(glm::vec4(0.0, 0.0, 0.0, 1.0));
+
+            position_data.push(glm::vec4(
+                polygon.radius * (angle * n.into()).cos(),
+                polygon.radius * (angle * n.into()).sin(),
+                0.0,
+                1.0,
+            ));
+
+            position_data.push(glm::vec4(
+                polygon.radius * (angle * (n + 1).into()).cos(),
+                polygon.radius * (angle * (n + 1).into()).sin(),
+                0.0,
+                1.0,
+            ));
+
+            color_data.push(Color::white());
+            color_data.push(Color::red());
+            color_data.push(Color::blue());
+        }
+
         let geometry = Geometry::from_attributes([
             (
                 "vertexPosition",
@@ -265,22 +280,27 @@ struct ParametricSurface {
     function: Box<dyn Fn(f32, f32) -> Vec4>,
 }
 
-impl ParametricSurface {
-    pub fn copy_into_vectors(
-        &self,
-        position_data: &mut Vec<Vec4>,
-        color_data: &mut Vec<Color>,
-        matrix: &Mat4,
-    ) {
-        let u_delta = (self.u_range.end() - self.u_range.start()) / f32::from(self.u_resolution);
-        let v_delta = (self.v_range.end() - self.v_range.start()) / f32::from(self.v_resolution);
-        let mut positions = Vec::with_capacity((self.u_resolution + 1).into());
-        for u_index in 0..=self.u_resolution {
-            let mut vector = Vec::with_capacity((self.v_resolution + 1).into());
-            for v_index in 0..=self.v_resolution {
-                let u = self.u_range.start() + f32::from(u_index) * u_delta;
-                let v = self.v_range.start() + f32::from(v_index) * v_delta;
-                util::push_transformed(&mut vector, &(self.function)(u, v), matrix)
+impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
+    fn from_with_context(
+        context: &WebGl2RenderingContext,
+        surface: ParametricSurface,
+    ) -> Result<Self> {
+        let mut position_data: Vec<Vec4> =
+            Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
+        let mut color_data: Vec<Color> =
+            Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
+
+        let u_delta =
+            (surface.u_range.end() - surface.u_range.start()) / f32::from(surface.u_resolution);
+        let v_delta =
+            (surface.v_range.end() - surface.v_range.start()) / f32::from(surface.v_resolution);
+        let mut positions = Vec::with_capacity((surface.u_resolution + 1).into());
+        for u_index in 0..=surface.u_resolution {
+            let mut vector = Vec::with_capacity((surface.v_resolution + 1).into());
+            for v_index in 0..=surface.v_resolution {
+                let u = surface.u_range.start() + f32::from(u_index) * u_delta;
+                let v = surface.v_range.start() + f32::from(v_index) * v_delta;
+                vector.push((surface.function)(u, v));
             }
             positions.push(vector);
         }
@@ -292,8 +312,8 @@ impl ParametricSurface {
             Color::fuchsia(),
             Color::yellow(),
         ];
-        for x_index in 0..usize::from(self.u_resolution) {
-            for y_index in 0..usize::from(self.v_resolution) {
+        for x_index in 0..usize::from(surface.u_resolution) {
+            for y_index in 0..usize::from(surface.v_resolution) {
                 let p_a = positions[x_index][y_index];
                 let p_b = positions[x_index + 1][y_index];
                 let p_d = positions[x_index][y_index + 1];
@@ -302,19 +322,7 @@ impl ParametricSurface {
                 color_data.extend(colors);
             }
         }
-    }
-}
 
-impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
-    fn from_with_context(
-        context: &WebGl2RenderingContext,
-        surface: ParametricSurface,
-    ) -> Result<Self> {
-        let mut position_data: Vec<Vec4> =
-            Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
-        let mut color_data: Vec<Color> =
-            Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
-        surface.copy_into_vectors(&mut position_data, &mut color_data, &matrix::identity());
         let geometry = Geometry::from_attributes([
             (
                 "vertexPosition",
@@ -497,22 +505,29 @@ impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
         let mut position_data: Vec<Vec4> = Vec::new();
         let mut color_data: Vec<Color> = Vec::new();
 
-        let surface = ParametricSurface::from(cylinder);
-        surface.copy_into_vectors(&mut position_data, &mut color_data, &matrix::identity());
+        let mut geometry = Geometry::from_with_context(context, ParametricSurface::from(cylinder))?;
 
         if cylinder.closed_top {
-            let top = Polygon::new(cylinder.radial_segments, cylinder.radius_top);
+            let mut top_geometry = Geometry::from_with_context(
+                context,
+                Polygon::new(cylinder.radial_segments, cylinder.radius_top),
+            )?;
             let transform = matrix::translation(0.0, cylinder.height / 2.0, 0.0)
                 * matrix::rotation_y(-Angle::RIGHT)
                 * matrix::rotation_x(-Angle::RIGHT);
-            top.copy_into_vectors(&mut position_data, &mut color_data, &transform);
+            top_geometry.appply_matrix_mut(context, &transform, "vertexPosition")?;
+            geometry.merge_mut(context, top_geometry)?;
         }
         if cylinder.closed_bottom {
-            let bottom = Polygon::new(cylinder.radial_segments, cylinder.radius_top);
+            let mut bottom_geometry = Geometry::from_with_context(
+                context,
+                Polygon::new(cylinder.radial_segments, cylinder.radius_top),
+            )?;
             let transform = matrix::translation(0.0, -cylinder.height / 2.0, 0.0)
                 * matrix::rotation_y(-Angle::RIGHT)
                 * matrix::rotation_x(Angle::RIGHT);
-            bottom.copy_into_vectors(&mut position_data, &mut color_data, &transform);
+            bottom_geometry.appply_matrix_mut(context, &transform, "vertexPosition")?;
+            geometry.merge_mut(context, bottom_geometry)?;
         }
 
         let geometry = Geometry::from_attributes([
