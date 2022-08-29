@@ -9,11 +9,11 @@ use crate::core::{
     uniform::{Uniform, UniformData},
 };
 
-use super::{Material, UpdateRenderSettings};
+use super::{Material, MaterialKind, UpdateRenderSettings};
 
 pub struct BasicMaterial {
     settings: BasicMaterialSettings,
-    material_type: BasicMaterialType,
+    kind: BasicMaterialKind,
 }
 
 pub struct BasicMaterialSettings {
@@ -27,14 +27,14 @@ impl UpdateRenderSettings for BasicMaterial {
     }
 }
 
-pub enum BasicMaterialType {
+pub enum BasicMaterialKind {
     Point {
         point_size: f32,
         rounded_points: bool,
     },
 }
 
-impl UpdateRenderSettings for BasicMaterialType {
+impl UpdateRenderSettings for BasicMaterialKind {
     fn update_render_settings(&self, context: &WebGl2RenderingContext) {
         todo!()
     }
@@ -42,7 +42,7 @@ impl UpdateRenderSettings for BasicMaterialType {
 
 pub fn basic_material(
     context: &WebGl2RenderingContext,
-    basic_material_type: BasicMaterialType,
+    basic_material_type: BasicMaterialKind,
 ) -> Result<Material> {
     let vertex_shader_source = include_str!("basic.vs");
     let fragment_shader_source = include_str!("basic.fs");
@@ -87,12 +87,12 @@ pub fn basic_material(
             &program,
             "projectionMatrix",
         )?,
-        material_type: super::MaterialType::BasicMaterial(BasicMaterial {
+        kind: MaterialKind::BasicMaterial(BasicMaterial {
             settings: BasicMaterialSettings {
                 base_color: Color::white(),
                 use_vertex_colors: false,
             },
-            material_type: basic_material_type,
+            kind: basic_material_type,
         }),
         program,
     })
@@ -101,7 +101,7 @@ pub fn basic_material(
 pub fn point_material(context: &WebGl2RenderingContext) -> Result<Material> {
     basic_material(
         context,
-        BasicMaterialType::Point {
+        BasicMaterialKind::Point {
             point_size: 8.0,
             rounded_points: false,
         },

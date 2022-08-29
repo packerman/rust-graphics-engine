@@ -14,7 +14,7 @@ pub struct Material {
     model_matrix: Uniform,
     view_matrix: Uniform,
     projection_matrix: Uniform,
-    material_type: MaterialType,
+    kind: MaterialKind,
 }
 
 impl Material {
@@ -33,6 +33,6 @@ impl UpdateRenderSettings for Material {
     }
 }
 
-pub enum MaterialType {
+pub enum MaterialKind {
     BasicMaterial(BasicMaterial),
 }
