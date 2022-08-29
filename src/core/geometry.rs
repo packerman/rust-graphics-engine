@@ -710,8 +710,6 @@ mod util {
         ops::Index,
     };
 
-    use glm::{Mat4, Vec4};
-
     pub fn select_by_indices<M, K, V, I>(indexed: &M, indices: I) -> Vec<V>
     where
         M: Index<K, Output = V>,
@@ -726,9 +724,5 @@ mod util {
         T: Clone,
     {
         iter::repeat(t).take(n)
-    }
-
-    pub fn push_transformed(vector: &mut Vec<Vec4>, elem: &Vec4, matrix: &Mat4) {
-        vector.push(matrix * elem);
     }
 }
