@@ -9,7 +9,7 @@ use crate::core::{
     gl,
     input::KeyState,
     matrix::{self, Angle, Perspective},
-    uniform::Uniform,
+    uniform::{Uniform, UniformData},
 };
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -55,16 +55,16 @@ impl MoveTriangle {
         let position_attribute = factory.with_array(&position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
-        let model_matrix = Uniform::new_with_mat4(
+        let model_matrix = Uniform::new_with_data(
             context,
-            matrix::translation(0.0, 0.0, -1.0),
+            UniformData::from(matrix::translation(0.0, 0.0, -1.0)),
             &program,
             "modelMatrix",
         )?;
 
-        let projection_matrix: Uniform = Uniform::new_with_mat4(
+        let projection_matrix: Uniform = Uniform::new_with_data(
             context,
-            Mat4::from(Perspective::default()),
+            UniformData::from(Mat4::from(Perspective::default())),
             &program,
             "projectionMatrix",
         )?;

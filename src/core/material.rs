@@ -1,9 +1,11 @@
+pub mod basic_material;
+
 use std::collections::HashMap;
 
-use glm::Vec3;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use super::{color::Color, uniform::Uniform};
+use self::basic_material::BasicMaterial;
+use super::uniform::Uniform;
 
 pub struct Material {
     program: WebGlProgram,
@@ -12,6 +14,7 @@ pub struct Material {
     model_matrix: Uniform,
     view_matrix: Uniform,
     projection_matrix: Uniform,
+    material_type: MaterialType,
 }
 
 impl Material {
@@ -20,30 +23,16 @@ impl Material {
     }
 }
 
-struct BasicMaterial {
-    base_color: Vec3,
-    use_vertex_colors: bool,
-    point_size: f32,
-    rounded_points: bool,
+pub trait UpdateRenderSettings {
+    fn update_render_settings(&self, context: &WebGl2RenderingContext);
 }
 
-impl Default for BasicMaterial {
-    fn default() -> Self {
-        Self {
-            base_color: Color::white().into(),
-            use_vertex_colors: false,
-            point_size: 8.0,
-            rounded_points: false,
-        }
+impl UpdateRenderSettings for Material {
+    fn update_render_settings(&self, context: &WebGl2RenderingContext) {
+        todo!()
     }
 }
 
-struct MaterialFactory<'a> {
-    context: &'a WebGl2RenderingContext,
-}
-
-impl<'a> MaterialFactory<'a> {
-    fn new(context: &'a WebGl2RenderingContext) -> Self {
-        Self { context }
-    }
+pub enum MaterialType {
+    BasicMaterial(BasicMaterial),
 }

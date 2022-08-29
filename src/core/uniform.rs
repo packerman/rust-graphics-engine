@@ -1,15 +1,38 @@
 use anyhow::Result;
-use glm::{Mat4, Vec3, Vec4};
+use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
 use super::{color::Color, gl};
 
 pub enum UniformData {
+    Boolean(bool),
     Array3([f32; 3]),
-    Vec3(Vec3),
-    Vec4(Vec4),
     Color(Color),
     Mat4(Mat4),
+}
+
+impl From<bool> for UniformData {
+    fn from(data: bool) -> Self {
+        UniformData::Boolean(data)
+    }
+}
+
+impl From<[f32; 3]> for UniformData {
+    fn from(data: [f32; 3]) -> Self {
+        UniformData::Array3(data)
+    }
+}
+
+impl From<Color> for UniformData {
+    fn from(data: Color) -> Self {
+        UniformData::Color(data)
+    }
+}
+
+impl From<Mat4> for UniformData {
+    fn from(data: Mat4) -> Self {
+        UniformData::Mat4(data)
+    }
 }
 
 pub struct Uniform {
@@ -18,34 +41,7 @@ pub struct Uniform {
 }
 
 impl Uniform {
-    pub fn new_with_array3(
-        context: &WebGl2RenderingContext,
-        data: [f32; 3],
-        program: &WebGlProgram,
-        name: &str,
-    ) -> Result<Self> {
-        Self::new_with_data(context, UniformData::Array3(data), program, name)
-    }
-
-    pub fn new_with_color(
-        context: &WebGl2RenderingContext,
-        data: Color,
-        program: &WebGlProgram,
-        name: &str,
-    ) -> Result<Self> {
-        Self::new_with_data(context, UniformData::Color(data), program, name)
-    }
-
-    pub fn new_with_mat4(
-        context: &WebGl2RenderingContext,
-        data: Mat4,
-        program: &WebGlProgram,
-        name: &str,
-    ) -> Result<Self> {
-        Self::new_with_data(context, UniformData::Mat4(data), program, name)
-    }
-
-    fn new_with_data(
+    pub fn new_with_data(
         context: &WebGl2RenderingContext,
         data: UniformData,
         program: &WebGlProgram,
@@ -59,9 +55,8 @@ impl Uniform {
     pub fn upload_data(&self, context: &WebGl2RenderingContext) {
         let location = Some(&self.location);
         match self.data {
+            UniformData::Boolean(data) => context.uniform1i(location, i32::from(data)),
             UniformData::Array3(data) => context.uniform1fv_with_f32_array(location, &data),
-            UniformData::Vec3(data) => context.uniform3f(location, data.x, data.y, data.z),
-            UniformData::Vec4(data) => context.uniform4f(location, data.x, data.y, data.z, data.w),
             UniformData::Color(data) => {
                 context.uniform4f(location, data[0], data[1], data[2], data[3])
             }

@@ -7,7 +7,7 @@ use crate::core::{
     color::Color,
     gl,
     input::KeyState,
-    uniform::Uniform,
+    uniform::{Uniform, UniformData},
 };
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -49,9 +49,18 @@ impl AnimateTriangleTime {
         let position_attribute = factory.with_array(&position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
-        let translation =
-            Uniform::new_with_array3(context, [-0.5_f32, 0.0, 0.0], &program, "translation")?;
-        let base_color = Uniform::new_with_color(context, Color::red(), &program, "baseColor")?;
+        let translation = Uniform::new_with_data(
+            context,
+            UniformData::from([-0.5_f32, 0.0, 0.0]),
+            &program,
+            "translation",
+        )?;
+        let base_color = Uniform::new_with_data(
+            context,
+            UniformData::from(Color::red()),
+            &program,
+            "baseColor",
+        )?;
 
         Ok(Box::new(AnimateTriangleTime {
             program,
