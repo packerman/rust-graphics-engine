@@ -4,8 +4,10 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
 use super::{color::Color, gl};
 
+#[derive(Clone, Copy)]
 pub enum UniformData {
     Boolean(bool),
+    Float(f32),
     Array3([f32; 3]),
     Color(Color),
     Mat4(Mat4),
@@ -14,6 +16,12 @@ pub enum UniformData {
 impl From<bool> for UniformData {
     fn from(data: bool) -> Self {
         UniformData::Boolean(data)
+    }
+}
+
+impl From<f32> for UniformData {
+    fn from(data: f32) -> Self {
+        UniformData::Float(data)
     }
 }
 
@@ -56,6 +64,7 @@ impl Uniform {
         let location = Some(&self.location);
         match self.data {
             UniformData::Boolean(data) => context.uniform1i(location, i32::from(data)),
+            UniformData::Float(data) => context.uniform1f(location, data),
             UniformData::Array3(data) => context.uniform1fv_with_f32_array(location, &data),
             UniformData::Color(data) => {
                 context.uniform4f(location, data[0], data[1], data[2], data[3])
