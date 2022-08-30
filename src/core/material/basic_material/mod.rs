@@ -6,8 +6,8 @@ use crate::core::{color::Color, convert::FromWithContext, uniform::UniformData};
 use super::{Material, MaterialSettings, RenderSetting};
 
 pub struct BasicMaterial {
-    base_color: Color,
-    use_vertex_colors: bool,
+    pub base_color: Color,
+    pub use_vertex_colors: bool,
 }
 
 impl Default for BasicMaterial {
@@ -45,8 +45,8 @@ fn basic_material(
 }
 
 pub struct PointMaterial {
-    point_size: f32,
-    rounded_points: bool,
+    pub point_size: f32,
+    pub rounded_points: bool,
 }
 
 impl Default for PointMaterial {
@@ -58,7 +58,7 @@ impl Default for PointMaterial {
     }
 }
 
-fn point_material(
+pub fn point_material(
     context: &WebGl2RenderingContext,
     basic_material: BasicMaterial,
     point_material: PointMaterial,
@@ -80,8 +80,8 @@ pub enum LineType {
 }
 
 pub struct LineMaterial {
-    line_width: f32,
-    line_type: LineType,
+    pub line_width: f32,
+    pub line_type: LineType,
 }
 
 impl Default for LineMaterial {
