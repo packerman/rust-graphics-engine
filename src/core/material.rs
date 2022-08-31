@@ -102,12 +102,24 @@ impl<const N: usize> FromWithContext<WebGl2RenderingContext, MaterialSettings<'_
 #[derive(Debug, Clone, Copy)]
 pub enum RenderSetting {
     LineWidth(f32),
+    CullFace(bool),
 }
 
 impl RenderSetting {
     pub fn update(self, context: &WebGl2RenderingContext) {
         match self {
             RenderSetting::LineWidth(setting) => context.line_width(setting),
+            RenderSetting::CullFace(setting) => {
+                Self::set_capability(context, WebGl2RenderingContext::CULL_FACE, setting)
+            }
+        }
+    }
+
+    fn set_capability(context: &WebGl2RenderingContext, capability: u32, enabled: bool) {
+        if enabled {
+            context.enable(capability)
+        } else {
+            context.disable(capability)
         }
     }
 }

@@ -107,3 +107,24 @@ pub fn line_material(
     material.add_render_setting(RenderSetting::LineWidth(line_material.line_width));
     Ok(material)
 }
+
+pub struct SurfaceMaterial {
+    pub double_side: bool,
+}
+
+impl Default for SurfaceMaterial {
+    fn default() -> Self {
+        Self { double_side: false }
+    }
+}
+
+pub fn surface_material(
+    context: &WebGl2RenderingContext,
+    basic_material: BasicMaterial,
+    surface_material: SurfaceMaterial,
+) -> Result<Material> {
+    let mut material =
+        self::basic_material(context, WebGl2RenderingContext::TRIANGLES, basic_material)?;
+    material.add_render_setting(RenderSetting::CullFace(!surface_material.double_side));
+    Ok(material)
+}
