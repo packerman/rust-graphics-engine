@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use web_sys::{WebGl2RenderingContext, WebGlProgram};
+use web_sys::{HtmlCanvasElement, WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{application::Application, color::Color, gl, input::KeyState};
 
@@ -26,7 +26,10 @@ pub struct PointApp {
 }
 
 impl PointApp {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
+    pub fn create(
+        context: &WebGl2RenderingContext,
+        _canvas: &HtmlCanvasElement,
+    ) -> Result<Box<dyn Application>> {
         gl::set_clear_color(context, &Color::black());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = context

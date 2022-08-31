@@ -8,7 +8,7 @@ use crate::{
         e03_two_shapes::TwoShapes, e04_vertex_colors::VertexColors,
         e05_two_triangles::TwoTriangles, e06_animate_triangle::AnimateTriangle,
         e07_animate_triangle_time::AnimateTriangleTime, e08_keyboard_input::KeyboardInput,
-        e09_move_triangle::MoveTriangle,
+        e09_move_triangle::MoveTriangle, e0a_spinning_cube::SpinningCube,
     },
 };
 
@@ -28,6 +28,7 @@ fn examples() -> Vec<Box<ApplicationCreator>> {
         Box::new(AnimateTriangleTime::create),
         Box::new(KeyboardInput::create),
         Box::new(MoveTriangle::create),
+        Box::new(SpinningCube::create),
     ]
 }
 
@@ -36,9 +37,9 @@ fn run_example_by_index(canvas: &HtmlCanvasElement, index: Option<usize>) -> Res
 
     Loop::run_with_box(
         canvas,
-        Box::new(move |context| {
+        Box::new(move |context, canvas| {
             let example = get_element(&examples, index)?;
-            example(context)
+            example(context, canvas)
         }),
     )
 }

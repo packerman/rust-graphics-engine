@@ -28,7 +28,7 @@ impl Renderer {
         Self
     }
 
-    pub fn render(context: &WebGl2RenderingContext, scene: &Node, camera: &mut Camera) {
+    pub fn render(&self, context: &WebGl2RenderingContext, scene: &Node, camera: &mut Camera) {
         context.clear(
             WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT,
         );
@@ -37,6 +37,12 @@ impl Renderer {
         for node in nodes.iter() {
             if let Some(camera) = node.camera() {
                 camera.borrow_mut().update_view_matrix(&node.world_matrix());
+            }
+        }
+
+        for node in nodes.iter() {
+            if let Some(mesh) = node.mesh() {
+                mesh.render(context, camera, node.world_matrix())
             }
         }
     }

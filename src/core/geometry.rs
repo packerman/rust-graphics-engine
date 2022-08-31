@@ -115,7 +115,7 @@ impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
     }
 }
 
-struct BoxGeometry {
+pub struct BoxGeometry {
     width: f32,
     height: f32,
     depth: f32,

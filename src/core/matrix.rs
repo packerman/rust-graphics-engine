@@ -1,3 +1,4 @@
+use core::fmt;
 use std::{
     f32::consts::FRAC_PI_2,
     ops::{Div, Mul, Neg},
@@ -96,11 +97,8 @@ pub struct Perspective {
 }
 
 impl Perspective {
-    pub fn set_aspect_ratio<T>(&mut self, width: T, height: T)
-    where
-        T: Into<f32>,
-    {
-        self.aspect_ratio = width.into() / height.into()
+    pub fn set_aspect_ratio(&mut self, width: u32, height: u32) {
+        self.aspect_ratio = (width as f32) / (height as f32);
     }
 }
 

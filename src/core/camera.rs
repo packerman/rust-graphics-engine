@@ -8,6 +8,13 @@ pub struct Camera {
 }
 
 impl Camera {
+    pub fn new(projection: Perspective, view_matrix: Mat4) -> Self {
+        Self {
+            projection,
+            view_matrix,
+        }
+    }
+
     pub fn update_view_matrix(&mut self, world_matrix: &Mat4) -> bool {
         if let Some(inverse) = world_matrix.try_inverse() {
             self.view_matrix = inverse;
@@ -15,6 +22,10 @@ impl Camera {
         } else {
             false
         }
+    }
+
+    pub fn set_aspect_ratio(&mut self, width: u32, height: u32) {
+        self.projection.set_aspect_ratio(width, height);
     }
 
     pub fn view_matrix(&self) -> &Mat4 {
@@ -28,9 +39,6 @@ impl Camera {
 
 impl Default for Camera {
     fn default() -> Self {
-        Self {
-            projection: Default::default(),
-            view_matrix: matrix::identity(),
-        }
+        Camera::new(Default::default(), matrix::identity())
     }
 }

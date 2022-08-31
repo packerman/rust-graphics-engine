@@ -33,13 +33,25 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn new() -> Rc<Self> {
+    pub fn new_group() -> Rc<Self> {
+        Self::new(NodeType::Group)
+    }
+
+    pub fn new_with_mesh(mesh: Mesh) -> Rc<Self> {
+        Self::new(NodeType::Mesh(mesh))
+    }
+
+    pub fn new_with_camera(camera: RefCell<Camera>) -> Rc<Self> {
+        Self::new(NodeType::Camera(camera))
+    }
+
+    fn new(node_type: NodeType) -> Rc<Self> {
         Rc::new_cyclic(|me| Node {
             me: me.clone(),
             transform: RefCell::new(matrix::identity()),
             parent: RefCell::new(Weak::new()),
             children: RefCell::new(vec![]),
-            node_type: NodeType::Group,
+            node_type,
         })
     }
 
@@ -62,6 +74,7 @@ impl Node {
         *child.parent.borrow_mut() = Weak::clone(&self.me);
     }
 
+    #[allow(dead_code)]
     pub fn remove_child(&self, child: &Node) {
         if let Some(index) = Self::find_child_index(self, child) {
             self.children.borrow_mut().swap_remove(index);
