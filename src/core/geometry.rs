@@ -502,8 +502,8 @@ impl From<Cylindrical> for ParametricSurface {
 
 impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, cylinder: Cylindrical) -> Result<Self> {
-        let mut position_data: Vec<Vec4> = Vec::new();
-        let mut color_data: Vec<Color> = Vec::new();
+        let position_data: Vec<Vec4> = Vec::new();
+        let color_data: Vec<Color> = Vec::new();
 
         let mut geometry = Geometry::from_with_context(context, ParametricSurface::from(cylinder))?;
 

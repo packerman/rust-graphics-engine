@@ -2,7 +2,7 @@ use glm::Mat4;
 
 use super::matrix::{self, Perspective};
 
-struct Camera {
+pub struct Camera {
     projection: Perspective,
     view_matrix: Mat4,
 }

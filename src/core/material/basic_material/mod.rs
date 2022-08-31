@@ -37,9 +37,6 @@ fn basic_material(
                 ),
             ],
             draw_style,
-            model_matrix: "modelMatrix",
-            view_matrix: "viewMatrix",
-            projection_matrix: "projectionMatrix",
         },
     )
 }
@@ -108,14 +105,9 @@ pub fn line_material(
     Ok(material)
 }
 
+#[derive(Default)]
 pub struct SurfaceMaterial {
     pub double_side: bool,
-}
-
-impl Default for SurfaceMaterial {
-    fn default() -> Self {
-        Self { double_side: false }
-    }
 }
 
 pub fn surface_material(

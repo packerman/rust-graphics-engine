@@ -1,5 +1,5 @@
 use std::{
-    cell::RefCell,
+    cell::{RefCell, RefMut},
     collections::VecDeque,
     ptr,
     rc::{Rc, Weak},
@@ -7,7 +7,11 @@ use std::{
 
 use glm::{vec3, Mat4, Vec3};
 
-use super::matrix::{self, Angle};
+use super::{
+    camera::Camera,
+    matrix::{self, Angle},
+    mesh::Mesh,
+};
 
 pub enum Transform {
     Local,
@@ -16,9 +20,11 @@ pub enum Transform {
 
 pub enum NodeType {
     Group,
+    Mesh(Mesh),
+    Camera(RefCell<Camera>),
 }
 
-struct Node {
+pub struct Node {
     me: Weak<Node>,
     transform: RefCell<Mat4>,
     parent: RefCell<Weak<Node>>,
@@ -35,6 +41,20 @@ impl Node {
             children: RefCell::new(vec![]),
             node_type: NodeType::Group,
         })
+    }
+
+    pub fn mesh(&self) -> Option<&Mesh> {
+        match &self.node_type {
+            NodeType::Mesh(mesh) => Some(mesh),
+            _ => None,
+        }
+    }
+
+    pub fn camera(&self) -> Option<&RefCell<Camera>> {
+        match &self.node_type {
+            NodeType::Camera(camera) => Some(camera),
+            _ => None,
+        }
     }
 
     pub fn add_child(&self, child: &Rc<Node>) {

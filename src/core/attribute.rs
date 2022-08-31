@@ -6,7 +6,7 @@ use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
 
 use super::{color::Color, gl};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct DataType {
     size: i32,
     base_type: u32,

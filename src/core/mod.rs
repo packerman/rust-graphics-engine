@@ -12,4 +12,5 @@ pub mod material;
 pub mod matrix;
 pub mod mesh;
 pub mod node;
+pub mod renderer;
 pub mod uniform;
