@@ -25,8 +25,6 @@ pub struct SpinningCube {
 }
 
 impl SpinningCube {
-    const DELTA_TIME_SEC: f32 = 1_f32 / 60.0;
-
     pub fn create(
         context: &WebGl2RenderingContext,
         canvas: &HtmlCanvasElement,

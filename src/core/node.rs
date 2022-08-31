@@ -74,7 +74,6 @@ impl Node {
         *child.parent.borrow_mut() = Weak::clone(&self.me);
     }
 
-    #[allow(dead_code)]
     pub fn remove_child(&self, child: &Node) {
         if let Some(index) = Self::find_child_index(self, child) {
             self.children.borrow_mut().swap_remove(index);
