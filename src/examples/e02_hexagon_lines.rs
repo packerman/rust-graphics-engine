@@ -1,7 +1,9 @@
 use anyhow::Result;
-use web_sys::{WebGl2RenderingContext, WebGlProgram};
+use web_sys::{HtmlCanvasElement, WebGl2RenderingContext, WebGlProgram};
 
-use crate::core::{application::Application, attribute::Attribute, color, gl, input::KeyState};
+use crate::core::{
+    application::Application, attribute::Attribute, color::Color, gl, input::KeyState,
+};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 in vec4 position;
@@ -23,13 +25,16 @@ void main()
 
 pub struct HexagonLines {
     program: WebGlProgram,
-    vertex_count: usize,
+    attribute: Attribute,
 }
 
 impl HexagonLines {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
+    pub fn create(
+        context: &WebGl2RenderingContext,
+        _canvas: &HtmlCanvasElement,
+    ) -> Result<Box<dyn Application>> {
         log!("Initialized");
-        gl::set_clear_color(context, &color::black());
+        gl::set_clear_color(context, &Color::black());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         context.line_width(4.0);
         let vao = gl::create_vertex_array(context)?;
@@ -42,12 +47,11 @@ impl HexagonLines {
             [-0.4, -0.6, 0.0],
             [0.4, -0.6, 0.0],
         ];
-        let vertex_count = position_data.len();
-        let position_attribute = Attribute::new_with_data(context, &position_data)?;
+        let position_attribute = Attribute::with_array(context, &position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
         Ok(Box::new(HexagonLines {
             program,
-            vertex_count,
+            attribute: position_attribute,
         }))
     }
 }
@@ -61,7 +65,7 @@ impl Application for HexagonLines {
         context.draw_arrays(
             WebGl2RenderingContext::LINE_LOOP,
             0,
-            self.vertex_count.try_into().unwrap(),
+            self.attribute.vertex_count.try_into().unwrap(),
         );
     }
 }

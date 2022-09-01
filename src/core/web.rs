@@ -63,3 +63,7 @@ pub fn request_animation_frame(f: &Closure<dyn FnMut(f64)>) -> Result<i32> {
             .map_err(|err| anyhow!("Cannot register requestAnimationFrame: {:#?}", err))
     })
 }
+
+pub fn canvas_size(canvas: &HtmlCanvasElement) -> (u32, u32) {
+    (canvas.width(), canvas.height())
+}

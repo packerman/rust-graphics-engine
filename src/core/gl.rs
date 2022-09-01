@@ -8,7 +8,7 @@ use web_sys::{
 use super::color::Color;
 
 pub fn set_clear_color(context: &WebGl2RenderingContext, color: &Color) {
-    context.clear_color(color.x, color.y, color.z, color.w);
+    context.clear_color(color[0], color[1], color[2], color[3]);
 }
 
 pub fn get_string_parameter(context: &WebGl2RenderingContext, pname: u32) -> Result<String> {

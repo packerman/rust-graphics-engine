@@ -1,14 +1,14 @@
 use anyhow::{anyhow, Result};
-use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
+use web_sys::HtmlCanvasElement;
 
 use crate::{
-    core::application::{Application, Loop},
+    core::application::{ApplicationCreator, Loop},
     examples::{
         e00_base_test::TestApp, e01_point::PointApp, e02_hexagon_lines::HexagonLines,
         e03_two_shapes::TwoShapes, e04_vertex_colors::VertexColors,
         e05_two_triangles::TwoTriangles, e06_animate_triangle::AnimateTriangle,
         e07_animate_triangle_time::AnimateTriangleTime, e08_keyboard_input::KeyboardInput,
-        e09_move_triangle::MoveTriangle,
+        e09_move_triangle::MoveTriangle, e0a_spinning_cube::SpinningCube,
     },
 };
 
@@ -16,7 +16,7 @@ pub fn run_example(canvas: &HtmlCanvasElement) -> Result<()> {
     run_example_by_index(canvas, None)
 }
 
-fn examples() -> Vec<Box<dyn Fn(&WebGl2RenderingContext) -> Result<Box<dyn Application>>>> {
+fn examples() -> Vec<Box<ApplicationCreator>> {
     vec![
         Box::new(TestApp::create),
         Box::new(PointApp::create),
@@ -28,22 +28,23 @@ fn examples() -> Vec<Box<dyn Fn(&WebGl2RenderingContext) -> Result<Box<dyn Appli
         Box::new(AnimateTriangleTime::create),
         Box::new(KeyboardInput::create),
         Box::new(MoveTriangle::create),
+        Box::new(SpinningCube::create),
     ]
 }
 
 fn run_example_by_index(canvas: &HtmlCanvasElement, index: Option<usize>) -> Result<()> {
     let examples = examples();
 
-    Loop::run(
-        &canvas,
-        Box::new(move |context| {
-            let example = get_element(&examples, index).expect("Cannot get example");
-            example(context)
+    Loop::run_with_box(
+        canvas,
+        Box::new(move |context, canvas| {
+            let example = get_element(&examples, index)?;
+            example(context, canvas)
         }),
     )
 }
 
-fn get_element<'a, T>(vec: &'a Vec<T>, index: Option<usize>) -> Result<&'a T> {
+fn get_element<T>(vec: &[T], index: Option<usize>) -> Result<&T> {
     match index {
         Some(index) => vec
             .get(index)

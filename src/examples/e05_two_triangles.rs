@@ -1,13 +1,13 @@
 use anyhow::Result;
-use web_sys::{WebGl2RenderingContext, WebGlProgram};
+use web_sys::{HtmlCanvasElement, WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
     application::Application,
     attribute::Attribute,
-    color::{self, Color},
+    color::Color,
     gl,
     input::KeyState,
-    uniform::Uniform,
+    uniform::{Uniform, UniformData},
 };
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -31,34 +31,55 @@ void main()
 
 pub struct TwoTriangles {
     program: WebGlProgram,
-    vertex_count: usize,
-    translation1: Uniform<[f32; 3]>,
-    translation2: Uniform<[f32; 3]>,
-    base_color1: Uniform<Color>,
-    base_color2: Uniform<Color>,
+    position: Attribute,
+    translation1: Uniform,
+    translation2: Uniform,
+    base_color1: Uniform,
+    base_color2: Uniform,
 }
 
 impl TwoTriangles {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
+    pub fn create(
+        context: &WebGl2RenderingContext,
+        _canvas: &HtmlCanvasElement,
+    ) -> Result<Box<dyn Application>> {
         log!("Initializing...");
-        gl::set_clear_color(context, &color::gray());
+        gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));
         let position_data = [[0.0_f32, 0.2, 0.0], [0.2, -0.2, 0.0], [-0.2, -0.2, 0.0]];
-        let position_attribute = Attribute::new_with_data(context, &position_data)?;
+        let position_attribute = Attribute::with_array(context, &position_data)?;
         position_attribute.associate_variable(context, &program, "position")?;
 
-        let translation1 =
-            Uniform::new_with_data(context, [-0.5_f32, 0.0, 0.0], &program, "translation")?;
-        let translation2 =
-            Uniform::new_with_data(context, [0.5_f32, 0.0, 0.0], &program, "translation")?;
-        let base_color1 = Uniform::new_with_data(context, color::red(), &program, "baseColor")?;
-        let base_color2 = Uniform::new_with_data(context, color::blue(), &program, "baseColor")?;
+        let translation1 = Uniform::new_with_data(
+            context,
+            UniformData::from([-0.5_f32, 0.0, 0.0]),
+            &program,
+            "translation",
+        )?;
+        let translation2 = Uniform::new_with_data(
+            context,
+            UniformData::from([0.5_f32, 0.0, 0.0]),
+            &program,
+            "translation",
+        )?;
+        let base_color1 = Uniform::new_with_data(
+            context,
+            UniformData::from(Color::red()),
+            &program,
+            "baseColor",
+        )?;
+        let base_color2 = Uniform::new_with_data(
+            context,
+            UniformData::from(Color::blue()),
+            &program,
+            "baseColor",
+        )?;
 
         Ok(Box::new(TwoTriangles {
             program,
-            vertex_count: position_data.len(),
+            position: position_attribute,
             translation1,
             translation2,
             base_color1,
@@ -78,14 +99,14 @@ impl Application for TwoTriangles {
         context.draw_arrays(
             WebGl2RenderingContext::TRIANGLE_FAN,
             0,
-            self.vertex_count.try_into().unwrap(),
+            self.position.vertex_count.try_into().unwrap(),
         );
         self.translation2.upload_data(context);
         self.base_color2.upload_data(context);
         context.draw_arrays(
             WebGl2RenderingContext::TRIANGLE_FAN,
             0,
-            self.vertex_count.try_into().unwrap(),
+            self.position.vertex_count.try_into().unwrap(),
         );
     }
 }

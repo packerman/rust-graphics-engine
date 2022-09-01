@@ -16,7 +16,8 @@ pub trait Application {
     fn render(&self, context: &WebGl2RenderingContext);
 }
 
-pub type AppCreator = dyn FnOnce(&WebGl2RenderingContext) -> Result<Box<dyn Application>>;
+type Creator<T> = dyn Fn(&WebGl2RenderingContext, &HtmlCanvasElement) -> Result<T>;
+pub type ApplicationCreator = Creator<Box<dyn Application>>;
 
 pub struct Loop {
     previous_time: f64,
@@ -27,10 +28,17 @@ impl Loop {
     const FRAMES_PER_SECOND: i32 = 60;
     const MS_PER_UPDATE: f64 = 1000.0 / (Self::FRAMES_PER_SECOND as f64);
 
-    pub fn run(canvas: &HtmlCanvasElement, creator: Box<AppCreator>) -> Result<()> {
-        let context = web::get_webgl2_context(&canvas)?;
+    pub fn run_with_box(
+        canvas: &HtmlCanvasElement,
+        creator: Box<ApplicationCreator>,
+    ) -> Result<()> {
+        Self::run(canvas, &creator)
+    }
+
+    pub fn run(canvas: &HtmlCanvasElement, creator: &ApplicationCreator) -> Result<()> {
+        let context = web::get_webgl2_context(canvas)?;
         log_gl_strings(&context)?;
-        let mut app = creator(&context)?;
+        let mut app = creator(&context, canvas)?;
         let mut state = Loop {
             previous_time: web::now()?,
             lag: 0.0,
@@ -80,7 +88,7 @@ fn log_gl_strings(context: &WebGl2RenderingContext) -> Result<()> {
     );
     log!(
         "GLSL version = {}",
-        gl::get_string_parameter(&context, WebGl2RenderingContext::SHADING_LANGUAGE_VERSION)?
+        gl::get_string_parameter(context, WebGl2RenderingContext::SHADING_LANGUAGE_VERSION)?
     );
     Ok(())
 }

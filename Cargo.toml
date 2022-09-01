@@ -30,6 +30,7 @@ js-sys = "0.3.58"
 wasm-bindgen-futures = "0.4.31"
 anyhow = "1.0.58"
 nalgebra-glm = "0.17.0"
+nalgebra = "0.31.1"
 
 # The `web-sys` crate allows you to interact with the various browser APIs,
 # like the DOM.
