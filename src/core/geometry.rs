@@ -454,13 +454,13 @@ impl FromWithContext<WebGl2RenderingContext, Sphere> for Geometry {
 
 #[derive(Clone, Copy)]
 pub struct Cylindrical {
-    radius_top: f32,
-    radius_bottom: f32,
-    height: f32,
-    radial_segments: u16,
-    height_segments: u16,
-    closed_top: bool,
-    closed_bottom: bool,
+    pub radius_top: f32,
+    pub radius_bottom: f32,
+    pub height: f32,
+    pub radial_segments: u16,
+    pub height_segments: u16,
+    pub closed_top: bool,
+    pub closed_bottom: bool,
 }
 
 impl Default for Cylindrical {
@@ -502,9 +502,6 @@ impl From<Cylindrical> for ParametricSurface {
 
 impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, cylinder: Cylindrical) -> Result<Self> {
-        let position_data: Vec<Vec4> = Vec::new();
-        let color_data: Vec<Color> = Vec::new();
-
         let mut geometry = Geometry::from_with_context(context, ParametricSurface::from(cylinder))?;
 
         if cylinder.closed_top {
@@ -521,7 +518,7 @@ impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
         if cylinder.closed_bottom {
             let mut bottom_geometry = Geometry::from_with_context(
                 context,
-                Polygon::new(cylinder.radial_segments, cylinder.radius_top),
+                Polygon::new(cylinder.radial_segments, cylinder.radius_bottom),
             )?;
             let transform = matrix::translation(0.0, -cylinder.height / 2.0, 0.0)
                 * matrix::rotation_y(-Angle::RIGHT)
@@ -529,17 +526,6 @@ impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
             bottom_geometry.appply_matrix_mut(context, &transform, "vertexPosition")?;
             geometry.merge_mut(context, bottom_geometry)?;
         }
-
-        let geometry = Geometry::from_attributes([
-            (
-                "vertexPosition",
-                Attribute::with_vector_array(context, &position_data)?,
-            ),
-            (
-                "vertexColor",
-                Attribute::with_rgba_color_array(context, &color_data)?,
-            ),
-        ]);
         Ok(geometry)
     }
 }

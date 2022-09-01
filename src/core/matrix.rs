@@ -1,5 +1,5 @@
 use std::{
-    f32::consts::FRAC_PI_2,
+    f32::consts::{FRAC_PI_2, PI, TAU},
     ops::{Div, Mul, Neg},
 };
 
@@ -19,7 +19,10 @@ pub struct Angle {
 }
 
 impl Angle {
+    pub const ZERO: Angle = Angle::from_radians(0.0);
     pub const RIGHT: Angle = Angle::from_radians(FRAC_PI_2);
+    pub const STRAIGHT: Angle = Angle::from_radians(PI);
+    pub const COMPLETE: Angle = Angle::from_radians(TAU);
 
     pub fn from_degrees(degrees: f32) -> Self {
         Self {
