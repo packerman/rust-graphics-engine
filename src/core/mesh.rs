@@ -41,11 +41,7 @@ impl Mesh {
                 .set_projection_matrix(camera.projection_matrix());
             self.material.upload_uniform_data(context);
             self.material.update_render_settings(context);
-            context.draw_arrays(
-                self.material.draw_style,
-                0,
-                self.geometry.count_vertices().try_into().unwrap(),
-            )
+            context.draw_arrays(self.material.draw_style, 0, self.geometry.count_vertices())
         }
     }
 

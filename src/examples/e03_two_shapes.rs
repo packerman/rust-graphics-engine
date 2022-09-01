@@ -2,7 +2,11 @@ use anyhow::Result;
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext, WebGlProgram, WebGlVertexArrayObject};
 
 use crate::core::{
-    application::Application, attribute::Attribute, color::Color, gl, input::KeyState,
+    application::Application,
+    attribute::{Attribute, AttributeData},
+    color::Color,
+    gl,
+    input::KeyState,
 };
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -44,7 +48,8 @@ impl TwoShapes {
         let vao_triangle = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao_triangle));
         let position_data_triangle = [[-0.5_f32, 0.8, 0.0], [-0.2, 0.2, 0.0], [-0.8, 0.2, 0.0]];
-        let position_attribute_triangle = Attribute::with_array(context, &position_data_triangle)?;
+        let position_attribute_triangle =
+            Attribute::new_with_data(context, AttributeData::from(&position_data_triangle))?;
         position_attribute_triangle.associate_variable(context, &program, "position")?;
 
         let vao_square = gl::create_vertex_array(context)?;
@@ -55,7 +60,8 @@ impl TwoShapes {
             [0.2, 0.2, 0.0],
             [0.2, 0.8, 0.0],
         ];
-        let position_attribute_square = Attribute::with_array(context, &position_data_square)?;
+        let position_attribute_square =
+            Attribute::new_with_data(context, AttributeData::from(&position_data_square))?;
         position_attribute_square.associate_variable(context, &program, "position")?;
 
         Ok(Box::new(TwoShapes {
@@ -79,14 +85,14 @@ impl Application for TwoShapes {
         context.draw_arrays(
             WebGl2RenderingContext::LINE_LOOP,
             0,
-            self.triangle_position.vertex_count.try_into().unwrap(),
+            self.triangle_position.count(),
         );
 
         context.bind_vertex_array(Some(&self.vao_square));
         context.draw_arrays(
             WebGl2RenderingContext::LINE_LOOP,
             0,
-            self.square_position.vertex_count.try_into().unwrap(),
+            self.square_position.count(),
         );
     }
 }

@@ -2,7 +2,11 @@ use anyhow::Result;
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::Application, attribute::Attribute, color::Color, gl, input::KeyState,
+    application::Application,
+    attribute::{Attribute, AttributeData},
+    color::Color,
+    gl,
+    input::KeyState,
 };
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -47,7 +51,8 @@ impl HexagonLines {
             [-0.4, -0.6, 0.0],
             [0.4, -0.6, 0.0],
         ];
-        let position_attribute = Attribute::with_array(context, &position_data)?;
+        let position_attribute =
+            Attribute::new_with_data(context, AttributeData::from(&position_data))?;
         position_attribute.associate_variable(context, &program, "position")?;
         Ok(Box::new(HexagonLines {
             program,
@@ -62,10 +67,6 @@ impl Application for HexagonLines {
     fn render(&self, context: &WebGl2RenderingContext) {
         context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
         context.use_program(Some(&self.program));
-        context.draw_arrays(
-            WebGl2RenderingContext::LINE_LOOP,
-            0,
-            self.attribute.vertex_count.try_into().unwrap(),
-        );
+        context.draw_arrays(WebGl2RenderingContext::LINE_LOOP, 0, self.attribute.count());
     }
 }

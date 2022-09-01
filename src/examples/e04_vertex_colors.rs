@@ -2,7 +2,11 @@ use anyhow::Result;
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::Application, attribute::Attribute, color::Color, gl, input::KeyState,
+    application::Application,
+    attribute::{Attribute, AttributeData},
+    color::Color,
+    gl,
+    input::KeyState,
 };
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -53,10 +57,11 @@ impl VertexColors {
             [-0.4, -0.6, 0.0],
             [0.4, -0.6, 0.0],
         ];
-        let position_attribute = Attribute::with_array(context, &position_data)?;
+        let position_attribute =
+            Attribute::new_with_data(context, AttributeData::from(&position_data))?;
         position_attribute.associate_variable(context, &program, "position")?;
 
-        let color_data = [
+        let color_data: [[f32; 3]; 6] = [
             Color::red().into(),
             Color::dark_orange().into(),
             Color::yellow().into(),
@@ -64,7 +69,7 @@ impl VertexColors {
             Color::blue().into(),
             Color::blue_violet().into(),
         ];
-        let color_attribute = Attribute::with_array(context, &color_data)?;
+        let color_attribute = Attribute::new_with_data(context, AttributeData::from(&color_data))?;
         color_attribute.associate_variable(context, &program, "vertexColor")?;
 
         Ok(Box::new(VertexColors {
@@ -84,7 +89,7 @@ impl Application for VertexColors {
         context.draw_arrays(
             WebGl2RenderingContext::TRIANGLE_FAN,
             0,
-            self.position_attribute.vertex_count.try_into().unwrap(),
+            self.position_attribute.count(),
         );
     }
 }
