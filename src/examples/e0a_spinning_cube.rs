@@ -42,11 +42,15 @@ impl SpinningCube {
         scene.add_child(&camera);
 
         let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
-        let mut basic_material = BasicMaterial::default();
-        basic_material.use_vertex_colors = true;
-        let material =
-            basic_material::surface_material(context, basic_material, SurfaceMaterial::default())?;
-        let mesh = Mesh::new(context, geometry, material)?;
+        let material = basic_material::surface_material(
+            context,
+            BasicMaterial {
+                use_vertex_colors: true,
+                ..Default::default()
+            },
+            SurfaceMaterial::default(),
+        )?;
+        let mesh = Box::new(Mesh::new(context, geometry, material)?);
         let mesh = Node::new_with_mesh(mesh);
         scene.add_child(&mesh);
 
@@ -62,9 +66,9 @@ impl SpinningCube {
 impl Application for SpinningCube {
     fn update(&mut self, _key_state: &KeyState) {
         self.mesh
-            .rotate_y(Angle::from_radians(TAU) / 150.0, Transform::Local);
+            .rotate_y(Angle::from_radians(TAU) / 600.0, Transform::Local);
         self.mesh
-            .rotate_x(Angle::from_radians(TAU) / 200.0, Transform::Local);
+            .rotate_x(Angle::from_radians(TAU) / 800.0, Transform::Local);
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {

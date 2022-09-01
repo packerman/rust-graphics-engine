@@ -1,4 +1,3 @@
-use core::fmt;
 use std::{
     f32::consts::FRAC_PI_2,
     ops::{Div, Mul, Neg},

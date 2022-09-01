@@ -156,7 +156,7 @@ impl Attribute {
             );
             let new_vec4 = matrix * new_vec4;
             for j in 0..size {
-                new_data[i + j] = new_vec4[j];
+                new_data.push(new_vec4[j]);
             }
         }
         self.data = new_data;

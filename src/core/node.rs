@@ -1,5 +1,5 @@
 use std::{
-    cell::{RefCell, RefMut},
+    cell::RefCell,
     collections::VecDeque,
     ptr,
     rc::{Rc, Weak},
@@ -20,7 +20,7 @@ pub enum Transform {
 
 pub enum NodeType {
     Group,
-    Mesh(Mesh),
+    Mesh(Box<Mesh>),
     Camera(RefCell<Camera>),
 }
 
@@ -37,7 +37,7 @@ impl Node {
         Self::new(NodeType::Group)
     }
 
-    pub fn new_with_mesh(mesh: Mesh) -> Rc<Self> {
+    pub fn new_with_mesh(mesh: Box<Mesh>) -> Rc<Self> {
         Self::new(NodeType::Mesh(mesh))
     }
 

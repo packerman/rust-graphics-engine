@@ -1,11 +1,6 @@
 use web_sys::WebGl2RenderingContext;
 
-use super::{
-    camera::Camera,
-    color::Color,
-    gl,
-    node::{Node, NodeType},
-};
+use super::{color::Color, gl, node::Node};
 
 pub struct RendererOptions {
     pub clear_color: Color,

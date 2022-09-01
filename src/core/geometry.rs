@@ -404,7 +404,7 @@ impl From<Ellipsoid> for ParametricSurface {
                 glm::vec4(
                     ellipsoid.width / 2.0 * u.sin() * v.cos(),
                     ellipsoid.height / 2.0 * v.sin(),
-                    ellipsoid.depth / 2.0 * u.cos() * v.sin(),
+                    ellipsoid.depth / 2.0 * u.cos() * v.cos(),
                     1.0,
                 )
             }),
@@ -418,7 +418,7 @@ impl FromWithContext<WebGl2RenderingContext, Ellipsoid> for Geometry {
     }
 }
 
-struct Sphere {
+pub struct Sphere {
     radius: f32,
     radius_segments: u16,
     height_segments: u16,
@@ -453,7 +453,7 @@ impl FromWithContext<WebGl2RenderingContext, Sphere> for Geometry {
 }
 
 #[derive(Clone, Copy)]
-struct Cylindrical {
+pub struct Cylindrical {
     radius_top: f32,
     radius_bottom: f32,
     height: f32,
