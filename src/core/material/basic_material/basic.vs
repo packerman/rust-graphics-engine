@@ -5,7 +5,7 @@ uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 uniform float pointSize;
 in vec4 vertexPosition;
-int vec4 vertexColor;
+in vec4 vertexColor;
 out vec4 color;
 
 void main() {

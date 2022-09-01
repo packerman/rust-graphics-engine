@@ -14,7 +14,7 @@ pub struct RendererOptions {
 impl Default for RendererOptions {
     fn default() -> Self {
         Self {
-            clear_color: Color::black(),
+            clear_color: Color::gray(),
         }
     }
 }
@@ -28,7 +28,7 @@ impl Renderer {
         Self
     }
 
-    pub fn render(&self, context: &WebGl2RenderingContext, scene: &Node, camera: &mut Camera) {
+    pub fn render(&self, context: &WebGl2RenderingContext, scene: &Node, camera: &Node) {
         context.clear(
             WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT,
         );
@@ -40,6 +40,7 @@ impl Renderer {
             }
         }
 
+        let camera = &camera.camera().unwrap().borrow();
         for node in nodes.iter() {
             if let Some(mesh) = node.mesh() {
                 mesh.render(context, camera, node.world_matrix())

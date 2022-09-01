@@ -38,7 +38,7 @@ impl SpinningCube {
         let (width, height) = web::canvas_size(canvas);
         camera.borrow_mut().set_aspect_ratio(width, height);
         let camera = Node::new_with_camera(camera);
-        camera.set_position(&glm::vec3(0.0, 0.0, 4.0));
+        camera.set_position(&glm::vec3(0.0, 0.0, 3.0));
         scene.add_child(&camera);
 
         let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
@@ -62,16 +62,12 @@ impl SpinningCube {
 impl Application for SpinningCube {
     fn update(&mut self, _key_state: &KeyState) {
         self.mesh
-            .rotate_y(Angle::from_radians(TAU) / 122.2, Transform::Local);
+            .rotate_y(Angle::from_radians(TAU) / 150.0, Transform::Local);
         self.mesh
-            .rotate_x(Angle::from_radians(TAU) / 186.5, Transform::Local);
+            .rotate_x(Angle::from_radians(TAU) / 200.0, Transform::Local);
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.renderer.render(
-            context,
-            &self.scene,
-            &mut self.camera.camera().unwrap().borrow_mut(),
-        )
+        self.renderer.render(context, &self.scene, &self.camera)
     }
 }
