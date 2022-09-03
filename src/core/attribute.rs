@@ -7,108 +7,44 @@ use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
 use super::{color::Color, gl};
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct DataType {
+pub struct DataKind {
     size: i32,
-    base_type: u32,
+    gl_type: u32,
 }
 
-impl DataType {
-    const fn new(size: i32, base_type: u32) -> DataType {
-        DataType { size, base_type }
+impl DataKind {
+    const fn new(size: i32, gl_type: u32) -> DataKind {
+        DataKind { size, gl_type }
     }
 }
 
-pub struct Attribute {
-    data_type: DataType,
+pub struct AttributeData {
     data: Vec<f32>,
-    buffer: WebGlBuffer,
-    pub vertex_count: usize,
+    kind: DataKind,
+    count: i32,
 }
 
-impl Attribute {
-    pub fn with_array<const N: usize>(
-        context: &WebGl2RenderingContext,
-        data: &[[f32; N]],
-    ) -> Result<Attribute> {
-        fn flatten_array<T: Clone, const N: usize>(data: &[[T; N]]) -> Vec<T> {
-            data.iter().flat_map(|item| item.to_vec()).collect()
-        }
-        Self::with_flat_array(context, flatten_array(data), N, data.len())
+impl AttributeData {
+    pub fn new(data: Vec<f32>, kind: DataKind, count: i32) -> Self {
+        Self { data, kind, count }
     }
 
-    pub fn with_vector_array<const N: usize>(
-        context: &WebGl2RenderingContext,
-        data: &[SVector<f32, N>],
-    ) -> Result<Attribute> {
-        fn flatten_vector<T: Copy, const N: usize>(data: &[SVector<T, N>]) -> Vec<T> {
-            data.iter()
-                .flat_map(|item| item.iter().copied().collect::<Vec<T>>())
-                .collect()
-        }
-        Self::with_flat_array(context, flatten_vector(data), N, data.len())
-    }
-
-    pub fn with_rgb_color_array(
-        context: &WebGl2RenderingContext,
-        data: &[Color],
-    ) -> Result<Attribute> {
-        fn flatten_color(data: &[Color]) -> Vec<f32> {
-            data.iter().flat_map(|item| item.to_rgb_vec()).collect()
-        }
-        Self::with_flat_array(context, flatten_color(data), 3, data.len())
-    }
-
-    pub fn with_rgba_color_array(
-        context: &WebGl2RenderingContext,
-        data: &[Color],
-    ) -> Result<Attribute> {
-        fn flatten_color(data: &[Color]) -> Vec<f32> {
-            data.iter().flat_map(|item| item.to_rgba_vec()).collect()
-        }
-        Self::with_flat_array(context, flatten_color(data), 4, data.len())
-    }
-
-    fn with_flat_array(
-        context: &WebGl2RenderingContext,
-        data: Vec<f32>,
-        size: usize,
-        length: usize,
-    ) -> Result<Attribute> {
-        Attribute::new_with_data(
-            context,
-            DataType::new(size.try_into().unwrap(), WebGl2RenderingContext::FLOAT),
+    fn new_with_flat_array(data: Vec<f32>, size: usize, length: usize) -> Self {
+        Self::new(
             data,
-            length,
+            DataKind::new(size.try_into().unwrap(), WebGl2RenderingContext::FLOAT),
+            length.try_into().unwrap(),
         )
     }
 
-    fn new_with_data(
-        context: &WebGl2RenderingContext,
-        data_type: DataType,
-        data: Vec<f32>,
-        vertex_count: usize,
-    ) -> Result<Attribute> {
-        let buffer = gl::create_buffer(context)?;
-
-        let attribute = Attribute {
-            data_type,
-            data,
-            buffer,
-            vertex_count,
-        };
-        attribute.upload_data(context);
-        Ok(attribute)
-    }
-
-    fn upload_data(&self, context: &WebGl2RenderingContext) {
-        context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
+    fn buffer_data(&self, context: &WebGl2RenderingContext) {
         unsafe {
             let buffer_view = Float32Array::view(&self.data);
-            Self::buffer_data(context, &buffer_view);
+            Self::buffer_data_with_object(context, &buffer_view);
         }
     }
 
-    fn buffer_data(context: &WebGl2RenderingContext, buffer_view: &js_sys::Object) {
+    fn buffer_data_with_object(context: &WebGl2RenderingContext, buffer_view: &js_sys::Object) {
         context.buffer_data_with_array_buffer_view(
             WebGl2RenderingContext::ARRAY_BUFFER,
             buffer_view,
@@ -116,29 +52,20 @@ impl Attribute {
         );
     }
 
-    pub fn associate_variable(
-        &self,
-        context: &WebGl2RenderingContext,
-        program: &WebGlProgram,
-        variable: &str,
-    ) -> Result<()> {
-        let location = gl::get_attrib_location(context, program, variable)?;
-        context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
+    fn vertex_attrib_pointer(&self, context: &WebGl2RenderingContext, location: u32) {
         context.vertex_attrib_pointer_with_i32(
             location,
-            self.data_type.size,
-            self.data_type.base_type,
+            self.kind.size,
+            self.kind.gl_type,
             false,
             0,
             0,
         );
-        context.enable_vertex_attrib_array(location);
-        Ok(())
     }
 
-    pub fn apply_matrix_mut(&mut self, context: &WebGl2RenderingContext, matrix: &Mat4) {
+    pub fn apply_matrix_mut(&mut self, matrix: &Mat4) {
         let default_vec4 = glm::vec4(0.0, 0.0, 0.0, 1.0);
-        let size = self.data_type.size.try_into().unwrap();
+        let size = self.kind.size.try_into().unwrap();
         let get_elem = |base: usize, offset: usize| {
             if offset < size {
                 self.data[base + offset]
@@ -160,6 +87,111 @@ impl Attribute {
             }
         }
         self.data = new_data;
+    }
+
+    pub fn concat_mut(&mut self, other: &AttributeData) -> Result<()> {
+        if self.kind == other.kind {
+            self.data.extend(other.data.iter());
+            self.count += other.count;
+            Ok(())
+        } else {
+            Err(anyhow!(
+                "Cannot concat attribute {:?} and {:?}",
+                self.kind,
+                other.kind
+            ))
+        }
+    }
+}
+
+impl<const N: usize, const K: usize> From<&[[f32; N]; K]> for AttributeData {
+    fn from(data: &[[f32; N]; K]) -> Self {
+        fn flatten_array<T: Clone, const N: usize, const K: usize>(data: &[[T; N]; K]) -> Vec<T> {
+            data.iter().flat_map(|item| item.to_vec()).collect()
+        }
+        Self::new_with_flat_array(flatten_array(data), N, data.len())
+    }
+}
+
+impl<const N: usize> From<&Vec<[f32; N]>> for AttributeData {
+    fn from(data: &Vec<[f32; N]>) -> Self {
+        fn flatten_array<T: Clone, const N: usize>(data: &[[T; N]]) -> Vec<T> {
+            data.iter().flat_map(|item| item.to_vec()).collect()
+        }
+        Self::new_with_flat_array(flatten_array(data), N, data.len())
+    }
+}
+
+impl<const N: usize> From<&Vec<SVector<f32, N>>> for AttributeData {
+    fn from(data: &Vec<SVector<f32, N>>) -> Self {
+        fn flatten_vector<T: Copy, const N: usize>(data: &[SVector<T, N>]) -> Vec<T> {
+            data.iter()
+                .flat_map(|item| item.iter().copied().collect::<Vec<T>>())
+                .collect()
+        }
+        Self::new_with_flat_array(flatten_vector(data), N, data.len())
+    }
+}
+
+impl From<&Vec<Color>> for AttributeData {
+    fn from(data: &Vec<Color>) -> Self {
+        fn flatten_color(data: &[Color]) -> Vec<f32> {
+            data.iter().flat_map(|item| item.to_rgba_vec()).collect()
+        }
+        Self::new_with_flat_array(flatten_color(data), 4, data.len())
+    }
+}
+
+impl<const N: usize> From<&[Color; N]> for AttributeData {
+    fn from(data: &[Color; N]) -> Self {
+        fn flatten_color<const N: usize>(data: &[Color; N]) -> Vec<f32> {
+            data.iter().flat_map(|item| item.to_rgba_vec()).collect()
+        }
+        Self::new_with_flat_array(flatten_color(data), 4, data.len())
+    }
+}
+
+pub struct Attribute {
+    data: AttributeData,
+    buffer: WebGlBuffer,
+}
+
+impl Attribute {
+    pub fn new_with_data(
+        context: &WebGl2RenderingContext,
+        data: AttributeData,
+    ) -> Result<Attribute> {
+        let buffer = gl::create_buffer(context)?;
+
+        let attribute = Attribute { data, buffer };
+        attribute.upload_data(context);
+        Ok(attribute)
+    }
+
+    pub fn count(&self) -> i32 {
+        self.data.count
+    }
+
+    fn upload_data(&self, context: &WebGl2RenderingContext) {
+        context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
+        self.data.buffer_data(context);
+    }
+
+    pub fn associate_variable(
+        &self,
+        context: &WebGl2RenderingContext,
+        program: &WebGlProgram,
+        variable: &str,
+    ) -> Result<()> {
+        let location = gl::get_attrib_location(context, program, variable)?;
+        context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
+        self.data.vertex_attrib_pointer(context, location);
+        context.enable_vertex_attrib_array(location);
+        Ok(())
+    }
+
+    pub fn apply_matrix_mut(&mut self, context: &WebGl2RenderingContext, matrix: &Mat4) {
+        self.data.apply_matrix_mut(matrix);
         self.upload_data(context);
     }
 
@@ -168,17 +200,8 @@ impl Attribute {
         context: &WebGl2RenderingContext,
         other: &Attribute,
     ) -> Result<()> {
-        if self.data_type == other.data_type {
-            self.data.extend(other.data.iter());
-            self.vertex_count += other.vertex_count;
-            self.upload_data(context);
-            Ok(())
-        } else {
-            Err(anyhow!(
-                "Cannot concat attribute {:?} and {:?}",
-                self.data_type,
-                other.data_type
-            ))
-        }
+        self.data.concat_mut(&other.data)?;
+        self.upload_data(context);
+        Ok(())
     }
 }

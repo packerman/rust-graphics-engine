@@ -9,7 +9,7 @@ use glm::{Mat4, Vec4};
 use web_sys::WebGl2RenderingContext;
 
 use super::{
-    attribute::Attribute,
+    attribute::{Attribute, AttributeData},
     color::Color,
     convert::FromWithContext,
     matrix::{self, Angle},
@@ -20,30 +20,20 @@ pub struct Geometry {
 }
 
 impl Geometry {
-    fn new() -> Self {
-        Geometry {
-            attributes: HashMap::new(),
-        }
-    }
-
-    fn from_attributes<const N: usize>(attributes: [(&str, Attribute); N]) -> Self {
-        let mut map = HashMap::new();
-        for (name, attribute) in attributes {
-            map.insert(String::from(name), attribute);
-        }
-        Geometry { attributes: map }
+    pub fn new(attributes: HashMap<String, Attribute>) -> Self {
+        Self { attributes }
     }
 
     pub fn attributes(&self) -> hash_map::Iter<String, Attribute> {
         self.attributes.iter()
     }
 
-    pub fn count_vertices(&self) -> usize {
+    pub fn count_vertices(&self) -> i32 {
         self.attributes
             .values()
             .next()
             .expect("Expected at least one attribute")
-            .vertex_count
+            .count()
     }
 
     pub fn appply_matrix_mut(
@@ -71,6 +61,21 @@ impl Geometry {
             )?;
         }
         Ok(())
+    }
+}
+
+impl<const N: usize> FromWithContext<WebGl2RenderingContext, [(&str, AttributeData); N]>
+    for Geometry
+{
+    fn from_with_context(
+        context: &WebGl2RenderingContext,
+        attributes: [(&str, AttributeData); N],
+    ) -> Result<Self> {
+        let mut map = HashMap::new();
+        for (name, data) in attributes {
+            map.insert(String::from(name), Attribute::new_with_data(context, data)?);
+        }
+        Ok(Geometry::new(map))
     }
 }
 
@@ -103,15 +108,14 @@ impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
             Color::blue().into(),
         ];
         let position_data = util::select_by_indices(&points, [0, 1, 3, 0, 3, 2]);
-        let color_data = util::select_by_indices(&colors, [0, 1, 3, 0, 3, 2]);
-        let geometry = Geometry::from_attributes([
-            (
-                "vertexPosition",
-                Attribute::with_array(context, &position_data)?,
-            ),
-            ("vertexColor", Attribute::with_array(context, &color_data)?),
-        ]);
-        Ok(geometry)
+        let color_data: Vec<[f32; 3]> = util::select_by_indices(&colors, [0, 1, 3, 0, 3, 2]);
+        Geometry::from_with_context(
+            context,
+            [
+                ("vertexPosition", AttributeData::from(&position_data)),
+                ("vertexColor", AttributeData::from(&color_data)),
+            ],
+        )
     }
 }
 
@@ -193,16 +197,15 @@ impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
                 7, 6, 1, 0, 2, 1, 2, 3,
             ],
         );
-        let color_data =
+        let color_data: Vec<[f32; 3]> =
             util::select_by_indices(&colors, (0..=5).flat_map(|i| util::replicate(6, i)));
-        let geometry = Geometry::from_attributes([
-            (
-                "vertexPosition",
-                Attribute::with_array(context, &position_data)?,
-            ),
-            ("vertexColor", Attribute::with_array(context, &color_data)?),
-        ]);
-        Ok(geometry)
+        Geometry::from_with_context(
+            context,
+            [
+                ("vertexPosition", AttributeData::from(&position_data)),
+                ("vertexColor", AttributeData::from(&color_data)),
+            ],
+        )
     }
 }
 
@@ -258,17 +261,13 @@ impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
             color_data.push(Color::blue());
         }
 
-        let geometry = Geometry::from_attributes([
-            (
-                "vertexPosition",
-                Attribute::with_vector_array(context, &position_data)?,
-            ),
-            (
-                "vertexColor",
-                Attribute::with_rgba_color_array(context, &color_data)?,
-            ),
-        ]);
-        Ok(geometry)
+        Geometry::from_with_context(
+            context,
+            [
+                ("vertexPosition", AttributeData::from(&position_data)),
+                ("vertexColor", AttributeData::from(&color_data)),
+            ],
+        )
     }
 }
 
@@ -323,17 +322,13 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             }
         }
 
-        let geometry = Geometry::from_attributes([
-            (
-                "vertexPosition",
-                Attribute::with_vector_array(context, &position_data)?,
-            ),
-            (
-                "vertexColor",
-                Attribute::with_rgba_color_array(context, &color_data)?,
-            ),
-        ]);
-        Ok(geometry)
+        Geometry::from_with_context(
+            context,
+            [
+                ("vertexPosition", AttributeData::from(&position_data)),
+                ("vertexColor", AttributeData::from(&color_data)),
+            ],
+        )
     }
 }
 
