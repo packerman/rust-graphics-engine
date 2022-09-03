@@ -8,7 +8,7 @@ use crate::{
         e03_two_shapes::TwoShapes, e04_vertex_colors::VertexColors,
         e05_two_triangles::TwoTriangles, e06_animate_triangle::AnimateTriangle,
         e07_animate_triangle_time::AnimateTriangleTime, e08_keyboard_input::KeyboardInput,
-        e09_move_triangle::MoveTriangle, e0a_spinning_cube::SpinningCube,
+        e09_move_triangle::MoveTriangle, e0a_spinning_cube::SpinningCube, e0b_axes_grid::AxesGrid,
     },
 };
 
@@ -29,6 +29,7 @@ fn examples() -> Vec<Box<ApplicationCreator>> {
         Box::new(KeyboardInput::create),
         Box::new(MoveTriangle::create),
         Box::new(SpinningCube::create),
+        Box::new(AxesGrid::create),
     ]
 }
 

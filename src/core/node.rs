@@ -18,6 +18,12 @@ pub enum Transform {
     Global,
 }
 
+impl Default for Transform {
+    fn default() -> Self {
+        Transform::Local
+    }
+}
+
 pub enum NodeType {
     Group,
     Mesh(Box<Mesh>),

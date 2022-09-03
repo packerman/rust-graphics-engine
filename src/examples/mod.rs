@@ -9,3 +9,4 @@ pub mod e07_animate_triangle_time;
 pub mod e08_keyboard_input;
 pub mod e09_move_triangle;
 pub mod e0a_spinning_cube;
+pub mod e0b_axes_grid;

@@ -20,15 +20,8 @@ pub struct Geometry {
 }
 
 impl Geometry {
-    pub fn from_attributes<const N: usize>(
-        context: &WebGl2RenderingContext,
-        attributes: [(&str, AttributeData); N],
-    ) -> Result<Self> {
-        let mut map = HashMap::new();
-        for (name, data) in attributes {
-            map.insert(String::from(name), Attribute::new_with_data(context, data)?);
-        }
-        Ok(Geometry { attributes: map })
+    pub fn new(attributes: HashMap<String, Attribute>) -> Self {
+        Self { attributes }
     }
 
     pub fn attributes(&self) -> hash_map::Iter<String, Attribute> {
@@ -71,6 +64,21 @@ impl Geometry {
     }
 }
 
+impl<const N: usize> FromWithContext<WebGl2RenderingContext, [(&str, AttributeData); N]>
+    for Geometry
+{
+    fn from_with_context(
+        context: &WebGl2RenderingContext,
+        attributes: [(&str, AttributeData); N],
+    ) -> Result<Self> {
+        let mut map = HashMap::new();
+        for (name, data) in attributes {
+            map.insert(String::from(name), Attribute::new_with_data(context, data)?);
+        }
+        Ok(Geometry::new(map))
+    }
+}
+
 struct Rectangle {
     width: f32,
     height: f32,
@@ -101,7 +109,7 @@ impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
         ];
         let position_data = util::select_by_indices(&points, [0, 1, 3, 0, 3, 2]);
         let color_data: Vec<[f32; 3]> = util::select_by_indices(&colors, [0, 1, 3, 0, 3, 2]);
-        Geometry::from_attributes(
+        Geometry::from_with_context(
             context,
             [
                 ("vertexPosition", AttributeData::from(&position_data)),
@@ -191,7 +199,7 @@ impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
         );
         let color_data: Vec<[f32; 3]> =
             util::select_by_indices(&colors, (0..=5).flat_map(|i| util::replicate(6, i)));
-        Geometry::from_attributes(
+        Geometry::from_with_context(
             context,
             [
                 ("vertexPosition", AttributeData::from(&position_data)),
@@ -253,7 +261,7 @@ impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
             color_data.push(Color::blue());
         }
 
-        Geometry::from_attributes(
+        Geometry::from_with_context(
             context,
             [
                 ("vertexPosition", AttributeData::from(&position_data)),
@@ -314,7 +322,7 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             }
         }
 
-        Geometry::from_attributes(
+        Geometry::from_with_context(
             context,
             [
                 ("vertexPosition", AttributeData::from(&position_data)),
