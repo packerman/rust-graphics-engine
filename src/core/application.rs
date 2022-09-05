@@ -1,7 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
-use anyhow::{anyhow, Ok, Result};
-use wasm_bindgen::prelude::Closure;
+use anyhow::{anyhow, Result};
+
+use wasm_bindgen::{prelude::Closure, JsCast};
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 
 use crate::core::gl;
@@ -36,8 +37,9 @@ impl Loop {
     }
 
     pub fn run(canvas: &HtmlCanvasElement, creator: &ApplicationCreator) -> Result<()> {
-        let context = web::get_webgl2_context(canvas)?;
+        let context = Rc::new(web::get_webgl2_context(canvas)?);
         log_gl_strings(&context)?;
+        auto_resize_canvas(Rc::clone(&context))?;
         let mut app = creator(&context, canvas)?;
         let mut state = Loop {
             previous_time: web::now()?,
@@ -90,5 +92,26 @@ fn log_gl_strings(context: &WebGl2RenderingContext) -> Result<()> {
         "GLSL version = {}",
         gl::get_string_parameter(context, WebGl2RenderingContext::SHADING_LANGUAGE_VERSION)?
     );
+    Ok(())
+}
+
+pub fn auto_resize_canvas(context: Rc<WebGl2RenderingContext>) -> Result<()> {
+    fn expand_full_screen(context: Rc<WebGl2RenderingContext>) {
+        if let Ok(window) = web::window() {
+            if let Ok((width, height)) = web::window_inner_size(&window) {
+                if let Ok(canvas) = web::get_canvas(&context) {
+                    web::set_canvas_size(&canvas, (width as u32, height as u32))
+                }
+            }
+        }
+    }
+    expand_full_screen(Rc::clone(&context));
+    let closure = Closure::wrap(
+        Box::new(move || expand_full_screen(Rc::clone(&context))) as Box<dyn FnMut()>
+    );
+    web::window()?
+        .add_event_listener_with_callback("resize", closure.as_ref().unchecked_ref())
+        .map_err(|err| anyhow!("Cannot register windows resize callback {:#?}", err))?;
+    closure.forget();
     Ok(())
 }

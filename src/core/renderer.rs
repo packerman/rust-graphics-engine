@@ -1,6 +1,8 @@
+use std::cell::RefCell;
+
 use web_sys::WebGl2RenderingContext;
 
-use super::{color::Color, gl, node::Node};
+use super::{camera::Camera, color::Color, gl, node::Node, web};
 
 pub struct RendererOptions {
     pub clear_color: Color,
@@ -23,19 +25,23 @@ impl Renderer {
         Self
     }
 
-    pub fn render(&self, context: &WebGl2RenderingContext, scene: &Node, camera: &Node) {
+    pub fn render(&self, context: &WebGl2RenderingContext, scene: &Node, camera: &RefCell<Camera>) {
+        let canvas = web::get_canvas(context).unwrap();
         context.clear(
             WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT,
         );
+        let (width, height) = web::canvas_size(&canvas);
+        context.viewport(0, 0, width as i32, height as i32);
         let nodes = scene.descendants();
 
         for node in nodes.iter() {
             if let Some(camera) = node.camera() {
+                camera.borrow_mut().set_aspect_ratio(width, height);
                 camera.borrow_mut().update_view_matrix(&node.world_matrix());
             }
         }
 
-        let camera = &camera.camera().unwrap().borrow();
+        let camera = &camera.borrow();
         for node in nodes.iter() {
             if let Some(mesh) = node.mesh() {
                 mesh.render(context, camera, node.world_matrix())

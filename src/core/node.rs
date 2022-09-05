@@ -27,7 +27,7 @@ impl Default for Transform {
 pub enum NodeType {
     Group,
     Mesh(Box<Mesh>),
-    Camera(RefCell<Camera>),
+    Camera(Rc<RefCell<Camera>>),
 }
 
 pub struct Node {
@@ -47,7 +47,7 @@ impl Node {
         Self::new(NodeType::Mesh(mesh))
     }
 
-    pub fn new_with_camera(camera: RefCell<Camera>) -> Rc<Self> {
+    pub fn new_with_camera(camera: Rc<RefCell<Camera>>) -> Rc<Self> {
         Self::new(NodeType::Camera(camera))
     }
 

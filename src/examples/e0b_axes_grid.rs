@@ -20,7 +20,7 @@ use crate::core::{
 pub struct AxesGrid {
     renderer: Renderer,
     scene: Rc<Node>,
-    camera: Rc<Node>,
+    camera: Rc<RefCell<Camera>>,
 }
 
 impl AxesGrid {
@@ -31,12 +31,12 @@ impl AxesGrid {
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
 
-        let camera = RefCell::new(Camera::default());
+        let camera = Rc::new(RefCell::new(Camera::default()));
         let (width, height) = web::canvas_size(canvas);
         camera.borrow_mut().set_aspect_ratio(width, height);
-        let camera = Node::new_with_camera(camera);
-        camera.set_position(&glm::vec3(0.5, 1.0, 5.0));
-        scene.add_child(&camera);
+        let camera_node = Node::new_with_camera(Rc::clone(&camera));
+        camera_node.set_position(&glm::vec3(0.5, 1.0, 5.0));
+        scene.add_child(&camera_node);
 
         let axes = Box::new(Mesh::from_with_context(
             context,

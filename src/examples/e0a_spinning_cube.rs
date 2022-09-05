@@ -21,7 +21,7 @@ pub struct SpinningCube {
     renderer: Renderer,
     scene: Rc<Node>,
     mesh: Rc<Node>,
-    camera: Rc<Node>,
+    camera: Rc<RefCell<Camera>>,
 }
 
 impl SpinningCube {
@@ -34,12 +34,12 @@ impl SpinningCube {
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
 
-        let camera = RefCell::new(Camera::default());
+        let camera = Rc::new(RefCell::new(Camera::default()));
         let (width, height) = web::canvas_size(canvas);
         camera.borrow_mut().set_aspect_ratio(width, height);
-        let camera = Node::new_with_camera(camera);
-        camera.set_position(&glm::vec3(0.0, 0.0, 2.0));
-        scene.add_child(&camera);
+        let camera_node = Node::new_with_camera(Rc::clone(&camera));
+        camera_node.set_position(&glm::vec3(0.0, 0.0, 2.0));
+        scene.add_child(&camera_node);
 
         let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
         let material = basic_material::surface_material(
