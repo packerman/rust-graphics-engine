@@ -42,6 +42,7 @@ fn basic_material(
 }
 
 pub struct PointMaterial {
+    pub basic: BasicMaterial,
     pub point_size: f32,
     pub rounded_points: bool,
 }
@@ -49,25 +50,30 @@ pub struct PointMaterial {
 impl Default for PointMaterial {
     fn default() -> Self {
         Self {
+            basic: Default::default(),
             point_size: 8.0,
             rounded_points: false,
         }
     }
 }
 
-pub fn point_material(
-    context: &WebGl2RenderingContext,
-    basic_material: BasicMaterial,
-    point_material: PointMaterial,
-) -> Result<Material> {
-    let mut material =
-        self::basic_material(context, WebGl2RenderingContext::POINTS, basic_material)?;
-    material.add_uniform(
-        context,
-        "pointSize",
-        UniformData::from(point_material.point_size),
-    )?;
-    Ok(material)
+impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material {
+    fn from_with_context(
+        context: &WebGl2RenderingContext,
+        point_material: PointMaterial,
+    ) -> Result<Self> {
+        let mut material = self::basic_material(
+            context,
+            WebGl2RenderingContext::POINTS,
+            point_material.basic,
+        )?;
+        material.add_uniform(
+            context,
+            "pointSize",
+            UniformData::from(point_material.point_size),
+        )?;
+        Ok(material)
+    }
 }
 
 pub enum LineType {
@@ -77,6 +83,7 @@ pub enum LineType {
 }
 
 pub struct LineMaterial {
+    pub basic: BasicMaterial,
     pub line_width: f32,
     pub line_type: LineType,
 }
@@ -84,39 +91,46 @@ pub struct LineMaterial {
 impl Default for LineMaterial {
     fn default() -> Self {
         Self {
+            basic: Default::default(),
             line_width: 1.0,
             line_type: LineType::Connected,
         }
     }
 }
 
-pub fn line_material(
-    context: &WebGl2RenderingContext,
-    basic_material: BasicMaterial,
-    line_material: LineMaterial,
-) -> Result<Material> {
-    let draw_style = match line_material.line_type {
-        LineType::Connected => WebGl2RenderingContext::LINE_STRIP,
-        LineType::Loop => WebGl2RenderingContext::LINE_LOOP,
-        LineType::Segments => WebGl2RenderingContext::LINES,
-    };
-    let mut material = self::basic_material(context, draw_style, basic_material)?;
-    material.add_render_setting(RenderSetting::LineWidth(line_material.line_width));
-    Ok(material)
+impl FromWithContext<WebGl2RenderingContext, LineMaterial> for Material {
+    fn from_with_context(
+        context: &WebGl2RenderingContext,
+        line_material: LineMaterial,
+    ) -> Result<Self> {
+        let draw_style = match line_material.line_type {
+            LineType::Connected => WebGl2RenderingContext::LINE_STRIP,
+            LineType::Loop => WebGl2RenderingContext::LINE_LOOP,
+            LineType::Segments => WebGl2RenderingContext::LINES,
+        };
+        let mut material = self::basic_material(context, draw_style, line_material.basic)?;
+        material.add_render_setting(RenderSetting::LineWidth(line_material.line_width));
+        Ok(material)
+    }
 }
 
 #[derive(Default)]
 pub struct SurfaceMaterial {
+    pub basic: BasicMaterial,
     pub double_side: bool,
 }
 
-pub fn surface_material(
-    context: &WebGl2RenderingContext,
-    basic_material: BasicMaterial,
-    surface_material: SurfaceMaterial,
-) -> Result<Material> {
-    let mut material =
-        self::basic_material(context, WebGl2RenderingContext::TRIANGLES, basic_material)?;
-    material.add_render_setting(RenderSetting::CullFace(!surface_material.double_side));
-    Ok(material)
+impl FromWithContext<WebGl2RenderingContext, SurfaceMaterial> for Material {
+    fn from_with_context(
+        context: &WebGl2RenderingContext,
+        surface_material: SurfaceMaterial,
+    ) -> Result<Self> {
+        let mut material = self::basic_material(
+            context,
+            WebGl2RenderingContext::TRIANGLES,
+            surface_material.basic,
+        )?;
+        material.add_render_setting(RenderSetting::CullFace(!surface_material.double_side));
+        Ok(material)
+    }
 }

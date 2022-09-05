@@ -9,7 +9,10 @@ use crate::core::{
     convert::FromWithContext,
     geometry::{BoxGeometry, Geometry},
     input::KeyState,
-    material::basic_material::{self, BasicMaterial, SurfaceMaterial},
+    material::{
+        basic_material::{BasicMaterial, SurfaceMaterial},
+        Material,
+    },
     matrix::Angle,
     mesh::Mesh,
     node::{Node, Transform},
@@ -42,13 +45,15 @@ impl SpinningCube {
         scene.add_child(&camera_node);
 
         let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
-        let material = basic_material::surface_material(
+        let material = Material::from_with_context(
             context,
-            BasicMaterial {
-                use_vertex_colors: true,
+            SurfaceMaterial {
+                basic: BasicMaterial {
+                    use_vertex_colors: true,
+                    ..Default::default()
+                },
                 ..Default::default()
             },
-            SurfaceMaterial::default(),
         )?;
         let mesh = Box::new(Mesh::new(context, geometry, material)?);
         let mesh = Node::new_with_mesh(mesh);

@@ -7,7 +7,10 @@ use super::{
     color::Color,
     convert::FromWithContext,
     geometry::Geometry,
-    material::basic_material::{self, BasicMaterial, LineMaterial, LineType},
+    material::{
+        basic_material::{BasicMaterial, LineMaterial, LineType},
+        Material,
+    },
     mesh::Mesh,
 };
 
@@ -55,13 +58,13 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
                 ("vertexColor", AttributeData::from(&color_data)),
             ],
         )?;
-        let material = basic_material::line_material(
+        let material = Material::from_with_context(
             context,
-            BasicMaterial {
-                use_vertex_colors: true,
-                ..Default::default()
-            },
             LineMaterial {
+                basic: BasicMaterial {
+                    use_vertex_colors: true,
+                    ..Default::default()
+                },
                 line_width: axes_helper.line_width,
                 line_type: LineType::Segments,
             },
@@ -130,13 +133,13 @@ impl FromWithContext<WebGl2RenderingContext, GridHelper> for Mesh {
                 ("vertexColor", AttributeData::from(&color_data)),
             ],
         )?;
-        let material = basic_material::line_material(
+        let material = Material::from_with_context(
             context,
-            BasicMaterial {
-                use_vertex_colors: true,
-                ..Default::default()
-            },
             LineMaterial {
+                basic: BasicMaterial {
+                    use_vertex_colors: true,
+                    ..Default::default()
+                },
                 line_width: grid_helper.line_width,
                 line_type: LineType::Segments,
             },
