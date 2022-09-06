@@ -1,4 +1,5 @@
 pub mod parametric;
+mod util;
 
 use std::{
     collections::{hash_map, HashMap},
@@ -265,28 +266,5 @@ impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
                 ("vertexColor", AttributeData::from(&color_data)),
             ],
         )
-    }
-}
-
-mod util {
-    use std::{
-        iter::{self, Repeat, Take},
-        ops::Index,
-    };
-
-    pub fn select_by_indices<M, K, V, I>(indexed: &M, indices: I) -> Vec<V>
-    where
-        M: Index<K, Output = V>,
-        I: IntoIterator<Item = K>,
-        V: Copy,
-    {
-        indices.into_iter().map(|k| indexed[k]).collect()
-    }
-
-    pub fn replicate<T>(n: usize, t: T) -> Take<Repeat<T>>
-    where
-        T: Clone,
-    {
-        iter::repeat(t).take(n)
     }
 }
