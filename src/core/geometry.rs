@@ -138,51 +138,16 @@ impl Default for BoxGeometry {
 }
 
 impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
-    fn from_with_context(
-        context: &WebGl2RenderingContext,
-        box_geometry: BoxGeometry,
-    ) -> Result<Self> {
+    fn from_with_context(context: &WebGl2RenderingContext, value: BoxGeometry) -> Result<Self> {
         let points = [
-            [
-                -box_geometry.width / 2.0,
-                -box_geometry.height / 2.0,
-                -box_geometry.depth / 2.0,
-            ],
-            [
-                box_geometry.width / 2.0,
-                -box_geometry.height / 2.0,
-                -box_geometry.depth / 2.0,
-            ],
-            [
-                -box_geometry.width / 2.0,
-                box_geometry.height / 2.0,
-                -box_geometry.depth / 2.0,
-            ],
-            [
-                box_geometry.width / 2.0,
-                box_geometry.height / 2.0,
-                -box_geometry.depth / 2.0,
-            ],
-            [
-                -box_geometry.width / 2.0,
-                -box_geometry.height / 2.0,
-                box_geometry.depth / 2.0,
-            ],
-            [
-                box_geometry.width / 2.0,
-                -box_geometry.height / 2.0,
-                box_geometry.depth / 2.0,
-            ],
-            [
-                -box_geometry.width / 2.0,
-                box_geometry.height / 2.0,
-                box_geometry.depth / 2.0,
-            ],
-            [
-                box_geometry.width / 2.0,
-                box_geometry.height / 2.0,
-                box_geometry.depth / 2.0,
-            ],
+            [-value.width / 2.0, -value.height / 2.0, -value.depth / 2.0],
+            [value.width / 2.0, -value.height / 2.0, -value.depth / 2.0],
+            [-value.width / 2.0, value.height / 2.0, -value.depth / 2.0],
+            [value.width / 2.0, value.height / 2.0, -value.depth / 2.0],
+            [-value.width / 2.0, -value.height / 2.0, value.depth / 2.0],
+            [value.width / 2.0, -value.height / 2.0, value.depth / 2.0],
+            [-value.width / 2.0, value.height / 2.0, value.depth / 2.0],
+            [value.width / 2.0, value.height / 2.0, value.depth / 2.0],
         ];
         let colors = [
             Color::light_coral().into(),
