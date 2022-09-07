@@ -10,3 +10,4 @@ pub mod e08_keyboard_input;
 pub mod e09_move_triangle;
 pub mod e0a_spinning_cube;
 pub mod e0b_axes_grid;
+pub mod e0c_movement_rig;

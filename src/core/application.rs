@@ -28,6 +28,7 @@ pub struct Loop {
 impl Loop {
     const FRAMES_PER_SECOND: i32 = 60;
     const MS_PER_UPDATE: f64 = 1000.0 / (Self::FRAMES_PER_SECOND as f64);
+    pub const SECS_PER_UPDATE: f64 = 1.0 / (Self::FRAMES_PER_SECOND as f64);
 
     pub fn run_with_box(
         canvas: &HtmlCanvasElement,

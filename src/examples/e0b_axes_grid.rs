@@ -34,7 +34,7 @@ impl AxesGrid {
         let camera = Rc::new(RefCell::new(Camera::default()));
         let (width, height) = web::canvas_size(canvas);
         camera.borrow_mut().set_aspect_ratio(width, height);
-        let camera_node = Node::new_with_camera(Rc::clone(&camera));
+        let camera_node = Node::new_camera(Rc::clone(&camera));
         camera_node.set_position(&glm::vec3(0.5, 1.0, 5.0));
         scene.add_child(&camera_node);
 
@@ -45,7 +45,7 @@ impl AxesGrid {
                 ..Default::default()
             },
         )?);
-        let axes = Node::new_with_mesh(axes);
+        let axes = Node::new_mesh(axes);
         scene.add_child(&axes);
 
         let grid = Box::new(Mesh::from_with_context(
@@ -57,7 +57,7 @@ impl AxesGrid {
                 ..Default::default()
             },
         )?);
-        let grid = Node::new_with_mesh(grid);
+        let grid = Node::new_mesh(grid);
         grid.rotate_x(-Angle::RIGHT, Transform::default());
         scene.add_child(&grid);
 

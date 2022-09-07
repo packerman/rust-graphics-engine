@@ -1,3 +1,5 @@
+pub mod movement_rig;
+
 use anyhow::Result;
 
 use web_sys::WebGl2RenderingContext;

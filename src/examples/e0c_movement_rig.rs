@@ -1,4 +1,4 @@
-use std::{cell::RefCell, f32::consts::TAU, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use anyhow::Result;
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
@@ -6,13 +6,10 @@ use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 use crate::core::{
     application::Application,
     camera::Camera,
+    color::Color,
     convert::FromWithContext,
-    geometry::{BoxGeometry, Geometry},
+    extras::{AxesHelper, GridHelper},
     input::KeyState,
-    material::{
-        basic_material::{BasicMaterial, SurfaceMaterial},
-        Material,
-    },
     matrix::Angle,
     mesh::Mesh,
     node::{Node, Transform},
@@ -20,20 +17,18 @@ use crate::core::{
     web,
 };
 
-pub struct SpinningCube {
+pub struct MovementRigExample {
     renderer: Renderer,
     scene: Rc<Node>,
-    mesh: Rc<Node>,
     camera: Rc<RefCell<Camera>>,
+    rig: Rc<Node>,
 }
 
-impl SpinningCube {
+impl MovementRigExample {
     pub fn create(
         context: &WebGl2RenderingContext,
         canvas: &HtmlCanvasElement,
     ) -> Result<Box<dyn Application>> {
-        log!("Initializing...");
-
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
 
@@ -41,39 +36,47 @@ impl SpinningCube {
         let (width, height) = web::canvas_size(canvas);
         camera.borrow_mut().set_aspect_ratio(width, height);
         let camera_node = Node::new_camera(Rc::clone(&camera));
-        camera_node.set_position(&glm::vec3(0.0, 0.0, 2.0));
-        scene.add_child(&camera_node);
 
-        let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
-        let material = Material::from_with_context(
+        let rig = Node::new_movement_rig(Default::default());
+        rig.add_child(&camera_node);
+        rig.set_position(&glm::vec3(0.5, 1.0, 5.0));
+        scene.add_child(&rig);
+
+        let axes = Box::new(Mesh::from_with_context(
             context,
-            SurfaceMaterial {
-                basic: BasicMaterial {
-                    use_vertex_colors: true,
-                    ..Default::default()
-                },
+            AxesHelper {
+                axis_length: 2.0,
                 ..Default::default()
             },
-        )?;
-        let mesh = Box::new(Mesh::new(context, geometry, material)?);
-        let mesh = Node::new_mesh(mesh);
-        scene.add_child(&mesh);
+        )?);
+        let axes = Node::new_mesh(axes);
+        scene.add_child(&axes);
 
-        Ok(Box::new(SpinningCube {
+        let grid = Box::new(Mesh::from_with_context(
+            context,
+            GridHelper {
+                size: 20.0,
+                grid_color: Color::white(),
+                center_color: Color::yellow(),
+                ..Default::default()
+            },
+        )?);
+        let grid = Node::new_mesh(grid);
+        grid.rotate_x(-Angle::RIGHT, Transform::default());
+        scene.add_child(&grid);
+
+        Ok(Box::new(MovementRigExample {
             renderer,
-            mesh,
             scene,
             camera,
+            rig,
         }))
     }
 }
 
-impl Application for SpinningCube {
-    fn update(&mut self, _key_state: &KeyState) {
-        self.mesh
-            .rotate_y(Angle::from_radians(TAU) / 450.0, Transform::Local);
-        self.mesh
-            .rotate_x(Angle::from_radians(TAU) / 600.0, Transform::Local);
+impl Application for MovementRigExample {
+    fn update(&mut self, key_state: &KeyState) {
+        self.rig.update(key_state)
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
