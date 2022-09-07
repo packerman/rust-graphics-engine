@@ -31,7 +31,7 @@ pub fn get_canvas_by_id(id: &str) -> Result<HtmlCanvasElement> {
     document()?
         .get_element_by_id(id)
         .ok_or_else(|| anyhow!("Cannot find element with id {:#?}", id))?
-        .dyn_into::<web_sys::HtmlCanvasElement>()
+        .dyn_into::<HtmlCanvasElement>()
         .map_err(|err| anyhow!("Cannot cast element {:#?} to HtmlCanvasElement", err))
 }
 
@@ -40,7 +40,7 @@ pub fn get_webgl2_context(canvas: &HtmlCanvasElement) -> Result<WebGl2RenderingC
         .get_context("webgl2")
         .map_err(|err| anyhow!("Error when getting webgl2 context: {:#?}", err))?
         .ok_or_else(|| anyhow!("Cannot find webgl2 context"))?
-        .dyn_into::<web_sys::WebGl2RenderingContext>()
+        .dyn_into::<WebGl2RenderingContext>()
         .map_err(|err| anyhow!("Cannot cast element {:#?} to WebGl2RenderingContext", err))
 }
 
@@ -64,6 +64,34 @@ pub fn request_animation_frame(f: &Closure<dyn FnMut(f64)>) -> Result<i32> {
     })
 }
 
+pub fn window_inner_size(window: &Window) -> Result<(f64, f64)> {
+    Ok((
+        window
+            .inner_width()
+            .map_err(|err| anyhow!("Error when getting window inner width: {:#?}", err))?
+            .as_f64()
+            .ok_or_else(|| anyhow!("Cannot cast width to f64"))?,
+        window
+            .inner_height()
+            .map_err(|err| anyhow!("Error when getting window inner height: {:#?}", err))?
+            .as_f64()
+            .ok_or_else(|| anyhow!("Cannot cast width to f64"))?,
+    ))
+}
+
 pub fn canvas_size(canvas: &HtmlCanvasElement) -> (u32, u32) {
     (canvas.width(), canvas.height())
+}
+
+pub fn set_canvas_size(canvas: &HtmlCanvasElement, size: (u32, u32)) {
+    canvas.set_width(size.0);
+    canvas.set_height(size.1);
+}
+
+pub fn get_canvas(context: &WebGl2RenderingContext) -> Result<HtmlCanvasElement> {
+    context
+        .canvas()
+        .ok_or_else(|| anyhow!("Cannot find canvas"))?
+        .dyn_into::<HtmlCanvasElement>()
+        .map_err(|err| anyhow!("Cannot cast element {:#?} to WebGl2RenderingContext", err))
 }

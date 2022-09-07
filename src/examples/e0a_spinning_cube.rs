@@ -1,7 +1,7 @@
 use std::{cell::RefCell, f32::consts::TAU, rc::Rc};
 
 use anyhow::Result;
-use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
+use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
     application::Application,
@@ -9,49 +9,48 @@ use crate::core::{
     convert::FromWithContext,
     geometry::{BoxGeometry, Geometry},
     input::KeyState,
-    material::basic_material::{self, BasicMaterial, SurfaceMaterial},
+    material::{
+        basic_material::{BasicMaterial, SurfaceMaterial},
+        Material,
+    },
     matrix::Angle,
     mesh::Mesh,
     node::{Node, Transform},
     renderer::{Renderer, RendererOptions},
-    web,
 };
 
 pub struct SpinningCube {
     renderer: Renderer,
     scene: Rc<Node>,
     mesh: Rc<Node>,
-    camera: Rc<Node>,
+    camera: Rc<RefCell<Camera>>,
 }
 
 impl SpinningCube {
-    pub fn create(
-        context: &WebGl2RenderingContext,
-        canvas: &HtmlCanvasElement,
-    ) -> Result<Box<dyn Application>> {
+    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
 
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
 
-        let camera = RefCell::new(Camera::default());
-        let (width, height) = web::canvas_size(canvas);
-        camera.borrow_mut().set_aspect_ratio(width, height);
-        let camera = Node::new_with_camera(camera);
-        camera.set_position(&glm::vec3(0.0, 0.0, 2.0));
-        scene.add_child(&camera);
+        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera_node = Node::new_camera(Rc::clone(&camera));
+        camera_node.set_position(&glm::vec3(0.0, 0.0, 2.0));
+        scene.add_child(&camera_node);
 
         let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
-        let material = basic_material::surface_material(
+        let material = Material::from_with_context(
             context,
-            BasicMaterial {
-                use_vertex_colors: true,
+            SurfaceMaterial {
+                basic: BasicMaterial {
+                    use_vertex_colors: true,
+                    ..Default::default()
+                },
                 ..Default::default()
             },
-            SurfaceMaterial::default(),
         )?;
         let mesh = Box::new(Mesh::new(context, geometry, material)?);
-        let mesh = Node::new_with_mesh(mesh);
+        let mesh = Node::new_mesh(mesh);
         scene.add_child(&mesh);
 
         Ok(Box::new(SpinningCube {

@@ -16,21 +16,25 @@ use crate::core::{
     renderer::{Renderer, RendererOptions},
 };
 
-pub struct AxesGrid {
+pub struct MovementRigExample {
     renderer: Renderer,
     scene: Rc<Node>,
     camera: Rc<RefCell<Camera>>,
+    rig: Rc<Node>,
 }
 
-impl AxesGrid {
+impl MovementRigExample {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
 
         let camera = Rc::new(RefCell::new(Camera::default()));
         let camera_node = Node::new_camera(Rc::clone(&camera));
-        camera_node.set_position(&glm::vec3(0.5, 1.0, 5.0));
-        scene.add_child(&camera_node);
+
+        let rig = Node::new_movement_rig(Default::default());
+        rig.add_child(&camera_node);
+        rig.set_position(&glm::vec3(0.5, 1.0, 5.0));
+        scene.add_child(&rig);
 
         let axes = Box::new(Mesh::from_with_context(
             context,
@@ -55,16 +59,19 @@ impl AxesGrid {
         grid.rotate_x(-Angle::RIGHT, Transform::default());
         scene.add_child(&grid);
 
-        Ok(Box::new(AxesGrid {
+        Ok(Box::new(MovementRigExample {
             renderer,
             scene,
             camera,
+            rig,
         }))
     }
 }
 
-impl Application for AxesGrid {
-    fn update(&mut self, _key_state: &KeyState) {}
+impl Application for MovementRigExample {
+    fn update(&mut self, key_state: &KeyState) {
+        self.rig.update(key_state)
+    }
 
     fn render(&self, context: &WebGl2RenderingContext) {
         self.renderer.render(context, &self.scene, &self.camera)

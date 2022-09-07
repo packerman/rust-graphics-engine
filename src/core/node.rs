@@ -9,10 +9,13 @@ use glm::{vec3, Mat4, Vec3};
 
 use super::{
     camera::Camera,
+    extras::movement_rig::{self, MovementRig},
+    input::KeyState,
     matrix::{self, Angle},
     mesh::Mesh,
 };
 
+#[allow(dead_code)]
 pub enum Transform {
     Local,
     Global,
@@ -24,10 +27,11 @@ impl Default for Transform {
     }
 }
 
-pub enum NodeType {
+pub enum NodeKind {
     Group,
     Mesh(Box<Mesh>),
-    Camera(RefCell<Camera>),
+    Camera(Rc<RefCell<Camera>>),
+    MovementRig(Box<MovementRig>),
 }
 
 pub struct Node {
@@ -35,55 +39,68 @@ pub struct Node {
     transform: RefCell<Mat4>,
     parent: RefCell<Weak<Node>>,
     children: RefCell<Vec<Rc<Node>>>,
-    node_type: NodeType,
+    kind: NodeKind,
 }
 
 impl Node {
     pub fn new_group() -> Rc<Self> {
-        Self::new(NodeType::Group)
+        Self::new(NodeKind::Group)
     }
 
-    pub fn new_with_mesh(mesh: Box<Mesh>) -> Rc<Self> {
-        Self::new(NodeType::Mesh(mesh))
+    pub fn new_mesh(mesh: Box<Mesh>) -> Rc<Self> {
+        Self::new(NodeKind::Mesh(mesh))
     }
 
-    pub fn new_with_camera(camera: RefCell<Camera>) -> Rc<Self> {
-        Self::new(NodeType::Camera(camera))
+    pub fn new_camera(camera: Rc<RefCell<Camera>>) -> Rc<Self> {
+        Self::new(NodeKind::Camera(camera))
     }
 
-    fn new(node_type: NodeType) -> Rc<Self> {
+    pub fn new_movement_rig(properties: movement_rig::Properties) -> Rc<Self> {
+        let look_attachment = Self::new_group();
+        let node = Self::new(NodeKind::MovementRig(Box::new(MovementRig::new(
+            properties,
+            Rc::clone(&look_attachment),
+        ))));
+        node.create_parent_child_relation(&look_attachment);
+        node
+    }
+
+    pub fn new(node_type: NodeKind) -> Rc<Self> {
         Rc::new_cyclic(|me| Node {
             me: me.clone(),
             transform: RefCell::new(matrix::identity()),
             parent: RefCell::new(Weak::new()),
             children: RefCell::new(vec![]),
-            node_type,
+            kind: node_type,
         })
     }
 
     pub fn mesh(&self) -> Option<&Mesh> {
-        match &self.node_type {
-            NodeType::Mesh(mesh) => Some(mesh),
+        match &self.kind {
+            NodeKind::Mesh(mesh) => Some(mesh),
             _ => None,
         }
     }
 
     pub fn camera(&self) -> Option<&RefCell<Camera>> {
-        match &self.node_type {
-            NodeType::Camera(camera) => Some(camera),
+        match &self.kind {
+            NodeKind::Camera(camera) => Some(camera),
             _ => None,
         }
     }
 
     pub fn add_child(&self, child: &Rc<Node>) {
-        self.children.borrow_mut().push(Rc::clone(child));
-        *child.parent.borrow_mut() = Weak::clone(&self.me);
+        match &self.kind {
+            NodeKind::MovementRig(movement_rig) => movement_rig.add_child(child),
+            _ => self.create_parent_child_relation(child),
+        }
     }
 
+    #[allow(dead_code)]
     pub fn remove_child(&self, child: &Node) {
-        if let Some(index) = Self::find_child_index(self, child) {
-            self.children.borrow_mut().swap_remove(index);
-            drop(child.parent.borrow_mut());
+        match &self.kind {
+            NodeKind::MovementRig(movement_rig) => movement_rig.remove_child(child),
+            _ => self.remove_parent_child_relation(child),
         }
     }
 
@@ -120,6 +137,12 @@ impl Node {
         };
     }
 
+    pub fn update(&self, key_state: &KeyState) {
+        if let NodeKind::MovementRig(movement_rig) = &self.kind {
+            movement_rig.update(key_state, self)
+        }
+    }
+
     pub fn translate(&self, x: f32, y: f32, z: f32, transform: Transform) {
         let m = matrix::translation(x, y, z);
         self.appply_matrix(&m, transform);
@@ -135,21 +158,25 @@ impl Node {
         self.appply_matrix(&m, transform);
     }
 
+    #[allow(dead_code)]
     pub fn rotate_z(&self, angle: Angle, transform: Transform) {
         let m = matrix::rotation_z(angle);
         self.appply_matrix(&m, transform);
     }
 
+    #[allow(dead_code)]
     pub fn scale(&self, s: f32, transform: Transform) {
         let m = matrix::scale(s);
         self.appply_matrix(&m, transform);
     }
 
+    #[allow(dead_code)]
     pub fn get_position(&self) -> Vec3 {
         let transform = self.transform.borrow();
         vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])
     }
 
+    #[allow(dead_code)]
     pub fn get_world_position(&self) -> Vec3 {
         let transform = self.world_matrix();
         vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])
@@ -160,6 +187,18 @@ impl Node {
         transform[(0, 3)] = position[0];
         transform[(1, 3)] = position[1];
         transform[(2, 3)] = position[2];
+    }
+
+    fn create_parent_child_relation(&self, child: &Rc<Node>) {
+        self.children.borrow_mut().push(Rc::clone(child));
+        *child.parent.borrow_mut() = Weak::clone(&self.me);
+    }
+
+    fn remove_parent_child_relation(&self, child: &Node) {
+        if let Some(index) = Self::find_child_index(self, child) {
+            self.children.borrow_mut().swap_remove(index);
+            drop(child.parent.borrow_mut());
+        }
     }
 
     fn find_child_index(parent: &Node, child: &Node) -> Option<usize> {
