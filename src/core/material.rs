@@ -1,4 +1,4 @@
-pub mod basic_material;
+pub mod basic;
 
 use std::{cell::RefCell, collections::HashMap};
 

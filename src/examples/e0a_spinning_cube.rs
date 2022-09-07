@@ -10,7 +10,7 @@ use crate::core::{
     geometry::{BoxGeometry, Geometry},
     input::KeyState,
     material::{
-        basic_material::{BasicMaterial, SurfaceMaterial},
+        basic::{BasicMaterial, SurfaceMaterial},
         Material,
     },
     matrix::Angle,

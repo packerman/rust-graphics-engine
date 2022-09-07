@@ -10,7 +10,7 @@ use super::{
     convert::FromWithContext,
     geometry::Geometry,
     material::{
-        basic_material::{BasicMaterial, LineMaterial, LineType},
+        basic::{BasicMaterial, LineMaterial, LineType},
         Material,
     },
     mesh::Mesh,
