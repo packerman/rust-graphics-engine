@@ -38,10 +38,7 @@ pub struct AnimateTriangleTime {
 }
 
 impl AnimateTriangleTime {
-    pub fn create(
-        context: &WebGl2RenderingContext,
-        _canvas: &HtmlCanvasElement,
-    ) -> Result<Box<dyn Application>> {
+    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
         gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;

@@ -17,7 +17,7 @@ pub trait Application {
     fn render(&self, context: &WebGl2RenderingContext);
 }
 
-type Creator<T> = dyn Fn(&WebGl2RenderingContext, &HtmlCanvasElement) -> Result<T>;
+type Creator<T> = dyn Fn(&WebGl2RenderingContext) -> Result<T>;
 pub type ApplicationCreator = Creator<Box<dyn Application>>;
 
 pub struct Loop {
@@ -41,7 +41,7 @@ impl Loop {
         let context = Rc::new(web::get_webgl2_context(canvas)?);
         log_gl_strings(&context)?;
         auto_resize_canvas(Rc::clone(&context))?;
-        let mut app = creator(&context, canvas)?;
+        let mut app = creator(&context)?;
         let mut state = Loop {
             previous_time: web::now()?,
             lag: 0.0,

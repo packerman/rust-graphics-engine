@@ -40,9 +40,9 @@ fn run_example_by_index(canvas: &HtmlCanvasElement, index: Option<usize>) -> Res
 
     Loop::run_with_box(
         canvas,
-        Box::new(move |context, canvas| {
+        Box::new(move |context| {
             let example = get_element(&examples, index)?;
-            example(context, canvas)
+            example(context)
         }),
     )
 }

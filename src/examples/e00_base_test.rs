@@ -6,10 +6,7 @@ use crate::core::{application::Application, color::Color, gl, input::KeyState};
 pub struct TestApp;
 
 impl TestApp {
-    pub fn create(
-        context: &WebGl2RenderingContext,
-        _canvas: &HtmlCanvasElement,
-    ) -> Result<Box<dyn Application>> {
+    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initialized");
         gl::set_clear_color(context, &Color::black());
         Ok(Box::new(TestApp))

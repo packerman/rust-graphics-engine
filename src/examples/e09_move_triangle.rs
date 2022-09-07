@@ -43,10 +43,7 @@ pub struct MoveTriangle {
 impl MoveTriangle {
     const DELTA_TIME_SEC: f32 = 1_f32 / 60.0;
 
-    pub fn create(
-        context: &WebGl2RenderingContext,
-        _canvas: &HtmlCanvasElement,
-    ) -> Result<Box<dyn Application>> {
+    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
         gl::set_clear_color(context, &Color::black());
         context.enable(WebGl2RenderingContext::DEPTH_TEST);

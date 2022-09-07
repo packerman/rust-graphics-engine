@@ -28,18 +28,13 @@ pub struct SpinningCube {
 }
 
 impl SpinningCube {
-    pub fn create(
-        context: &WebGl2RenderingContext,
-        canvas: &HtmlCanvasElement,
-    ) -> Result<Box<dyn Application>> {
+    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
 
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
 
         let camera = Rc::new(RefCell::new(Camera::default()));
-        let (width, height) = web::canvas_size(canvas);
-        camera.borrow_mut().set_aspect_ratio(width, height);
         let camera_node = Node::new_camera(Rc::clone(&camera));
         camera_node.set_position(&glm::vec3(0.0, 0.0, 2.0));
         scene.add_child(&camera_node);
