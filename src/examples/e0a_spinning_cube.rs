@@ -1,7 +1,7 @@
 use std::{cell::RefCell, f32::consts::TAU, rc::Rc};
 
 use anyhow::Result;
-use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
+use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
     application::Application,
@@ -17,7 +17,6 @@ use crate::core::{
     mesh::Mesh,
     node::{Node, Transform},
     renderer::{Renderer, RendererOptions},
-    web,
 };
 
 pub struct SpinningCube {

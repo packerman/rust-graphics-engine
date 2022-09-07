@@ -1,5 +1,5 @@
 use anyhow::Result;
-use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
+use web_sys::WebGl2RenderingContext;
 
 use crate::core::{application::Application, color::Color, gl, input::KeyState};
 

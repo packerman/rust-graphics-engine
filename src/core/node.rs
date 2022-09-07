@@ -15,6 +15,7 @@ use super::{
     mesh::Mesh,
 };
 
+#[allow(dead_code)]
 pub enum Transform {
     Local,
     Global,
@@ -30,7 +31,7 @@ pub enum NodeKind {
     Group,
     Mesh(Box<Mesh>),
     Camera(Rc<RefCell<Camera>>),
-    MovementRig(MovementRig),
+    MovementRig(Box<MovementRig>),
 }
 
 pub struct Node {
@@ -56,10 +57,10 @@ impl Node {
 
     pub fn new_movement_rig(properties: movement_rig::Properties) -> Rc<Self> {
         let look_attachment = Self::new_group();
-        let node = Self::new(NodeKind::MovementRig(MovementRig::new(
+        let node = Self::new(NodeKind::MovementRig(Box::new(MovementRig::new(
             properties,
             Rc::clone(&look_attachment),
-        )));
+        ))));
         node.create_parent_child_relation(&look_attachment);
         node
     }
@@ -95,6 +96,7 @@ impl Node {
         }
     }
 
+    #[allow(dead_code)]
     pub fn remove_child(&self, child: &Node) {
         match &self.kind {
             NodeKind::MovementRig(movement_rig) => movement_rig.remove_child(child),
@@ -156,21 +158,25 @@ impl Node {
         self.appply_matrix(&m, transform);
     }
 
+    #[allow(dead_code)]
     pub fn rotate_z(&self, angle: Angle, transform: Transform) {
         let m = matrix::rotation_z(angle);
         self.appply_matrix(&m, transform);
     }
 
+    #[allow(dead_code)]
     pub fn scale(&self, s: f32, transform: Transform) {
         let m = matrix::scale(s);
         self.appply_matrix(&m, transform);
     }
 
+    #[allow(dead_code)]
     pub fn get_position(&self) -> Vec3 {
         let transform = self.transform.borrow();
         vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])
     }
 
+    #[allow(dead_code)]
     pub fn get_world_position(&self) -> Vec3 {
         let transform = self.world_matrix();
         vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])

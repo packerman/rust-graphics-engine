@@ -1,6 +1,6 @@
 use anyhow::Result;
 use glm::Mat4;
-use web_sys::{HtmlCanvasElement, WebGl2RenderingContext, WebGlProgram};
+use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
     application::Application,
