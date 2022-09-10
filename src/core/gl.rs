@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Ok, Result};
 
 use web_sys::{
-    WebGl2RenderingContext, WebGlBuffer, WebGlProgram, WebGlShader, WebGlUniformLocation,
-    WebGlVertexArrayObject,
+    WebGl2RenderingContext, WebGlBuffer, WebGlProgram, WebGlShader, WebGlTexture,
+    WebGlUniformLocation, WebGlVertexArrayObject,
 };
 
 use super::color::Color;
@@ -120,4 +120,10 @@ pub fn get_uniform_location(
     context
         .get_uniform_location(program, name)
         .ok_or_else(|| anyhow!("Cannot find uniform location {:#?}", name))
+}
+
+pub fn create_texture(context: &WebGl2RenderingContext) -> Result<WebGlTexture> {
+    context
+        .create_texture()
+        .ok_or_else(|| anyhow!("Cannot create buffer"))
 }

@@ -1,6 +1,8 @@
 use anyhow::{anyhow, Result};
-use wasm_bindgen::{prelude::Closure, JsCast};
-use web_sys::{Document, HtmlCanvasElement, Performance, WebGl2RenderingContext, Window};
+use wasm_bindgen::{closure::WasmClosureFnOnce, prelude::*, JsCast};
+use web_sys::{
+    Document, HtmlCanvasElement, HtmlImageElement, Performance, WebGl2RenderingContext, Window,
+};
 
 // Straight taken from https://rustwasm.github.io/book/game-of-life/debugging.html
 macro_rules! log {
@@ -94,4 +96,15 @@ pub fn get_canvas(context: &WebGl2RenderingContext) -> Result<HtmlCanvasElement>
         .ok_or_else(|| anyhow!("Cannot find canvas"))?
         .dyn_into::<HtmlCanvasElement>()
         .map_err(|err| anyhow!("Cannot cast element {:#?} to WebGl2RenderingContext", err))
+}
+
+pub fn new_image() -> Result<HtmlImageElement> {
+    HtmlImageElement::new().map_err(|err| anyhow!("Cannot create HtmlImageElement: {:#?}", err))
+}
+
+pub fn closure_once<F, A, R>(f: F) -> Closure<F::FnMut>
+where
+    F: WasmClosureFnOnce<A, R>,
+{
+    Closure::once(f)
 }
