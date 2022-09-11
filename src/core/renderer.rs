@@ -22,6 +22,13 @@ impl Renderer {
     pub fn new_initialized(context: &WebGl2RenderingContext, options: RendererOptions) -> Self {
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
         gl::set_clear_color(context, &options.clear_color);
+
+        context.enable(WebGl2RenderingContext::BLEND);
+        context.blend_func(
+            WebGl2RenderingContext::SRC_ALPHA,
+            WebGl2RenderingContext::ONE_MINUS_SRC_ALPHA,
+        );
+
         Self
     }
 

@@ -32,7 +32,7 @@ impl Default for AxesHelper {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
+impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh<'_> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         axes_helper: AxesHelper,
@@ -95,7 +95,7 @@ impl Default for GridHelper {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, GridHelper> for Mesh {
+impl FromWithContext<WebGl2RenderingContext, GridHelper> for Mesh<'_> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         grid_helper: GridHelper,

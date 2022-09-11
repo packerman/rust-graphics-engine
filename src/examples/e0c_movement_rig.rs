@@ -13,19 +13,19 @@ use crate::core::{
     matrix::Angle,
     mesh::Mesh,
     node::{Node, Transform},
-    renderer::{Renderer, RendererOptions},
+    renderer::Renderer,
 };
 
-pub struct MovementRigExample {
+pub struct MovementRigExample<'a> {
     renderer: Renderer,
-    scene: Rc<Node>,
+    scene: Rc<Node<'a>>,
     camera: Rc<RefCell<Camera>>,
-    rig: Rc<Node>,
+    rig: Rc<Node<'a>>,
 }
 
-impl MovementRigExample {
+impl MovementRigExample<'_> {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
-        let renderer = Renderer::new_initialized(context, RendererOptions::default());
+        let renderer = Renderer::new_initialized(context, Default::default());
         let scene = Node::new_group();
 
         let camera = Rc::new(RefCell::new(Camera::default()));
@@ -68,7 +68,7 @@ impl MovementRigExample {
     }
 }
 
-impl Application for MovementRigExample {
+impl Application for MovementRigExample<'_> {
     fn update(&mut self, key_state: &KeyState) {
         self.rig.update(key_state)
     }

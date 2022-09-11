@@ -29,14 +29,14 @@ void main()
 }
 "##;
 
-pub struct KeyboardInput {
+pub struct KeyboardInput<'a> {
     program: WebGlProgram,
     position: Attribute,
-    translation: Uniform,
-    base_color: Uniform,
+    translation: Uniform<'a>,
+    base_color: Uniform<'a>,
 }
 
-impl KeyboardInput {
+impl KeyboardInput<'_> {
     const SPEED: f32 = 0.5;
 
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
@@ -72,7 +72,7 @@ impl KeyboardInput {
     }
 }
 
-impl Application for KeyboardInput {
+impl Application for KeyboardInput<'_> {
     fn update(&mut self, key_state: &KeyState) {
         let distance = Self::SPEED / 60.0;
 

@@ -1,9 +1,10 @@
+use core::num;
 use std::{rc::Rc, sync::Mutex};
 
 use anyhow::{anyhow, Ok, Result};
 use futures::channel::oneshot;
 use wasm_bindgen::{prelude::*, JsCast, JsValue};
-use web_sys::{HtmlImageElement, WebGl2RenderingContext, WebGlTexture};
+use web_sys::{HtmlImageElement, WebGl2RenderingContext, WebGlTexture, WebGlUniformLocation};
 
 use super::{gl, web};
 
@@ -22,6 +23,35 @@ impl Default for Properties {
         }
     }
 }
+
+#[derive(Clone, Copy)]
+pub struct TextureUnit {
+    reference: u32,
+    number: i32,
+}
+
+impl TextureUnit {
+    pub fn upload_data(
+        &self,
+        context: &WebGl2RenderingContext,
+        location: Option<&WebGlUniformLocation>,
+        texture: &WebGlTexture,
+    ) {
+        context.active_texture(self.reference);
+        context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, Some(texture));
+        context.uniform1i(location, self.number);
+    }
+}
+
+impl From<i32> for TextureUnit {
+    fn from(i: i32) -> Self {
+        TextureUnit {
+            reference: WebGl2RenderingContext::TEXTURE0 + i as u32,
+            number: i,
+        }
+    }
+}
+
 pub struct Texture {
     texture: WebGlTexture,
     properties: Properties,

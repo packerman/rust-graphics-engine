@@ -19,16 +19,16 @@ impl Default for BasicMaterial {
     }
 }
 
-fn basic_material(
+fn basic_material<'a>(
     context: &WebGl2RenderingContext,
     draw_style: u32,
     basic_material: BasicMaterial,
-) -> Result<Material> {
+) -> Result<Material<'a>> {
     Material::from_with_context(
         context,
         MaterialSettings {
-            vertex_shader: include_str!("basic.vs"),
-            fragment_shader: include_str!("basic.fs"),
+            vertex_shader: include_str!("vertex.glsl"),
+            fragment_shader: include_str!("fragment.glsl"),
             uniforms: [
                 ("baseColor", UniformData::from(basic_material.base_color)),
                 (
@@ -57,7 +57,7 @@ impl Default for PointMaterial {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material {
+impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material<'_> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         point_material: PointMaterial,
@@ -99,7 +99,7 @@ impl Default for LineMaterial {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, LineMaterial> for Material {
+impl FromWithContext<WebGl2RenderingContext, LineMaterial> for Material<'_> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         line_material: LineMaterial,
@@ -121,7 +121,7 @@ pub struct SurfaceMaterial {
     pub double_side: bool,
 }
 
-impl FromWithContext<WebGl2RenderingContext, SurfaceMaterial> for Material {
+impl FromWithContext<WebGl2RenderingContext, SurfaceMaterial> for Material<'_> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         surface_material: SurfaceMaterial,

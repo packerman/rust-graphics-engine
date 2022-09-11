@@ -16,13 +16,13 @@ use crate::core::{
     renderer::{Renderer, RendererOptions},
 };
 
-pub struct AxesGrid {
+pub struct AxesGrid<'a> {
     renderer: Renderer,
-    scene: Rc<Node>,
+    scene: Rc<Node<'a>>,
     camera: Rc<RefCell<Camera>>,
 }
 
-impl AxesGrid {
+impl AxesGrid<'_> {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
@@ -63,7 +63,7 @@ impl AxesGrid {
     }
 }
 
-impl Application for AxesGrid {
+impl Application for AxesGrid<'_> {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

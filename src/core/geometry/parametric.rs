@@ -33,6 +33,8 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
         let mut color_data =
             Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
+        let mut texture_data =
+            Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
 
         let u_delta =
             (surface.u_range.end() - surface.u_range.start()) / f32::from(surface.u_resolution);
@@ -48,6 +50,18 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             }
             positions.push(vector);
         }
+
+        let mut uvs = Vec::with_capacity((surface.u_resolution + 1).into());
+        for u_index in 0..=surface.u_resolution {
+            let mut vector = Vec::with_capacity((surface.v_resolution + 1).into());
+            for v_index in 0..=surface.v_resolution {
+                let u = u_index as f32 / surface.u_resolution as f32;
+                let v = v_index as f32 / surface.v_resolution as f32;
+                vector.push(glm::vec2(u, v));
+            }
+            uvs.push(vector);
+        }
+
         let colors = [
             Color::red(),
             Color::lime(),
@@ -56,6 +70,7 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             Color::fuchsia(),
             Color::yellow(),
         ];
+
         for x_index in 0..usize::from(surface.u_resolution) {
             for y_index in 0..usize::from(surface.v_resolution) {
                 let p_a = positions[x_index][y_index];
@@ -64,6 +79,11 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
                 let p_c = positions[x_index + 1][y_index + 1];
                 position_data.extend([p_a, p_b, p_c, p_a, p_c, p_d]);
                 color_data.extend(colors);
+                let uv_a = uvs[x_index][y_index];
+                let uv_b = uvs[x_index + 1][y_index];
+                let uv_d = uvs[x_index][y_index + 1];
+                let uv_c = uvs[x_index + 1][y_index + 1];
+                texture_data.extend([uv_a, uv_b, uv_c, uv_a, uv_c, uv_d]);
             }
         }
 
@@ -72,6 +92,7 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             [
                 ("vertexPosition", AttributeData::from(&position_data)),
                 ("vertexColor", AttributeData::from(&color_data)),
+                ("vertexUV", AttributeData::from(&texture_data)),
             ],
         )
     }

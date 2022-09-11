@@ -1,57 +1,67 @@
 use anyhow::Result;
 use glm::Mat4;
-use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
+use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlTexture, WebGlUniformLocation};
 
-use super::{color::Color, gl};
+use super::{color::Color, gl, texture::TextureUnit};
 
 #[derive(Clone, Copy)]
-pub enum UniformData {
+pub enum UniformData<'a> {
     Boolean(bool),
     Float(f32),
     Array3([f32; 3]),
     Color(Color),
     Mat4(Mat4),
+    Sampler2D {
+        texture: &'a WebGlTexture,
+        unit: TextureUnit,
+    },
 }
 
-impl From<bool> for UniformData {
+impl<'a> UniformData<'a> {
+    pub fn sampler2d(texture: &'a WebGlTexture, unit: TextureUnit) -> Self {
+        UniformData::Sampler2D { texture, unit }
+    }
+}
+
+impl From<bool> for UniformData<'_> {
     fn from(data: bool) -> Self {
         UniformData::Boolean(data)
     }
 }
 
-impl From<f32> for UniformData {
+impl From<f32> for UniformData<'_> {
     fn from(data: f32) -> Self {
         UniformData::Float(data)
     }
 }
 
-impl From<[f32; 3]> for UniformData {
+impl From<[f32; 3]> for UniformData<'_> {
     fn from(data: [f32; 3]) -> Self {
         UniformData::Array3(data)
     }
 }
 
-impl From<Color> for UniformData {
+impl From<Color> for UniformData<'_> {
     fn from(data: Color) -> Self {
         UniformData::Color(data)
     }
 }
 
-impl From<Mat4> for UniformData {
+impl From<Mat4> for UniformData<'_> {
     fn from(data: Mat4) -> Self {
         UniformData::Mat4(data)
     }
 }
 
-pub struct Uniform {
-    pub data: UniformData,
+pub struct Uniform<'a> {
+    pub data: UniformData<'a>,
     location: WebGlUniformLocation,
 }
 
-impl Uniform {
+impl<'a> Uniform<'a> {
     pub fn new_with_data(
         context: &WebGl2RenderingContext,
-        data: UniformData,
+        data: UniformData<'a>,
         program: &WebGlProgram,
         name: &str,
     ) -> Result<Self> {
@@ -71,6 +81,9 @@ impl Uniform {
             }
             UniformData::Mat4(data) => {
                 context.uniform_matrix4fv_with_f32_array(location, false, (&data).into())
+            }
+            UniformData::Sampler2D { texture, unit } => {
+                unit.upload_data(context, location, texture)
             }
         }
     }

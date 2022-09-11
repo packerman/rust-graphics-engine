@@ -36,13 +36,13 @@ impl Default for Properties {
     }
 }
 
-pub struct MovementRig {
+pub struct MovementRig<'a> {
     properties: Properties,
-    look_attachment: Rc<Node>,
+    look_attachment: Rc<Node<'a>>,
 }
 
-impl MovementRig {
-    pub fn new(properties: Properties, look_attachment: Rc<Node>) -> Self {
+impl<'a> MovementRig<'a> {
+    pub fn new(properties: Properties, look_attachment: Rc<Node<'a>>) -> Self {
         Self {
             properties,
             look_attachment,
@@ -93,11 +93,11 @@ impl MovementRig {
             .is_some()
     }
 
-    pub fn add_child(&self, child: &Rc<Node>) {
+    pub fn add_child(&self, child: &Rc<Node<'a>>) {
         self.look_attachment.add_child(child)
     }
 
-    pub fn remove_child(&self, child: &Node) {
+    pub fn remove_child(&self, child: &Node<'a>) {
         self.look_attachment.remove_child(child)
     }
 }
