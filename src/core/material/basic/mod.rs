@@ -29,13 +29,14 @@ fn basic_material<'a>(
         MaterialSettings {
             vertex_shader: include_str!("vertex.glsl"),
             fragment_shader: include_str!("fragment.glsl"),
-            uniforms: [
+            uniforms: vec![
                 ("baseColor", UniformData::from(basic_material.base_color)),
                 (
                     "useVertexColors",
                     UniformData::from(basic_material.use_vertex_colors),
                 ),
             ],
+            render_settings: vec![],
             draw_style,
         },
     )

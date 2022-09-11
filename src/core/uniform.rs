@@ -1,5 +1,5 @@
 use anyhow::Result;
-use glm::Mat4;
+use glm::{Mat4, Vec2};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlTexture, WebGlUniformLocation};
 
 use super::{color::Color, gl, texture::TextureUnit};
@@ -15,6 +15,7 @@ pub enum UniformData<'a> {
         texture: &'a WebGlTexture,
         unit: TextureUnit,
     },
+    Vec2(Vec2),
 }
 
 impl<'a> UniformData<'a> {
@@ -53,6 +54,12 @@ impl From<Mat4> for UniformData<'_> {
     }
 }
 
+impl From<Vec2> for UniformData<'_> {
+    fn from(data: Vec2) -> Self {
+        UniformData::Vec2(data)
+    }
+}
+
 pub struct Uniform<'a> {
     pub data: UniformData<'a>,
     location: WebGlUniformLocation,
@@ -85,6 +92,7 @@ impl<'a> Uniform<'a> {
             UniformData::Sampler2D { texture, unit } => {
                 unit.upload_data(context, location, texture)
             }
+            UniformData::Vec2(data) => context.uniform2f(location, data.x, data.y),
         }
     }
 

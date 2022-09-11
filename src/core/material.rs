@@ -77,19 +77,18 @@ impl<'a> Material<'a> {
     }
 }
 
-pub struct MaterialSettings<'a, const N: usize> {
+pub struct MaterialSettings<'a> {
     vertex_shader: &'a str,
     fragment_shader: &'a str,
-    uniforms: [(&'a str, UniformData<'a>); N],
+    uniforms: Vec<(&'a str, UniformData<'a>)>,
+    render_settings: Vec<RenderSetting>,
     draw_style: u32,
 }
 
-impl<'a, const N: usize> FromWithContext<WebGl2RenderingContext, MaterialSettings<'a, N>>
-    for Material<'a>
-{
+impl<'a> FromWithContext<WebGl2RenderingContext, MaterialSettings<'a>> for Material<'a> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
-        settings: MaterialSettings<'a, N>,
+        settings: MaterialSettings<'a>,
     ) -> Result<Self> {
         let program = gl::build_program(context, settings.vertex_shader, settings.fragment_shader)?;
         let uniforms: Result<Vec<_>> = settings
@@ -124,7 +123,7 @@ impl<'a, const N: usize> FromWithContext<WebGl2RenderingContext, MaterialSetting
         Ok(Material {
             program,
             uniforms: uniforms?.into_iter().collect(),
-            render_settings: vec![],
+            render_settings: settings.render_settings,
             draw_style: settings.draw_style,
             model_matrix,
             view_matrix,
