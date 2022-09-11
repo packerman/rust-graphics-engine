@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::Result;
-use glm::Vec4;
+use glm::Vec3;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
@@ -21,7 +21,7 @@ struct ParametricSurface {
     u_resolution: u16,
     v_range: RangeInclusive<f32>,
     v_resolution: u16,
-    function: Box<dyn Fn(f32, f32) -> Vec4>,
+    function: Box<dyn Fn(f32, f32) -> Vec3>,
 }
 
 impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
@@ -29,9 +29,9 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
         context: &WebGl2RenderingContext,
         surface: ParametricSurface,
     ) -> Result<Self> {
-        let mut position_data: Vec<Vec4> =
+        let mut position_data =
             Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
-        let mut color_data: Vec<Color> =
+        let mut color_data =
             Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
 
         let u_delta =
@@ -102,7 +102,7 @@ impl From<Plane> for ParametricSurface {
             u_resolution: plane.width_segments,
             v_range: (-plane.height / 2.0)..=(plane.height / 2.0),
             v_resolution: plane.height_segments,
-            function: Box::new(|u, v| glm::vec4(u, v, 0.0, 1.0)),
+            function: Box::new(|u, v| glm::vec3(u, v, 0.0)),
         }
     }
 }
@@ -141,11 +141,10 @@ impl From<Ellipsoid> for ParametricSurface {
             v_range: -FRAC_PI_2..=FRAC_PI_2,
             v_resolution: ellipsoid.height_segments,
             function: Box::new(move |u, v| {
-                glm::vec4(
+                glm::vec3(
                     ellipsoid.width / 2.0 * u.sin() * v.cos(),
                     ellipsoid.height / 2.0 * v.sin(),
                     ellipsoid.depth / 2.0 * u.cos() * v.cos(),
-                    1.0,
                 )
             }),
         }
@@ -218,12 +217,11 @@ impl Default for Cylindrical {
 }
 
 impl Cylindrical {
-    fn function(&self, u: f32, v: f32) -> Vec4 {
-        glm::vec4(
+    fn function(&self, u: f32, v: f32) -> Vec3 {
+        glm::vec3(
             glm::lerp_scalar(self.radius_bottom, self.radius_top, v) * u.sin(),
             self.height * (v - 0.5),
             glm::lerp_scalar(self.radius_bottom, self.radius_top, v) * u.cos(),
-            1.0,
         )
     }
 }
