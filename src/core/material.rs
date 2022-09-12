@@ -13,22 +13,22 @@ use super::{
     uniform::{Uniform, UniformData},
 };
 
-pub struct Material<'a> {
+pub struct Material {
     program: WebGlProgram,
-    uniforms: HashMap<String, Uniform<'a>>,
+    uniforms: HashMap<String, Uniform>,
     render_settings: Vec<RenderSetting>,
     pub draw_style: u32,
-    model_matrix: RefCell<Uniform<'a>>,
-    view_matrix: RefCell<Uniform<'a>>,
-    projection_matrix: RefCell<Uniform<'a>>,
+    model_matrix: RefCell<Uniform>,
+    view_matrix: RefCell<Uniform>,
+    projection_matrix: RefCell<Uniform>,
 }
 
-impl<'a> Material<'a> {
+impl Material {
     pub fn add_uniform(
         &mut self,
         context: &WebGl2RenderingContext,
         name: &str,
-        data: UniformData<'a>,
+        data: UniformData,
     ) -> Result<()> {
         self.uniforms.insert(
             String::from(name),
@@ -80,21 +80,20 @@ impl<'a> Material<'a> {
 pub struct MaterialSettings<'a> {
     vertex_shader: &'a str,
     fragment_shader: &'a str,
-    uniforms: Vec<(&'a str, UniformData<'a>)>,
+    uniforms: Vec<(&'a str, UniformData)>,
     render_settings: Vec<RenderSetting>,
     draw_style: u32,
 }
 
-impl<'a> FromWithContext<WebGl2RenderingContext, MaterialSettings<'a>> for Material<'a> {
+impl FromWithContext<WebGl2RenderingContext, MaterialSettings<'_>> for Material {
     fn from_with_context(
         context: &WebGl2RenderingContext,
-        settings: MaterialSettings<'a>,
+        settings: MaterialSettings<'_>,
     ) -> Result<Self> {
         let program = gl::build_program(context, settings.vertex_shader, settings.fragment_shader)?;
         let uniforms: Result<Vec<_>> = settings
             .uniforms
-            .iter()
-            .copied()
+            .into_iter()
             .map(|(name, data)| {
                 Ok((
                     String::from(name),

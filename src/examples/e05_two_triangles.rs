@@ -29,16 +29,16 @@ void main()
 }
 "##;
 
-pub struct TwoTriangles<'a> {
+pub struct TwoTriangles {
     program: WebGlProgram,
     position: Attribute,
-    translation1: Uniform<'a>,
-    translation2: Uniform<'a>,
-    base_color1: Uniform<'a>,
-    base_color2: Uniform<'a>,
+    translation1: Uniform,
+    translation2: Uniform,
+    base_color1: Uniform,
+    base_color2: Uniform,
 }
 
-impl TwoTriangles<'_> {
+impl TwoTriangles {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
         gl::set_clear_color(context, &Color::gray());
@@ -86,7 +86,7 @@ impl TwoTriangles<'_> {
     }
 }
 
-impl Application for TwoTriangles<'_> {
+impl Application for TwoTriangles {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

@@ -4,18 +4,18 @@ use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
 use super::{camera::Camera, geometry::Geometry, gl, material::Material};
 
-pub struct Mesh<'a> {
+pub struct Mesh {
     vao: WebGlVertexArrayObject,
     visible: bool,
     geometry: Geometry,
-    material: Material<'a>,
+    material: Material,
 }
 
-impl<'a> Mesh<'a> {
+impl Mesh {
     pub fn new(
         context: &WebGl2RenderingContext,
         geometry: Geometry,
-        material: Material<'a>,
+        material: Material,
     ) -> Result<Self> {
         let vao = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));

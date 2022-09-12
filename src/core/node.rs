@@ -27,27 +27,27 @@ impl Default for Transform {
     }
 }
 
-pub enum NodeKind<'a> {
+pub enum NodeKind {
     Group,
-    Mesh(Box<Mesh<'a>>),
+    Mesh(Box<Mesh>),
     Camera(Rc<RefCell<Camera>>),
-    MovementRig(Box<MovementRig<'a>>),
+    MovementRig(Box<MovementRig>),
 }
 
-pub struct Node<'a> {
-    me: Weak<Node<'a>>,
+pub struct Node {
+    me: Weak<Node>,
     transform: RefCell<Mat4>,
-    parent: RefCell<Weak<Node<'a>>>,
-    children: RefCell<Vec<Rc<Node<'a>>>>,
-    kind: NodeKind<'a>,
+    parent: RefCell<Weak<Node>>,
+    children: RefCell<Vec<Rc<Node>>>,
+    kind: NodeKind,
 }
 
-impl<'a> Node<'a> {
+impl Node {
     pub fn new_group() -> Rc<Self> {
         Self::new(NodeKind::Group)
     }
 
-    pub fn new_mesh(mesh: Box<Mesh<'a>>) -> Rc<Self> {
+    pub fn new_mesh(mesh: Box<Mesh>) -> Rc<Self> {
         Self::new(NodeKind::Mesh(mesh))
     }
 
@@ -65,7 +65,7 @@ impl<'a> Node<'a> {
         node
     }
 
-    pub fn new(node_type: NodeKind<'a>) -> Rc<Self> {
+    pub fn new(node_type: NodeKind) -> Rc<Self> {
         Rc::new_cyclic(|me| Node {
             me: me.clone(),
             transform: RefCell::new(matrix::identity()),
@@ -75,7 +75,7 @@ impl<'a> Node<'a> {
         })
     }
 
-    pub fn mesh(&self) -> Option<&Mesh<'a>> {
+    pub fn mesh(&self) -> Option<&Mesh> {
         match &self.kind {
             NodeKind::Mesh(mesh) => Some(mesh),
             _ => None,
@@ -89,7 +89,7 @@ impl<'a> Node<'a> {
         }
     }
 
-    pub fn add_child(&self, child: &Rc<Node<'a>>) {
+    pub fn add_child(&self, child: &Rc<Node>) {
         match &self.kind {
             NodeKind::MovementRig(movement_rig) => movement_rig.add_child(child),
             _ => self.create_parent_child_relation(child),
@@ -97,7 +97,7 @@ impl<'a> Node<'a> {
     }
 
     #[allow(dead_code)]
-    pub fn remove_child(&self, child: &Node<'a>) {
+    pub fn remove_child(&self, child: &Node) {
         match &self.kind {
             NodeKind::MovementRig(movement_rig) => movement_rig.remove_child(child),
             _ => self.remove_parent_child_relation(child),
@@ -112,11 +112,11 @@ impl<'a> Node<'a> {
         }
     }
 
-    pub fn descendants(&self) -> Vec<Rc<Node<'a>>> {
-        fn extend_queue<'a>(queue: &mut VecDeque<Weak<Node<'a>>>, nodes: &[Rc<Node<'a>>]) {
+    pub fn descendants(&self) -> Vec<Rc<Node>> {
+        fn extend_queue(queue: &mut VecDeque<Weak<Node>>, nodes: &[Rc<Node>]) {
             queue.extend(nodes.iter().map(Rc::downgrade));
         }
-        fn pop_front<'a>(queue: &mut VecDeque<Weak<Node<'a>>>) -> Rc<Node<'a>> {
+        fn pop_front(queue: &mut VecDeque<Weak<Node>>) -> Rc<Node> {
             queue.pop_front().unwrap().upgrade().unwrap()
         }
         let mut result = vec![];
@@ -189,19 +189,19 @@ impl<'a> Node<'a> {
         transform[(2, 3)] = position[2];
     }
 
-    fn create_parent_child_relation(&self, child: &Rc<Node<'a>>) {
+    fn create_parent_child_relation(&self, child: &Rc<Node>) {
         self.children.borrow_mut().push(Rc::clone(child));
         *child.parent.borrow_mut() = Weak::clone(&self.me);
     }
 
-    fn remove_parent_child_relation(&self, child: &Node<'a>) {
+    fn remove_parent_child_relation(&self, child: &Node) {
         if let Some(index) = Self::find_child_index(self, child) {
             self.children.borrow_mut().swap_remove(index);
             drop(child.parent.borrow_mut());
         }
     }
 
-    fn find_child_index(parent: &Node<'a>, child: &Node<'a>) -> Option<usize> {
+    fn find_child_index(parent: &Node, child: &Node) -> Option<usize> {
         parent
             .children
             .borrow()

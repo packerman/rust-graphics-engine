@@ -29,14 +29,14 @@ void main()
 }
 "##;
 
-pub struct AnimateTriangle<'a> {
+pub struct AnimateTriangle {
     program: WebGlProgram,
     position: Attribute,
-    translation: Uniform<'a>,
-    base_color: Uniform<'a>,
+    translation: Uniform,
+    base_color: Uniform,
 }
 
-impl AnimateTriangle<'_> {
+impl AnimateTriangle {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
         gl::set_clear_color(context, &Color::gray());
@@ -70,7 +70,7 @@ impl AnimateTriangle<'_> {
     }
 }
 
-impl Application for AnimateTriangle<'_> {
+impl Application for AnimateTriangle {
     fn update(&mut self, _key_state: &KeyState) {
         let translation = self.translation.array3_mut().unwrap();
         translation[0] += 0.01;

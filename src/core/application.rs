@@ -30,14 +30,7 @@ impl Loop {
     const MS_PER_UPDATE: f64 = 1000.0 / (Self::FRAMES_PER_SECOND as f64);
     pub const SECS_PER_UPDATE: f64 = 1.0 / (Self::FRAMES_PER_SECOND as f64);
 
-    pub fn run_with_box(
-        canvas: &HtmlCanvasElement,
-        creator: Box<ApplicationCreator>,
-    ) -> Result<()> {
-        Self::run(canvas, &creator)
-    }
-
-    pub fn run(canvas: &HtmlCanvasElement, creator: &ApplicationCreator) -> Result<()> {
+    pub fn run(canvas: &HtmlCanvasElement, creator: Box<ApplicationCreator>) -> Result<()> {
         let context = Rc::new(web::get_webgl2_context(canvas)?);
         log_gl_strings(&context)?;
         auto_resize_canvas(Rc::clone(&context))?;
@@ -78,20 +71,35 @@ impl Loop {
 
 fn log_gl_strings(context: &WebGl2RenderingContext) -> Result<()> {
     log!(
-        "GL vendor = {}",
+        "VENDOR = {}",
         gl::get_string_parameter(context, WebGl2RenderingContext::VENDOR)?
     );
     log!(
-        "GL renderer = {}",
+        "RENDERER = {}",
         gl::get_string_parameter(context, WebGl2RenderingContext::RENDERER)?
     );
     log!(
-        "GL version = {}",
+        "VERSION = {}",
         gl::get_string_parameter(context, WebGl2RenderingContext::VERSION)?
     );
     log!(
-        "GLSL version = {}",
+        "SHADING_LANGUAGE_VERSION = {}",
         gl::get_string_parameter(context, WebGl2RenderingContext::SHADING_LANGUAGE_VERSION)?
+    );
+    log!(
+        "MAX_COMBINED_TEXTURE_IMAGE_UNITS = {}",
+        gl::get_f64_parameter(
+            context,
+            WebGl2RenderingContext::MAX_COMBINED_TEXTURE_IMAGE_UNITS
+        )?
+    );
+    log!(
+        "MAX_TEXTURE_IMAGE_UNITS = {}",
+        gl::get_f64_parameter(context, WebGl2RenderingContext::MAX_TEXTURE_IMAGE_UNITS)?
+    );
+    log!(
+        "MAX_TEXTURE_SIZE = {}",
+        gl::get_f64_parameter(context, WebGl2RenderingContext::MAX_TEXTURE_SIZE)?
     );
     Ok(())
 }

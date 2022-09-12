@@ -19,11 +19,11 @@ impl Default for BasicMaterial {
     }
 }
 
-fn basic_material<'a>(
+fn basic_material(
     context: &WebGl2RenderingContext,
     draw_style: u32,
     basic_material: BasicMaterial,
-) -> Result<Material<'a>> {
+) -> Result<Material> {
     Material::from_with_context(
         context,
         MaterialSettings {
@@ -58,7 +58,7 @@ impl Default for PointMaterial {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material<'_> {
+impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         point_material: PointMaterial,
@@ -100,7 +100,7 @@ impl Default for LineMaterial {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, LineMaterial> for Material<'_> {
+impl FromWithContext<WebGl2RenderingContext, LineMaterial> for Material {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         line_material: LineMaterial,
@@ -122,7 +122,7 @@ pub struct SurfaceMaterial {
     pub double_side: bool,
 }
 
-impl FromWithContext<WebGl2RenderingContext, SurfaceMaterial> for Material<'_> {
+impl FromWithContext<WebGl2RenderingContext, SurfaceMaterial> for Material {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         surface_material: SurfaceMaterial,

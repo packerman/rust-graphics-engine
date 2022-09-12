@@ -16,14 +16,14 @@ use crate::core::{
     renderer::Renderer,
 };
 
-pub struct MovementRigExample<'a> {
+pub struct MovementRigExample {
     renderer: Renderer,
-    scene: Rc<Node<'a>>,
+    scene: Rc<Node>,
     camera: Rc<RefCell<Camera>>,
-    rig: Rc<Node<'a>>,
+    rig: Rc<Node>,
 }
 
-impl MovementRigExample<'_> {
+impl MovementRigExample {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         let renderer = Renderer::new_initialized(context, Default::default());
         let scene = Node::new_group();
@@ -68,7 +68,7 @@ impl MovementRigExample<'_> {
     }
 }
 
-impl Application for MovementRigExample<'_> {
+impl Application for MovementRigExample {
     fn update(&mut self, key_state: &KeyState) {
         self.rig.update(key_state)
     }

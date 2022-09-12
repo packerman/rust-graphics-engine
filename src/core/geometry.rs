@@ -81,7 +81,7 @@ impl<const N: usize> FromWithContext<WebGl2RenderingContext, [(&str, AttributeDa
     }
 }
 
-struct Rectangle {
+pub struct Rectangle {
     width: f32,
     height: f32,
 }

@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use futures::Future;
 use wasm_bindgen::{closure::WasmClosureFnOnce, prelude::*, JsCast};
 use web_sys::{
     Document, HtmlCanvasElement, HtmlImageElement, Performance, WebGl2RenderingContext, Window,
@@ -107,4 +108,11 @@ where
     F: WasmClosureFnOnce<A, R>,
 {
     Closure::once(f)
+}
+
+pub fn spawn_local<F>(future: F)
+where
+    F: Future<Output = ()> + 'static,
+{
+    wasm_bindgen_futures::spawn_local(future)
 }

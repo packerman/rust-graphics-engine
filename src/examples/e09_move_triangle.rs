@@ -31,16 +31,16 @@ void main()
 }
 "##;
 
-pub struct MoveTriangle<'a> {
+pub struct MoveTriangle {
     program: WebGlProgram,
     position: Attribute,
-    model_matrix: Uniform<'a>,
-    projection_matrix: Uniform<'a>,
+    model_matrix: Uniform,
+    projection_matrix: Uniform,
     move_speed: f32,
     turn_speed: Angle,
 }
 
-impl MoveTriangle<'_> {
+impl MoveTriangle {
     const DELTA_TIME_SEC: f32 = 1_f32 / 60.0;
 
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
@@ -80,7 +80,7 @@ impl MoveTriangle<'_> {
     }
 }
 
-impl Application for MoveTriangle<'_> {
+impl Application for MoveTriangle {
     fn update(&mut self, key_state: &KeyState) {
         let move_amount = self.move_speed * Self::DELTA_TIME_SEC;
         let turn_mount = self.turn_speed * Self::DELTA_TIME_SEC;

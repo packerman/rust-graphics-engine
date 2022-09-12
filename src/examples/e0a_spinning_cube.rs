@@ -19,14 +19,14 @@ use crate::core::{
     renderer::{Renderer, RendererOptions},
 };
 
-pub struct SpinningCube<'a> {
+pub struct SpinningCube {
     renderer: Renderer,
-    scene: Rc<Node<'a>>,
-    mesh: Rc<Node<'a>>,
+    scene: Rc<Node>,
+    mesh: Rc<Node>,
     camera: Rc<RefCell<Camera>>,
 }
 
-impl SpinningCube<'_> {
+impl SpinningCube {
     pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
         log!("Initializing...");
 
@@ -62,7 +62,7 @@ impl SpinningCube<'_> {
     }
 }
 
-impl Application for SpinningCube<'_> {
+impl Application for SpinningCube {
     fn update(&mut self, _key_state: &KeyState) {
         self.mesh
             .rotate_y(Angle::from_radians(TAU) / 450.0, Transform::Local);

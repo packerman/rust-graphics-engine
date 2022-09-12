@@ -31,12 +31,12 @@ impl Default for TextureMaterial {
     }
 }
 
-pub fn texture_material<'a>(
+pub fn texture_material(
     context: &WebGl2RenderingContext,
-    texture: &'a Texture,
+    texture: Texture,
     unit: TextureUnit,
     texture_material: TextureMaterial,
-) -> Result<Material<'a>> {
+) -> Result<Material> {
     Material::from_with_context(
         context,
         MaterialSettings {
@@ -44,7 +44,7 @@ pub fn texture_material<'a>(
             fragment_shader: ("fragment.glsl"),
             uniforms: vec![
                 ("baseColor", UniformData::from(texture_material.base_color)),
-                ("texture", UniformData::sampler2d(texture.texture(), unit)),
+                ("texture", UniformData::sampler2d(texture, unit)),
                 ("repeatUV", UniformData::from(texture_material.repeat_uv)),
                 ("offsetUV", UniformData::from(texture_material.offset_uv)),
             ],
