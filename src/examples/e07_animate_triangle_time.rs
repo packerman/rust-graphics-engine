@@ -1,8 +1,9 @@
 use anyhow::Result;
+use async_trait::async_trait;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::Application,
+    application::{Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -29,7 +30,7 @@ void main()
 }
 "##;
 
-pub struct AnimateTriangleTime {
+pub struct AnimateTriangleTimeExample {
     program: WebGlProgram,
     position: Attribute,
     translation: Uniform,
@@ -37,9 +38,9 @@ pub struct AnimateTriangleTime {
     frame: usize,
 }
 
-impl AnimateTriangleTime {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
-        log!("Initializing...");
+#[async_trait(?Send)]
+impl AsyncCreator for AnimateTriangleTimeExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = gl::create_vertex_array(context)?;
@@ -47,7 +48,7 @@ impl AnimateTriangleTime {
         let position_data = [[0.0_f32, 0.2, 0.0], [0.2, -0.2, 0.0], [-0.2, -0.2, 0.0]];
         let position_attribute =
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
-        position_attribute.associate_variable(context, &program, "position")?;
+        position_attribute.associate_variable(context, &program, "position");
 
         let translation = Uniform::new_with_data(
             context,
@@ -62,17 +63,17 @@ impl AnimateTriangleTime {
             "baseColor",
         )?;
 
-        Ok(Box::new(AnimateTriangleTime {
+        Ok(AnimateTriangleTimeExample {
             program,
             position: position_attribute,
             translation,
             base_color,
             frame: 0,
-        }))
+        })
     }
 }
 
-impl Application for AnimateTriangleTime {
+impl Application for AnimateTriangleTimeExample {
     fn update(&mut self, _key_state: &KeyState) {
         let t = self.frame as f32 / 60.0;
         let translation = self.translation.array3_mut().unwrap();

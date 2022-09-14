@@ -1,4 +1,5 @@
-pub mod basic_material;
+pub mod basic;
+pub mod texture;
 
 use std::{cell::RefCell, collections::HashMap};
 
@@ -76,23 +77,23 @@ impl Material {
     }
 }
 
-pub struct MaterialSettings<'a, const N: usize> {
+pub struct MaterialSettings<'a> {
     vertex_shader: &'a str,
     fragment_shader: &'a str,
-    uniforms: [(&'a str, UniformData); N],
+    uniforms: Vec<(&'a str, UniformData)>,
+    render_settings: Vec<RenderSetting>,
     draw_style: u32,
 }
 
-impl<const N: usize> FromWithContext<WebGl2RenderingContext, MaterialSettings<'_, N>> for Material {
+impl FromWithContext<WebGl2RenderingContext, MaterialSettings<'_>> for Material {
     fn from_with_context(
         context: &WebGl2RenderingContext,
-        settings: MaterialSettings<'_, N>,
+        settings: MaterialSettings<'_>,
     ) -> Result<Self> {
         let program = gl::build_program(context, settings.vertex_shader, settings.fragment_shader)?;
         let uniforms: Result<Vec<_>> = settings
             .uniforms
-            .iter()
-            .copied()
+            .into_iter()
             .map(|(name, data)| {
                 Ok((
                     String::from(name),
@@ -121,7 +122,7 @@ impl<const N: usize> FromWithContext<WebGl2RenderingContext, MaterialSettings<'_
         Ok(Material {
             program,
             uniforms: uniforms?.into_iter().collect(),
-            render_settings: vec![],
+            render_settings: settings.render_settings,
             draw_style: settings.draw_style,
             model_matrix,
             view_matrix,

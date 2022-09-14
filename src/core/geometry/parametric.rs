@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::Result;
-use glm::Vec4;
+use glm::Vec3;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
@@ -21,7 +21,7 @@ struct ParametricSurface {
     u_resolution: u16,
     v_range: RangeInclusive<f32>,
     v_resolution: u16,
-    function: Box<dyn Fn(f32, f32) -> Vec4>,
+    function: Box<dyn Fn(f32, f32) -> Vec3>,
 }
 
 impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
@@ -29,9 +29,11 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
         context: &WebGl2RenderingContext,
         surface: ParametricSurface,
     ) -> Result<Self> {
-        let mut position_data: Vec<Vec4> =
+        let mut position_data =
             Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
-        let mut color_data: Vec<Color> =
+        let mut color_data =
+            Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
+        let mut texture_data =
             Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
 
         let u_delta =
@@ -48,6 +50,18 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             }
             positions.push(vector);
         }
+
+        let mut uvs = Vec::with_capacity((surface.u_resolution + 1).into());
+        for u_index in 0..=surface.u_resolution {
+            let mut vector = Vec::with_capacity((surface.v_resolution + 1).into());
+            for v_index in 0..=surface.v_resolution {
+                let u = u_index as f32 / surface.u_resolution as f32;
+                let v = v_index as f32 / surface.v_resolution as f32;
+                vector.push(glm::vec2(u, v));
+            }
+            uvs.push(vector);
+        }
+
         let colors = [
             Color::red(),
             Color::lime(),
@@ -56,6 +70,7 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             Color::fuchsia(),
             Color::yellow(),
         ];
+
         for x_index in 0..usize::from(surface.u_resolution) {
             for y_index in 0..usize::from(surface.v_resolution) {
                 let p_a = positions[x_index][y_index];
@@ -64,6 +79,11 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
                 let p_c = positions[x_index + 1][y_index + 1];
                 position_data.extend([p_a, p_b, p_c, p_a, p_c, p_d]);
                 color_data.extend(colors);
+                let uv_a = uvs[x_index][y_index];
+                let uv_b = uvs[x_index + 1][y_index];
+                let uv_d = uvs[x_index][y_index + 1];
+                let uv_c = uvs[x_index + 1][y_index + 1];
+                texture_data.extend([uv_a, uv_b, uv_c, uv_a, uv_c, uv_d]);
             }
         }
 
@@ -72,6 +92,7 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             [
                 ("vertexPosition", AttributeData::from(&position_data)),
                 ("vertexColor", AttributeData::from(&color_data)),
+                ("vertexUV", AttributeData::from(&texture_data)),
             ],
         )
     }
@@ -102,7 +123,7 @@ impl From<Plane> for ParametricSurface {
             u_resolution: plane.width_segments,
             v_range: (-plane.height / 2.0)..=(plane.height / 2.0),
             v_resolution: plane.height_segments,
-            function: Box::new(|u, v| glm::vec4(u, v, 0.0, 1.0)),
+            function: Box::new(|u, v| glm::vec3(u, v, 0.0)),
         }
     }
 }
@@ -141,11 +162,10 @@ impl From<Ellipsoid> for ParametricSurface {
             v_range: -FRAC_PI_2..=FRAC_PI_2,
             v_resolution: ellipsoid.height_segments,
             function: Box::new(move |u, v| {
-                glm::vec4(
+                glm::vec3(
                     ellipsoid.width / 2.0 * u.sin() * v.cos(),
                     ellipsoid.height / 2.0 * v.sin(),
                     ellipsoid.depth / 2.0 * u.cos() * v.cos(),
-                    1.0,
                 )
             }),
         }
@@ -218,12 +238,11 @@ impl Default for Cylindrical {
 }
 
 impl Cylindrical {
-    fn function(&self, u: f32, v: f32) -> Vec4 {
-        glm::vec4(
+    fn function(&self, u: f32, v: f32) -> Vec3 {
+        glm::vec3(
             glm::lerp_scalar(self.radius_bottom, self.radius_top, v) * u.sin(),
             self.height * (v - 0.5),
             glm::lerp_scalar(self.radius_bottom, self.radius_top, v) * u.cos(),
-            1.0,
         )
     }
 }

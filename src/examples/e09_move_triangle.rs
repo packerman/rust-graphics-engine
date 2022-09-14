@@ -1,9 +1,10 @@
 use anyhow::Result;
+use async_trait::async_trait;
 use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::Application,
+    application::{Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -31,7 +32,7 @@ void main()
 }
 "##;
 
-pub struct MoveTriangle {
+pub struct MoveTriangleExample {
     program: WebGlProgram,
     position: Attribute,
     model_matrix: Uniform,
@@ -40,11 +41,11 @@ pub struct MoveTriangle {
     turn_speed: Angle,
 }
 
-impl MoveTriangle {
-    const DELTA_TIME_SEC: f32 = 1_f32 / 60.0;
+const DELTA_TIME_SEC: f32 = 1_f32 / 60.0;
 
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
-        log!("Initializing...");
+#[async_trait(?Send)]
+impl AsyncCreator for MoveTriangleExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::black());
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
@@ -53,7 +54,7 @@ impl MoveTriangle {
         let position_data = [[0.0_f32, 0.2, 0.0], [0.1, -0.2, 0.0], [-0.1, -0.2, 0.0]];
         let position_attribute =
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
-        position_attribute.associate_variable(context, &program, "position")?;
+        position_attribute.associate_variable(context, &program, "position");
 
         let model_matrix = Uniform::new_with_data(
             context,
@@ -69,21 +70,21 @@ impl MoveTriangle {
             "projectionMatrix",
         )?;
 
-        Ok(Box::new(MoveTriangle {
+        Ok(MoveTriangleExample {
             program,
             position: position_attribute,
             model_matrix,
             projection_matrix,
             move_speed: 0.5,
             turn_speed: Angle::from_degrees(90.0),
-        }))
+        })
     }
 }
 
-impl Application for MoveTriangle {
+impl Application for MoveTriangleExample {
     fn update(&mut self, key_state: &KeyState) {
-        let move_amount = self.move_speed * Self::DELTA_TIME_SEC;
-        let turn_mount = self.turn_speed * Self::DELTA_TIME_SEC;
+        let move_amount = self.move_speed * DELTA_TIME_SEC;
+        let turn_mount = self.turn_speed * DELTA_TIME_SEC;
         let model_matrix = self.model_matrix.mat4_mut().unwrap();
         // global
         if key_state.is_pressed("KeyW") {

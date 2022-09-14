@@ -1,16 +1,17 @@
 use std::{cell::RefCell, f32::consts::TAU, rc::Rc};
 
 use anyhow::Result;
+use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
-    application::Application,
+    application::{Application, AsyncCreator},
     camera::Camera,
     convert::FromWithContext,
     geometry::{BoxGeometry, Geometry},
     input::KeyState,
     material::{
-        basic_material::{BasicMaterial, SurfaceMaterial},
+        basic::{BasicMaterial, SurfaceMaterial},
         Material,
     },
     matrix::Angle,
@@ -19,17 +20,16 @@ use crate::core::{
     renderer::{Renderer, RendererOptions},
 };
 
-pub struct SpinningCube {
+pub struct SpinningCubeExample {
     renderer: Renderer,
     scene: Rc<Node>,
     mesh: Rc<Node>,
     camera: Rc<RefCell<Camera>>,
 }
 
-impl SpinningCube {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
-        log!("Initializing...");
-
+#[async_trait(?Send)]
+impl AsyncCreator for SpinningCubeExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
 
@@ -53,16 +53,16 @@ impl SpinningCube {
         let mesh = Node::new_mesh(mesh);
         scene.add_child(&mesh);
 
-        Ok(Box::new(SpinningCube {
+        Ok(SpinningCubeExample {
             renderer,
             mesh,
             scene,
             camera,
-        }))
+        })
     }
 }
 
-impl Application for SpinningCube {
+impl Application for SpinningCubeExample {
     fn update(&mut self, _key_state: &KeyState) {
         self.mesh
             .rotate_y(Angle::from_radians(TAU) / 450.0, Transform::Local);

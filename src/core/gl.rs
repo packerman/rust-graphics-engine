@@ -1,8 +1,11 @@
+use std::convert::TryInto;
+
 use anyhow::{anyhow, Ok, Result};
 
+use wasm_bindgen::JsValue;
 use web_sys::{
-    WebGl2RenderingContext, WebGlBuffer, WebGlProgram, WebGlShader, WebGlUniformLocation,
-    WebGlVertexArrayObject,
+    WebGl2RenderingContext, WebGlBuffer, WebGlProgram, WebGlShader, WebGlTexture,
+    WebGlUniformLocation, WebGlVertexArrayObject,
 };
 
 use super::color::Color;
@@ -11,13 +14,22 @@ pub fn set_clear_color(context: &WebGl2RenderingContext, color: &Color) {
     context.clear_color(color[0], color[1], color[2], color[3]);
 }
 
-pub fn get_string_parameter(context: &WebGl2RenderingContext, pname: u32) -> Result<String> {
-    let value = context
+fn get_parameter(context: &WebGl2RenderingContext, pname: u32) -> Result<JsValue> {
+    context
         .get_parameter(pname)
-        .map_err(|err| anyhow!("Cannot get parameter {:#?}: {:#?}", pname, err))?;
-    value
+        .map_err(|err| anyhow!("Cannot get parameter {:#?}: {:#?}", pname, err))
+}
+
+pub fn get_string_parameter(context: &WebGl2RenderingContext, pname: u32) -> Result<String> {
+    get_parameter(context, pname)?
         .as_string()
-        .ok_or_else(|| anyhow!("Cannot convert {:#?} to string", value))
+        .ok_or_else(|| anyhow!("Cannot convert {:#?} to string", pname))
+}
+
+pub fn get_f64_parameter(context: &WebGl2RenderingContext, pname: u32) -> Result<f64> {
+    get_parameter(context, pname)?
+        .as_f64()
+        .ok_or_else(|| anyhow!("Cannot convert {:#?} to string", pname))
 }
 
 pub fn compile_shader(
@@ -105,11 +117,13 @@ pub fn get_attrib_location(
     context: &WebGl2RenderingContext,
     program: &WebGlProgram,
     variable: &str,
-) -> Result<u32> {
-    context
-        .get_attrib_location(program, variable)
-        .try_into()
-        .map_err(|err| anyhow!("Cannot convert to u32 {:#?}", err))
+) -> Option<u32> {
+    let location = context.get_attrib_location(program, variable);
+    if location == -1 {
+        None
+    } else {
+        location.try_into().ok()
+    }
 }
 
 pub fn get_uniform_location(
@@ -120,4 +134,10 @@ pub fn get_uniform_location(
     context
         .get_uniform_location(program, name)
         .ok_or_else(|| anyhow!("Cannot find uniform location {:#?}", name))
+}
+
+pub fn create_texture(context: &WebGl2RenderingContext) -> Result<WebGlTexture> {
+    context
+        .create_texture()
+        .ok_or_else(|| anyhow!("Cannot create buffer"))
 }

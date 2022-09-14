@@ -1,8 +1,9 @@
 use anyhow::Result;
+use async_trait::async_trait;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlVertexArrayObject};
 
 use crate::core::{
-    application::Application,
+    application::{Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -27,7 +28,7 @@ void main()
 }
 "##;
 
-pub struct TwoShapes {
+pub struct TwoShapesExample {
     program: WebGlProgram,
     triangle_position: Attribute,
     vao_triangle: WebGlVertexArrayObject,
@@ -35,9 +36,9 @@ pub struct TwoShapes {
     vao_square: WebGlVertexArrayObject,
 }
 
-impl TwoShapes {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
-        log!("Initialized");
+#[async_trait(?Send)]
+impl AsyncCreator for TwoShapesExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::black());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         context.line_width(4.0);
@@ -47,7 +48,7 @@ impl TwoShapes {
         let position_data_triangle = [[-0.5_f32, 0.8, 0.0], [-0.2, 0.2, 0.0], [-0.8, 0.2, 0.0]];
         let position_attribute_triangle =
             Attribute::new_with_data(context, AttributeData::from(&position_data_triangle))?;
-        position_attribute_triangle.associate_variable(context, &program, "position")?;
+        position_attribute_triangle.associate_variable(context, &program, "position");
 
         let vao_square = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao_square));
@@ -59,19 +60,19 @@ impl TwoShapes {
         ];
         let position_attribute_square =
             Attribute::new_with_data(context, AttributeData::from(&position_data_square))?;
-        position_attribute_square.associate_variable(context, &program, "position")?;
+        position_attribute_square.associate_variable(context, &program, "position");
 
-        Ok(Box::new(TwoShapes {
+        Ok(TwoShapesExample {
             program,
             triangle_position: position_attribute_triangle,
             vao_triangle,
             square_position: position_attribute_square,
             vao_square,
-        }))
+        })
     }
 }
 
-impl Application for TwoShapes {
+impl Application for TwoShapesExample {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

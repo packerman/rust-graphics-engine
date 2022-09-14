@@ -11,7 +11,7 @@ pub struct RendererOptions {
 impl Default for RendererOptions {
     fn default() -> Self {
         Self {
-            clear_color: Color::gray(),
+            clear_color: Color::black(),
         }
     }
 }
@@ -22,6 +22,15 @@ impl Renderer {
     pub fn new_initialized(context: &WebGl2RenderingContext, options: RendererOptions) -> Self {
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
         gl::set_clear_color(context, &options.clear_color);
+
+        context.enable(WebGl2RenderingContext::BLEND);
+        context.blend_func(
+            WebGl2RenderingContext::SRC_ALPHA,
+            WebGl2RenderingContext::ONE_MINUS_SRC_ALPHA,
+        );
+
+        context.pixel_storei(WebGl2RenderingContext::UNPACK_FLIP_Y_WEBGL, 1);
+
         Self
     }
 

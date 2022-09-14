@@ -1,50 +1,47 @@
 use anyhow::{anyhow, Result};
-use web_sys::HtmlCanvasElement;
 
 use crate::{
-    core::application::{ApplicationCreator, Loop},
+    core::application,
     examples::{
-        e00_base_test::TestApp, e01_point::PointApp, e02_hexagon_lines::HexagonLines,
-        e03_two_shapes::TwoShapes, e04_vertex_colors::VertexColors,
-        e05_two_triangles::TwoTriangles, e06_animate_triangle::AnimateTriangle,
-        e07_animate_triangle_time::AnimateTriangleTime, e08_keyboard_input::KeyboardInput,
-        e09_move_triangle::MoveTriangle, e0a_spinning_cube::SpinningCube, e0b_axes_grid::AxesGrid,
-        e0c_movement_rig::MovementRigExample,
+        e00_base_test::TestExample, e01_point::PointExample,
+        e02_hexagon_lines::HexagonLinesExample, e03_two_shapes::TwoShapesExample,
+        e04_vertex_colors::VertexColorsExample, e05_two_triangles::TwoTrianglesExample,
+        e06_animate_triangle::AnimateTriangleExample,
+        e07_animate_triangle_time::AnimateTriangleTimeExample,
+        e08_keyboard_input::KeyboardInputExample, e09_move_triangle::MoveTriangleExample,
+        e0a_spinning_cube::SpinningCubeExample, e0b_axes_grid::AxesGridExample,
+        e0c_movement_rig::MovementRigExample, e0d_texture::TextureExample,
     },
 };
 
-pub fn run_example(canvas: &HtmlCanvasElement) -> Result<()> {
-    run_example_by_index(canvas, None)
+pub fn run_example() {
+    run_example_by_index(None)
 }
 
-fn examples() -> Vec<Box<ApplicationCreator>> {
+fn examples() -> Vec<Box<dyn Fn()>> {
     vec![
-        Box::new(TestApp::create),
-        Box::new(PointApp::create),
-        Box::new(HexagonLines::create),
-        Box::new(TwoShapes::create),
-        Box::new(VertexColors::create),
-        Box::new(TwoTriangles::create),
-        Box::new(AnimateTriangle::create),
-        Box::new(AnimateTriangleTime::create),
-        Box::new(KeyboardInput::create),
-        Box::new(MoveTriangle::create),
-        Box::new(SpinningCube::create),
-        Box::new(AxesGrid::create),
-        Box::new(MovementRigExample::create),
+        Box::new(application::spawn::<TestExample>),
+        Box::new(application::spawn::<PointExample>),
+        Box::new(application::spawn::<HexagonLinesExample>),
+        Box::new(application::spawn::<TwoShapesExample>),
+        Box::new(application::spawn::<VertexColorsExample>),
+        Box::new(application::spawn::<TwoTrianglesExample>),
+        Box::new(application::spawn::<AnimateTriangleExample>),
+        Box::new(application::spawn::<AnimateTriangleTimeExample>),
+        Box::new(application::spawn::<KeyboardInputExample>),
+        Box::new(application::spawn::<MoveTriangleExample>),
+        Box::new(application::spawn::<SpinningCubeExample>),
+        Box::new(application::spawn::<AxesGridExample>),
+        Box::new(application::spawn::<MovementRigExample>),
+        Box::new(application::spawn::<TextureExample>),
     ]
 }
 
-fn run_example_by_index(canvas: &HtmlCanvasElement, index: Option<usize>) -> Result<()> {
+fn run_example_by_index(index: Option<usize>) {
     let examples = examples();
+    let example = get_element(&examples, index).unwrap();
 
-    Loop::run_with_box(
-        canvas,
-        Box::new(move |context| {
-            let example = get_element(&examples, index)?;
-            example(context)
-        }),
-    )
+    example();
 }
 
 fn get_element<T>(vec: &[T], index: Option<usize>) -> Result<&T> {

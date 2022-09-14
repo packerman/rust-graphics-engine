@@ -1,8 +1,9 @@
 use anyhow::Result;
+use async_trait::async_trait;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::Application,
+    application::{Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -27,14 +28,14 @@ void main()
 }
 "##;
 
-pub struct HexagonLines {
+pub struct HexagonLinesExample {
     program: WebGlProgram,
     attribute: Attribute,
 }
 
-impl HexagonLines {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
-        log!("Initialized");
+#[async_trait(?Send)]
+impl AsyncCreator for HexagonLinesExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::black());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         context.line_width(4.0);
@@ -50,15 +51,15 @@ impl HexagonLines {
         ];
         let position_attribute =
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
-        position_attribute.associate_variable(context, &program, "position")?;
-        Ok(Box::new(HexagonLines {
+        position_attribute.associate_variable(context, &program, "position");
+        Ok(HexagonLinesExample {
             program,
             attribute: position_attribute,
-        }))
+        })
     }
 }
 
-impl Application for HexagonLines {
+impl Application for HexagonLinesExample {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

@@ -1,8 +1,9 @@
 use anyhow::Result;
+use async_trait::async_trait;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::Application,
+    application::{Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -29,16 +30,16 @@ void main()
 }
 "##;
 
-pub struct AnimateTriangle {
+pub struct AnimateTriangleExample {
     program: WebGlProgram,
     position: Attribute,
     translation: Uniform,
     base_color: Uniform,
 }
 
-impl AnimateTriangle {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
-        log!("Initializing...");
+#[async_trait(?Send)]
+impl AsyncCreator for AnimateTriangleExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = gl::create_vertex_array(context)?;
@@ -46,7 +47,7 @@ impl AnimateTriangle {
         let position_data = [[0.0_f32, 0.2, 0.0], [0.2, -0.2, 0.0], [-0.2, -0.2, 0.0]];
         let position_attribute =
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
-        position_attribute.associate_variable(context, &program, "position")?;
+        position_attribute.associate_variable(context, &program, "position");
 
         let translation = Uniform::new_with_data(
             context,
@@ -61,16 +62,16 @@ impl AnimateTriangle {
             "baseColor",
         )?;
 
-        Ok(Box::new(AnimateTriangle {
+        Ok(AnimateTriangleExample {
             program,
             position: position_attribute,
             translation,
             base_color,
-        }))
+        })
     }
 }
 
-impl Application for AnimateTriangle {
+impl Application for AnimateTriangleExample {
     fn update(&mut self, _key_state: &KeyState) {
         let translation = self.translation.array3_mut().unwrap();
         translation[0] += 0.01;
