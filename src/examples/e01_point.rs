@@ -1,7 +1,13 @@
 use anyhow::{anyhow, Result};
+use async_trait::async_trait;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use crate::core::{application::Application, color::Color, gl, input::KeyState};
+use crate::core::{
+    application::{Application, AsyncCreator},
+    color::Color,
+    gl,
+    input::KeyState,
+};
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
 void main()
@@ -21,23 +27,24 @@ void main()
 }
 "##;
 
-pub struct PointApp {
+pub struct PointExample {
     program: WebGlProgram,
 }
 
-impl PointApp {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
+#[async_trait(?Send)]
+impl AsyncCreator for PointExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::black());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = context
             .create_vertex_array()
             .ok_or_else(|| anyhow!("Cannot create vertex array object"))?;
         context.bind_vertex_array(Some(&vao));
-        Ok(Box::new(PointApp { program }))
+        Ok(PointExample { program })
     }
 }
 
-impl Application for PointApp {
+impl Application for PointExample {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

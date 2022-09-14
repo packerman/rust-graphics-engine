@@ -11,3 +11,4 @@ pub mod e09_move_triangle;
 pub mod e0a_spinning_cube;
 pub mod e0b_axes_grid;
 pub mod e0c_movement_rig;
+pub mod e0d_texture;

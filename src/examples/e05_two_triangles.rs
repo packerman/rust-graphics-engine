@@ -1,8 +1,9 @@
 use anyhow::Result;
+use async_trait::async_trait;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::Application,
+    application::{Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -29,7 +30,7 @@ void main()
 }
 "##;
 
-pub struct TwoTriangles {
+pub struct TwoTrianglesExample {
     program: WebGlProgram,
     position: Attribute,
     translation1: Uniform,
@@ -38,9 +39,9 @@ pub struct TwoTriangles {
     base_color2: Uniform,
 }
 
-impl TwoTriangles {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
-        log!("Initializing...");
+#[async_trait(?Send)]
+impl AsyncCreator for TwoTrianglesExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = gl::create_vertex_array(context)?;
@@ -48,7 +49,7 @@ impl TwoTriangles {
         let position_data = [[0.0_f32, 0.2, 0.0], [0.2, -0.2, 0.0], [-0.2, -0.2, 0.0]];
         let position_attribute =
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
-        position_attribute.associate_variable(context, &program, "position")?;
+        position_attribute.associate_variable(context, &program, "position");
 
         let translation1 = Uniform::new_with_data(
             context,
@@ -75,18 +76,18 @@ impl TwoTriangles {
             "baseColor",
         )?;
 
-        Ok(Box::new(TwoTriangles {
+        Ok(TwoTrianglesExample {
             program,
             position: position_attribute,
             translation1,
             translation2,
             base_color1,
             base_color2,
-        }))
+        })
     }
 }
 
-impl Application for TwoTriangles {
+impl Application for TwoTrianglesExample {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

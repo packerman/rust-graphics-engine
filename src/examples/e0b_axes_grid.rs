@@ -1,10 +1,11 @@
 use std::{cell::RefCell, rc::Rc};
 
 use anyhow::Result;
+use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
-    application::Application,
+    application::{Application, AsyncCreator},
     camera::Camera,
     color::Color,
     convert::FromWithContext,
@@ -16,14 +17,15 @@ use crate::core::{
     renderer::{Renderer, RendererOptions},
 };
 
-pub struct AxesGrid {
+pub struct AxesGridExample {
     renderer: Renderer,
     scene: Rc<Node>,
     camera: Rc<RefCell<Camera>>,
 }
 
-impl AxesGrid {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
+#[async_trait(?Send)]
+impl AsyncCreator for AxesGridExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
 
@@ -55,15 +57,15 @@ impl AxesGrid {
         grid.rotate_x(-Angle::RIGHT, Transform::default());
         scene.add_child(&grid);
 
-        Ok(Box::new(AxesGrid {
+        Ok(AxesGridExample {
             renderer,
             scene,
             camera,
-        }))
+        })
     }
 }
 
-impl Application for AxesGrid {
+impl Application for AxesGridExample {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

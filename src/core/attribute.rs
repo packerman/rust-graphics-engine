@@ -182,12 +182,12 @@ impl Attribute {
         context: &WebGl2RenderingContext,
         program: &WebGlProgram,
         variable: &str,
-    ) -> Result<()> {
-        let location = gl::get_attrib_location(context, program, variable)?;
-        context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
-        self.data.vertex_attrib_pointer(context, location);
-        context.enable_vertex_attrib_array(location);
-        Ok(())
+    ) {
+        if let Some(location) = gl::get_attrib_location(context, program, variable) {
+            context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&self.buffer));
+            self.data.vertex_attrib_pointer(context, location);
+            context.enable_vertex_attrib_array(location);
+        }
     }
 
     pub fn apply_matrix_mut(&mut self, context: &WebGl2RenderingContext, matrix: &Mat4) {

@@ -58,17 +58,19 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn new(
+    pub fn new_initialized(
         context: &WebGl2RenderingContext,
         source: HtmlImageElement,
         properties: Properties,
     ) -> Result<Self> {
         let texture = gl::create_texture(context)?;
-        Ok(Texture {
+        let texture = Texture {
             texture,
             source,
             properties,
-        })
+        };
+        texture.upload_data(context)?;
+        Ok(texture)
     }
 
     pub fn texture(&self) -> &WebGlTexture {

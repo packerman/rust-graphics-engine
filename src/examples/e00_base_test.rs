@@ -1,19 +1,25 @@
 use anyhow::Result;
+use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{application::Application, color::Color, gl, input::KeyState};
+use crate::core::{
+    application::{Application, AsyncCreator},
+    color::Color,
+    gl,
+    input::KeyState,
+};
 
-pub struct TestApp;
+pub struct TestExample;
 
-impl TestApp {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
-        log!("Initialized");
+#[async_trait(?Send)]
+impl AsyncCreator for TestExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::black());
-        Ok(Box::new(TestApp))
+        Ok(TestExample)
     }
 }
 
-impl Application for TestApp {
+impl Application for TestExample {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

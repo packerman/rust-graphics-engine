@@ -1,10 +1,11 @@
 use std::{cell::RefCell, rc::Rc};
 
 use anyhow::Result;
+use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
-    application::Application,
+    application::{Application, AsyncCreator},
     camera::Camera,
     color::Color,
     convert::FromWithContext,
@@ -23,8 +24,9 @@ pub struct MovementRigExample {
     rig: Rc<Node>,
 }
 
-impl MovementRigExample {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
+#[async_trait(?Send)]
+impl AsyncCreator for MovementRigExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         let renderer = Renderer::new_initialized(context, Default::default());
         let scene = Node::new_group();
 
@@ -59,12 +61,12 @@ impl MovementRigExample {
         grid.rotate_x(-Angle::RIGHT, Transform::default());
         scene.add_child(&grid);
 
-        Ok(Box::new(MovementRigExample {
+        Ok(MovementRigExample {
             renderer,
             scene,
             camera,
             rig,
-        }))
+        })
     }
 }
 

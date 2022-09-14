@@ -41,10 +41,10 @@ pub fn texture_material(
         context,
         MaterialSettings {
             vertex_shader: include_str!("vertex.glsl"),
-            fragment_shader: ("fragment.glsl"),
+            fragment_shader: include_str!("fragment.glsl"),
             uniforms: vec![
                 ("baseColor", UniformData::from(texture_material.base_color)),
-                ("texture", UniformData::sampler2d(texture, unit)),
+                ("textureSampler", UniformData::sampler2d(texture, unit)),
                 ("repeatUV", UniformData::from(texture_material.repeat_uv)),
                 ("offsetUV", UniformData::from(texture_material.offset_uv)),
             ],

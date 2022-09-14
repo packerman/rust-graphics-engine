@@ -1,8 +1,9 @@
 use anyhow::Result;
+use async_trait::async_trait;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::Application,
+    application::{Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -31,16 +32,16 @@ void main()
 }
 "##;
 
-pub struct VertexColors {
+pub struct VertexColorsExample {
     program: WebGlProgram,
     position_attribute: Attribute,
     #[allow(dead_code)]
     color_attribute: Attribute,
 }
 
-impl VertexColors {
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
-        log!("Initializing...");
+#[async_trait(?Send)]
+impl AsyncCreator for VertexColorsExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         context.line_width(4.0);
@@ -56,7 +57,7 @@ impl VertexColors {
         ];
         let position_attribute =
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
-        position_attribute.associate_variable(context, &program, "position")?;
+        position_attribute.associate_variable(context, &program, "position");
 
         let color_data: [[f32; 3]; 6] = [
             Color::red().into(),
@@ -67,17 +68,17 @@ impl VertexColors {
             Color::blue_violet().into(),
         ];
         let color_attribute = Attribute::new_with_data(context, AttributeData::from(&color_data))?;
-        color_attribute.associate_variable(context, &program, "vertexColor")?;
+        color_attribute.associate_variable(context, &program, "vertexColor");
 
-        Ok(Box::new(VertexColors {
+        Ok(VertexColorsExample {
             program,
             position_attribute,
             color_attribute,
-        }))
+        })
     }
 }
 
-impl Application for VertexColors {
+impl Application for VertexColorsExample {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

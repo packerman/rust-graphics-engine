@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use anyhow::{anyhow, Ok, Result};
 
 use wasm_bindgen::JsValue;
@@ -115,11 +117,13 @@ pub fn get_attrib_location(
     context: &WebGl2RenderingContext,
     program: &WebGlProgram,
     variable: &str,
-) -> Result<u32> {
-    context
-        .get_attrib_location(program, variable)
-        .try_into()
-        .map_err(|err| anyhow!("Cannot convert to u32 {:#?}", err))
+) -> Option<u32> {
+    let location = context.get_attrib_location(program, variable);
+    if location == -1 {
+        None
+    } else {
+        location.try_into().ok()
+    }
 }
 
 pub fn get_uniform_location(

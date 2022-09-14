@@ -1,8 +1,9 @@
 use anyhow::Result;
+use async_trait::async_trait;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::Application,
+    application::{Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -29,18 +30,18 @@ void main()
 }
 "##;
 
-pub struct KeyboardInput {
+pub struct KeyboardInputExample {
     program: WebGlProgram,
     position: Attribute,
     translation: Uniform,
     base_color: Uniform,
 }
 
-impl KeyboardInput {
-    const SPEED: f32 = 0.5;
+const SPEED: f32 = 0.5;
 
-    pub fn create(context: &WebGl2RenderingContext) -> Result<Box<dyn Application>> {
-        log!("Initializing...");
+#[async_trait(?Send)]
+impl AsyncCreator for KeyboardInputExample {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = gl::create_vertex_array(context)?;
@@ -48,7 +49,7 @@ impl KeyboardInput {
         let position_data = [[0.0_f32, 0.2, 0.0], [0.2, -0.2, 0.0], [-0.2, -0.2, 0.0]];
         let position_attribute =
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
-        position_attribute.associate_variable(context, &program, "position")?;
+        position_attribute.associate_variable(context, &program, "position");
 
         let translation = Uniform::new_with_data(
             context,
@@ -63,18 +64,18 @@ impl KeyboardInput {
             "baseColor",
         )?;
 
-        Ok(Box::new(KeyboardInput {
+        Ok(KeyboardInputExample {
             program,
             position: position_attribute,
             translation,
             base_color,
-        }))
+        })
     }
 }
 
-impl Application for KeyboardInput {
+impl Application for KeyboardInputExample {
     fn update(&mut self, key_state: &KeyState) {
-        let distance = Self::SPEED / 60.0;
+        let distance = SPEED / 60.0;
 
         let translation = self.translation.array3_mut().unwrap();
         if key_state.is_pressed("ArrowLeft") {

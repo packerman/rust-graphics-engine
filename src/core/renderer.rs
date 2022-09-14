@@ -11,7 +11,7 @@ pub struct RendererOptions {
 impl Default for RendererOptions {
     fn default() -> Self {
         Self {
-            clear_color: Color::gray(),
+            clear_color: Color::black(),
         }
     }
 }
@@ -28,6 +28,8 @@ impl Renderer {
             WebGl2RenderingContext::SRC_ALPHA,
             WebGl2RenderingContext::ONE_MINUS_SRC_ALPHA,
         );
+
+        context.pixel_storei(WebGl2RenderingContext::UNPACK_FLIP_Y_WEBGL, 1);
 
         Self
     }
