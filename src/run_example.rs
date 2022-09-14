@@ -3,9 +3,10 @@ use anyhow::{anyhow, Result};
 use crate::{
     core::application,
     examples::{
-        e01_point::PointExample, e02_hexagon_lines::HexagonLinesExample,
-        e03_two_shapes::TwoShapesExample, e04_vertex_colors::VertexColorsExample,
-        e05_two_triangles::TwoTrianglesExample, e06_animate_triangle::AnimateTriangleExample,
+        e00_base_test::TestExample, e01_point::PointExample,
+        e02_hexagon_lines::HexagonLinesExample, e03_two_shapes::TwoShapesExample,
+        e04_vertex_colors::VertexColorsExample, e05_two_triangles::TwoTrianglesExample,
+        e06_animate_triangle::AnimateTriangleExample,
         e07_animate_triangle_time::AnimateTriangleTimeExample,
         e08_keyboard_input::KeyboardInputExample, e09_move_triangle::MoveTriangleExample,
         e0a_spinning_cube::SpinningCubeExample, e0b_axes_grid::AxesGridExample,
@@ -19,20 +20,20 @@ pub fn run_example() {
 
 fn examples() -> Vec<Box<dyn Fn()>> {
     vec![
-        // Box::new(|context| Box::new(TestApp::create(context))),
-        Box::new(|| application::spawn::<PointExample>()),
-        Box::new(|| application::spawn::<HexagonLinesExample>()),
-        Box::new(|| application::spawn::<TwoShapesExample>()),
-        Box::new(|| application::spawn::<VertexColorsExample>()),
-        Box::new(|| application::spawn::<TwoTrianglesExample>()),
-        Box::new(|| application::spawn::<AnimateTriangleExample>()),
-        Box::new(|| application::spawn::<AnimateTriangleTimeExample>()),
-        Box::new(|| application::spawn::<KeyboardInputExample>()),
-        Box::new(|| application::spawn::<MoveTriangleExample>()),
-        Box::new(|| application::spawn::<SpinningCubeExample>()),
-        Box::new(|| application::spawn::<AxesGridExample>()),
-        Box::new(|| application::spawn::<MovementRigExample>()),
-        Box::new(|| application::spawn::<TextureExample>()),
+        Box::new(application::spawn::<TestExample>),
+        Box::new(application::spawn::<PointExample>),
+        Box::new(application::spawn::<HexagonLinesExample>),
+        Box::new(application::spawn::<TwoShapesExample>),
+        Box::new(application::spawn::<VertexColorsExample>),
+        Box::new(application::spawn::<TwoTrianglesExample>),
+        Box::new(application::spawn::<AnimateTriangleExample>),
+        Box::new(application::spawn::<AnimateTriangleTimeExample>),
+        Box::new(application::spawn::<KeyboardInputExample>),
+        Box::new(application::spawn::<MoveTriangleExample>),
+        Box::new(application::spawn::<SpinningCubeExample>),
+        Box::new(application::spawn::<AxesGridExample>),
+        Box::new(application::spawn::<MovementRigExample>),
+        Box::new(application::spawn::<TextureExample>),
     ]
 }
 
