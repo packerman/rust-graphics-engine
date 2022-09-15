@@ -1,5 +1,7 @@
 pub mod movement_rig;
 
+use std::rc::Rc;
+
 use anyhow::Result;
 
 use web_sys::WebGl2RenderingContext;
@@ -71,7 +73,7 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
                 line_type: LineType::Segments,
             },
         )?;
-        Mesh::new(context, geometry, material)
+        Mesh::new(context, geometry, Rc::new(material))
     }
 }
 
@@ -146,6 +148,6 @@ impl FromWithContext<WebGl2RenderingContext, GridHelper> for Mesh {
                 line_type: LineType::Segments,
             },
         )?;
-        Mesh::new(context, geometry, material)
+        Mesh::new(context, geometry, Rc::new(material))
     }
 }

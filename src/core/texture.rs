@@ -7,6 +7,7 @@ use web_sys::{HtmlImageElement, WebGl2RenderingContext, WebGlTexture, WebGlUnifo
 
 use super::{gl, web};
 
+#[derive(Clone, Copy)]
 pub struct Properties {
     mag_filter: i32,
     min_filter: i32,
@@ -51,6 +52,7 @@ impl From<i32> for TextureUnit {
     }
 }
 
+#[derive(Clone)]
 pub struct Texture {
     texture: WebGlTexture,
     properties: Properties,
@@ -71,6 +73,16 @@ impl Texture {
         };
         texture.upload_data(context)?;
         Ok(texture)
+    }
+
+    pub async fn load_from_source(
+        context: &WebGl2RenderingContext,
+        source: &str,
+        properties: Properties,
+    ) -> Result<Self> {
+        self::load_image(source)
+            .await
+            .and_then(|image| Self::new_initialized(context, image, properties))
     }
 
     pub fn texture(&self) -> &WebGlTexture {

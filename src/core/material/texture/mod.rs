@@ -31,7 +31,7 @@ impl Default for TextureMaterial {
     }
 }
 
-pub fn texture_material(
+pub fn create(
     context: &WebGl2RenderingContext,
     texture: Texture,
     unit: TextureUnit,

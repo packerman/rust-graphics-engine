@@ -11,6 +11,9 @@ use crate::{
         e08_keyboard_input::KeyboardInputExample, e09_move_triangle::MoveTriangleExample,
         e0a_spinning_cube::SpinningCubeExample, e0b_axes_grid::AxesGridExample,
         e0c_movement_rig::MovementRigExample, e0d_texture::TextureExample,
+        e0e_more_textures::MoreTexturesExample,
+        e0f_spinning_textured_cube::SpinningTexturedCubeExample,
+        e0g_spinning_textured_sphere::SpinningTexturedSphereExample,
     },
 };
 
@@ -34,6 +37,9 @@ fn examples() -> Vec<Box<dyn Fn()>> {
         Box::new(application::spawn::<AxesGridExample>),
         Box::new(application::spawn::<MovementRigExample>),
         Box::new(application::spawn::<TextureExample>),
+        Box::new(application::spawn::<MoreTexturesExample>),
+        Box::new(application::spawn::<SpinningTexturedCubeExample>),
+        Box::new(application::spawn::<SpinningTexturedSphereExample>),
     ]
 }
 

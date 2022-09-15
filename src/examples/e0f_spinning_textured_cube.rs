@@ -10,17 +10,15 @@ use crate::core::{
     convert::FromWithContext,
     geometry::{BoxGeometry, Geometry},
     input::KeyState,
-    material::{
-        basic::{BasicMaterial, SurfaceMaterial},
-        Material,
-    },
+    material,
     matrix::Angle,
     mesh::Mesh,
     node::{Node, Transform},
     renderer::{Renderer, RendererOptions},
+    texture::{Texture, TextureUnit},
 };
 
-pub struct SpinningCubeExample {
+pub struct SpinningTexturedCubeExample {
     renderer: Renderer,
     scene: Rc<Node>,
     mesh: Rc<Node>,
@@ -28,32 +26,29 @@ pub struct SpinningCubeExample {
 }
 
 #[async_trait(?Send)]
-impl AsyncCreator for SpinningCubeExample {
+impl AsyncCreator for SpinningTexturedCubeExample {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
 
         let camera = Rc::new(RefCell::new(Camera::default()));
         let camera_node = Node::new_camera(Rc::clone(&camera));
-        camera_node.set_position(&glm::vec3(0.0, 0.0, 2.0));
+        camera_node.set_position(&glm::vec3(0.0, 0.0, 1.8));
         scene.add_child(&camera_node);
 
         let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
-        let material = Material::from_with_context(
+        let material = material::texture::create(
             context,
-            SurfaceMaterial {
-                basic: BasicMaterial {
-                    use_vertex_colors: true,
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
+            Texture::load_from_source(context, "images/set01/crate.png", Default::default())
+                .await?,
+            TextureUnit::from(0),
+            Default::default(),
         )?;
         let mesh = Box::new(Mesh::new(context, geometry, Rc::new(material))?);
         let mesh = Node::new_mesh(mesh);
         scene.add_child(&mesh);
 
-        Ok(SpinningCubeExample {
+        Ok(SpinningTexturedCubeExample {
             renderer,
             mesh,
             scene,
@@ -62,7 +57,7 @@ impl AsyncCreator for SpinningCubeExample {
     }
 }
 
-impl Application for SpinningCubeExample {
+impl Application for SpinningTexturedCubeExample {
     fn update(&mut self, _key_state: &KeyState) {
         self.mesh
             .rotate_y(Angle::from_radians(TAU) / 450.0, Transform::Local);

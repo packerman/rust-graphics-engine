@@ -8,6 +8,7 @@ use super::{
     texture::{Texture, TextureUnit},
 };
 
+#[derive(Clone)]
 pub enum UniformData {
     Boolean(bool),
     Float(f32),
@@ -60,6 +61,7 @@ impl From<Vec2> for UniformData {
     }
 }
 
+#[derive(Clone)]
 pub struct Uniform {
     pub data: UniformData,
     location: WebGlUniformLocation,

@@ -13,6 +13,7 @@ use super::{
     uniform::{Uniform, UniformData},
 };
 
+#[derive(Clone)]
 pub struct Material {
     program: WebGlProgram,
     uniforms: HashMap<String, Uniform>,

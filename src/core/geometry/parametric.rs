@@ -179,9 +179,9 @@ impl FromWithContext<WebGl2RenderingContext, Ellipsoid> for Geometry {
 }
 
 pub struct Sphere {
-    radius: f32,
-    radius_segments: u16,
-    height_segments: u16,
+    pub radius: f32,
+    pub radius_segments: u16,
+    pub height_segments: u16,
 }
 
 impl Default for Sphere {
@@ -197,9 +197,9 @@ impl Default for Sphere {
 impl From<Sphere> for Ellipsoid {
     fn from(sphere: Sphere) -> Self {
         Ellipsoid {
-            width: sphere.radius,
-            height: sphere.radius,
-            depth: sphere.radius,
+            width: 2.0 * sphere.radius,
+            height: 2.0 * sphere.radius,
+            depth: 2.0 * sphere.radius,
             radius_segments: sphere.radius_segments,
             height_segments: sphere.height_segments,
         }
@@ -290,11 +290,11 @@ impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
 }
 
 pub struct Cylinder {
-    radius: f32,
-    height: f32,
-    radial_segments: u16,
-    height_segments: u16,
-    closed: bool,
+    pub radius: f32,
+    pub height: f32,
+    pub radial_segments: u16,
+    pub height_segments: u16,
+    pub closed: bool,
 }
 
 impl Default for Cylinder {
@@ -330,11 +330,11 @@ impl FromWithContext<WebGl2RenderingContext, Cylinder> for Geometry {
 }
 
 pub struct Prism {
-    radius: f32,
-    height: f32,
-    sides: u16,
-    height_segments: u16,
-    closed: bool,
+    pub radius: f32,
+    pub height: f32,
+    pub sides: u16,
+    pub height_segments: u16,
+    pub closed: bool,
 }
 
 impl Default for Prism {
@@ -370,11 +370,11 @@ impl FromWithContext<WebGl2RenderingContext, Prism> for Geometry {
 }
 
 pub struct Cone {
-    radius: f32,
-    height: f32,
-    radial_segments: u16,
-    height_segments: u16,
-    closed: bool,
+    pub radius: f32,
+    pub height: f32,
+    pub radial_segments: u16,
+    pub height_segments: u16,
+    pub closed: bool,
 }
 
 impl Default for Cone {

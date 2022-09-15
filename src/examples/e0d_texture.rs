@@ -10,11 +10,11 @@ use crate::core::{
     convert::FromWithContext,
     geometry::{Geometry, Rectangle},
     input::KeyState,
-    material::{self, texture::TextureMaterial},
+    material,
     mesh::Mesh,
     node::Node,
     renderer::Renderer,
-    texture::{self, Texture, TextureUnit},
+    texture::{Texture, TextureUnit},
 };
 
 pub struct TextureExample {
@@ -35,15 +35,13 @@ impl AsyncCreator for TextureExample {
         scene.add_child(&camera_node);
 
         let geometry = Geometry::from_with_context(context, Rectangle::default())?;
-        let image = texture::load_image("images/set02/grid.png").await?;
-        let texture = Texture::new_initialized(context, image, texture::Properties::default())?;
-        let material = material::texture::texture_material(
+        let material = material::texture::create(
             context,
-            texture,
+            Texture::load_from_source(context, "images/set01/grid.png", Default::default()).await?,
             TextureUnit::from(0),
-            TextureMaterial::default(),
+            Default::default(),
         )?;
-        let mesh = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
+        let mesh = Node::new_mesh(Box::new(Mesh::new(context, geometry, Rc::new(material))?));
         scene.add_child(&mesh);
         Ok(TextureExample {
             renderer,
