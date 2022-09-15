@@ -49,7 +49,7 @@ impl AsyncCreator for SpinningCubeExample {
                 ..Default::default()
             },
         )?;
-        let mesh = Box::new(Mesh::new(context, geometry, material)?);
+        let mesh = Box::new(Mesh::new(context, geometry, Rc::new(material))?);
         let mesh = Node::new_mesh(mesh);
         scene.add_child(&mesh);
 

@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use anyhow::Result;
 use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
@@ -8,14 +10,14 @@ pub struct Mesh {
     vao: WebGlVertexArrayObject,
     visible: bool,
     geometry: Geometry,
-    material: Material,
+    material: Rc<Material>,
 }
 
 impl Mesh {
     pub fn new(
         context: &WebGl2RenderingContext,
         geometry: Geometry,
-        material: Material,
+        material: Rc<Material>,
     ) -> Result<Self> {
         let vao = gl::create_vertex_array(context)?;
         context.bind_vertex_array(Some(&vao));
