@@ -13,3 +13,5 @@ pub mod e0b_axes_grid;
 pub mod e0c_movement_rig;
 pub mod e0d_texture;
 pub mod e0e_more_textures;
+pub mod e0f_spinning_textured_cube;
+pub mod e0g_spinning_textured_sphere;
