@@ -11,6 +11,6 @@ out vec4 fragColor;
 void main() {
     vec4 color1 = texture(textureSampler1, uv);
     vec4 color2 = texture(textureSampler2, uv);
-    float s = abs(sin(time));
+    float s = (sin(time) + 1.0) / 2.0;
     fragColor = s * color1 + (1.0 - s) * color2;
 }
