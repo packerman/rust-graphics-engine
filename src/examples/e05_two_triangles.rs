@@ -30,7 +30,7 @@ void main()
 }
 "##;
 
-pub struct TwoTrianglesExample {
+pub struct Example {
     program: WebGlProgram,
     position: Attribute,
     translation1: Uniform,
@@ -40,7 +40,7 @@ pub struct TwoTrianglesExample {
 }
 
 #[async_trait(?Send)]
-impl AsyncCreator for TwoTrianglesExample {
+impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
@@ -76,7 +76,7 @@ impl AsyncCreator for TwoTrianglesExample {
             "baseColor",
         )?;
 
-        Ok(TwoTrianglesExample {
+        Ok(Example {
             program,
             position: position_attribute,
             translation1,
@@ -87,7 +87,7 @@ impl AsyncCreator for TwoTrianglesExample {
     }
 }
 
-impl Application for TwoTrianglesExample {
+impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

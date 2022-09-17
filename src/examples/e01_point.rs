@@ -27,12 +27,12 @@ void main()
 }
 "##;
 
-pub struct PointExample {
+pub struct Example {
     program: WebGlProgram,
 }
 
 #[async_trait(?Send)]
-impl AsyncCreator for PointExample {
+impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::black());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
@@ -40,11 +40,11 @@ impl AsyncCreator for PointExample {
             .create_vertex_array()
             .ok_or_else(|| anyhow!("Cannot create vertex array object"))?;
         context.bind_vertex_array(Some(&vao));
-        Ok(PointExample { program })
+        Ok(Example { program })
     }
 }
 
-impl Application for PointExample {
+impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

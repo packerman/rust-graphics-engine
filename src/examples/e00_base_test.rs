@@ -9,17 +9,17 @@ use crate::core::{
     input::KeyState,
 };
 
-pub struct TestExample;
+pub struct Example;
 
 #[async_trait(?Send)]
-impl AsyncCreator for TestExample {
+impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::black());
-        Ok(TestExample)
+        Ok(Example)
     }
 }
 
-impl Application for TestExample {
+impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

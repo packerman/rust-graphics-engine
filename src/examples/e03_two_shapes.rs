@@ -28,7 +28,7 @@ void main()
 }
 "##;
 
-pub struct TwoShapesExample {
+pub struct Example {
     program: WebGlProgram,
     triangle_position: Attribute,
     vao_triangle: WebGlVertexArrayObject,
@@ -37,7 +37,7 @@ pub struct TwoShapesExample {
 }
 
 #[async_trait(?Send)]
-impl AsyncCreator for TwoShapesExample {
+impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::black());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
@@ -62,7 +62,7 @@ impl AsyncCreator for TwoShapesExample {
             Attribute::new_with_data(context, AttributeData::from(&position_data_square))?;
         position_attribute_square.associate_variable(context, &program, "position");
 
-        Ok(TwoShapesExample {
+        Ok(Example {
             program,
             triangle_position: position_attribute_triangle,
             vao_triangle,
@@ -72,7 +72,7 @@ impl AsyncCreator for TwoShapesExample {
     }
 }
 
-impl Application for TwoShapesExample {
+impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

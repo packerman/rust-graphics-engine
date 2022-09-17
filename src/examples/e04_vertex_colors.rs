@@ -32,7 +32,7 @@ void main()
 }
 "##;
 
-pub struct VertexColorsExample {
+pub struct Example {
     program: WebGlProgram,
     position_attribute: Attribute,
     #[allow(dead_code)]
@@ -40,7 +40,7 @@ pub struct VertexColorsExample {
 }
 
 #[async_trait(?Send)]
-impl AsyncCreator for VertexColorsExample {
+impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
@@ -70,7 +70,7 @@ impl AsyncCreator for VertexColorsExample {
         let color_attribute = Attribute::new_with_data(context, AttributeData::from(&color_data))?;
         color_attribute.associate_variable(context, &program, "vertexColor");
 
-        Ok(VertexColorsExample {
+        Ok(Example {
             program,
             position_attribute,
             color_attribute,
@@ -78,7 +78,7 @@ impl AsyncCreator for VertexColorsExample {
     }
 }
 
-impl Application for VertexColorsExample {
+impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

@@ -17,7 +17,7 @@ use crate::core::{
     renderer::Renderer,
 };
 
-pub struct MovementRigExample {
+pub struct Example {
     renderer: Renderer,
     scene: Rc<Node>,
     camera: Rc<RefCell<Camera>>,
@@ -25,7 +25,7 @@ pub struct MovementRigExample {
 }
 
 #[async_trait(?Send)]
-impl AsyncCreator for MovementRigExample {
+impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         let renderer = Renderer::new_initialized(context, Default::default());
         let scene = Node::new_group();
@@ -61,7 +61,7 @@ impl AsyncCreator for MovementRigExample {
         grid.rotate_x(-Angle::RIGHT, Transform::default());
         scene.add_child(&grid);
 
-        Ok(MovementRigExample {
+        Ok(Example {
             renderer,
             scene,
             camera,
@@ -70,7 +70,7 @@ impl AsyncCreator for MovementRigExample {
     }
 }
 
-impl Application for MovementRigExample {
+impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         self.rig.update(key_state)
     }
