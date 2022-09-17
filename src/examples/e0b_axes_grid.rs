@@ -17,14 +17,14 @@ use crate::core::{
     renderer::{Renderer, RendererOptions},
 };
 
-pub struct AxesGridExample {
+pub struct Example {
     renderer: Renderer,
     scene: Rc<Node>,
     camera: Rc<RefCell<Camera>>,
 }
 
 #[async_trait(?Send)]
-impl AsyncCreator for AxesGridExample {
+impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
@@ -57,7 +57,7 @@ impl AsyncCreator for AxesGridExample {
         grid.rotate_x(-Angle::RIGHT, Transform::default());
         scene.add_child(&grid);
 
-        Ok(AxesGridExample {
+        Ok(Example {
             renderer,
             scene,
             camera,
@@ -65,7 +65,7 @@ impl AsyncCreator for AxesGridExample {
     }
 }
 
-impl Application for AxesGridExample {
+impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

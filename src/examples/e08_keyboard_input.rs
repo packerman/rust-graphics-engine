@@ -30,7 +30,7 @@ void main()
 }
 "##;
 
-pub struct KeyboardInputExample {
+pub struct Example {
     program: WebGlProgram,
     position: Attribute,
     translation: Uniform,
@@ -40,7 +40,7 @@ pub struct KeyboardInputExample {
 const SPEED: f32 = 0.5;
 
 #[async_trait(?Send)]
-impl AsyncCreator for KeyboardInputExample {
+impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
@@ -64,7 +64,7 @@ impl AsyncCreator for KeyboardInputExample {
             "baseColor",
         )?;
 
-        Ok(KeyboardInputExample {
+        Ok(Example {
             program,
             position: position_attribute,
             translation,
@@ -73,7 +73,7 @@ impl AsyncCreator for KeyboardInputExample {
     }
 }
 
-impl Application for KeyboardInputExample {
+impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         let distance = SPEED / 60.0;
 

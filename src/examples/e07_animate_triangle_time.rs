@@ -30,7 +30,7 @@ void main()
 }
 "##;
 
-pub struct AnimateTriangleTimeExample {
+pub struct Example {
     program: WebGlProgram,
     position: Attribute,
     translation: Uniform,
@@ -39,7 +39,7 @@ pub struct AnimateTriangleTimeExample {
 }
 
 #[async_trait(?Send)]
-impl AsyncCreator for AnimateTriangleTimeExample {
+impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
@@ -63,7 +63,7 @@ impl AsyncCreator for AnimateTriangleTimeExample {
             "baseColor",
         )?;
 
-        Ok(AnimateTriangleTimeExample {
+        Ok(Example {
             program,
             position: position_attribute,
             translation,
@@ -73,7 +73,7 @@ impl AsyncCreator for AnimateTriangleTimeExample {
     }
 }
 
-impl Application for AnimateTriangleTimeExample {
+impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
         let t = self.frame as f32 / 60.0;
         let translation = self.translation.array3_mut().unwrap();

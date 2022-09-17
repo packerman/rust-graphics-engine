@@ -20,7 +20,7 @@ use crate::core::{
     renderer::{Renderer, RendererOptions},
 };
 
-pub struct SpinningCubeExample {
+pub struct Example {
     renderer: Renderer,
     scene: Rc<Node>,
     mesh: Rc<Node>,
@@ -28,7 +28,7 @@ pub struct SpinningCubeExample {
 }
 
 #[async_trait(?Send)]
-impl AsyncCreator for SpinningCubeExample {
+impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
@@ -53,7 +53,7 @@ impl AsyncCreator for SpinningCubeExample {
         let mesh = Node::new_mesh(mesh);
         scene.add_child(&mesh);
 
-        Ok(SpinningCubeExample {
+        Ok(Example {
             renderer,
             mesh,
             scene,
@@ -62,7 +62,7 @@ impl AsyncCreator for SpinningCubeExample {
     }
 }
 
-impl Application for SpinningCubeExample {
+impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
         self.mesh
             .rotate_y(Angle::from_radians(TAU) / 450.0, Transform::Local);

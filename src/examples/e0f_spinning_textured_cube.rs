@@ -18,7 +18,7 @@ use crate::core::{
     texture::{Texture, TextureUnit},
 };
 
-pub struct SpinningTexturedCubeExample {
+pub struct Example {
     renderer: Renderer,
     scene: Rc<Node>,
     mesh: Rc<Node>,
@@ -26,7 +26,7 @@ pub struct SpinningTexturedCubeExample {
 }
 
 #[async_trait(?Send)]
-impl AsyncCreator for SpinningTexturedCubeExample {
+impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         let renderer = Renderer::new_initialized(context, RendererOptions::default());
         let scene = Node::new_group();
@@ -48,7 +48,7 @@ impl AsyncCreator for SpinningTexturedCubeExample {
         let mesh = Node::new_mesh(mesh);
         scene.add_child(&mesh);
 
-        Ok(SpinningTexturedCubeExample {
+        Ok(Example {
             renderer,
             mesh,
             scene,
@@ -57,7 +57,7 @@ impl AsyncCreator for SpinningTexturedCubeExample {
     }
 }
 
-impl Application for SpinningTexturedCubeExample {
+impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
         self.mesh
             .rotate_y(Angle::from_radians(TAU) / 450.0, Transform::Local);

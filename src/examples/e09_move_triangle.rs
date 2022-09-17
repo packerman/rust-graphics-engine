@@ -32,7 +32,7 @@ void main()
 }
 "##;
 
-pub struct MoveTriangleExample {
+pub struct Example {
     program: WebGlProgram,
     position: Attribute,
     model_matrix: Uniform,
@@ -44,7 +44,7 @@ pub struct MoveTriangleExample {
 const DELTA_TIME_SEC: f32 = 1_f32 / 60.0;
 
 #[async_trait(?Send)]
-impl AsyncCreator for MoveTriangleExample {
+impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
         gl::set_clear_color(context, &Color::black());
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
@@ -70,7 +70,7 @@ impl AsyncCreator for MoveTriangleExample {
             "projectionMatrix",
         )?;
 
-        Ok(MoveTriangleExample {
+        Ok(Example {
             program,
             position: position_attribute,
             model_matrix,
@@ -81,7 +81,7 @@ impl AsyncCreator for MoveTriangleExample {
     }
 }
 
-impl Application for MoveTriangleExample {
+impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         let move_amount = self.move_speed * DELTA_TIME_SEC;
         let turn_mount = self.turn_speed * DELTA_TIME_SEC;

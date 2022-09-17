@@ -12,11 +12,11 @@ use crate::core::{
 use super::{Material, MaterialSettings, RenderSetting};
 
 pub struct TextureMaterial {
-    base_color: Color,
-    repeat_uv: Vec2,
-    offset_uv: Vec2,
-    double_side: bool,
-    line_width: f32,
+    pub base_color: Color,
+    pub repeat_uv: Vec2,
+    pub offset_uv: Vec2,
+    pub double_side: bool,
+    pub line_width: f32,
 }
 
 impl Default for TextureMaterial {
