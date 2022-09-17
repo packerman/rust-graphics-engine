@@ -37,7 +37,7 @@ impl AsyncCreator for Example {
         let geometry = Geometry::from_with_context(context, Rectangle::default())?;
         let material = material::texture::create(
             context,
-            Texture::load_from_source(context, "images/set01/grid.png", Default::default()).await?,
+            Texture::load_from_source(context, "images/grid.png", Default::default()).await?,
             TextureUnit::from(0),
             Default::default(),
         )?;

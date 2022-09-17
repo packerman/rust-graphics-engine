@@ -7,6 +7,7 @@ use crate::{
         e05_two_triangles, e06_animate_triangle, e07_animate_triangle_time, e08_keyboard_input,
         e09_move_triangle, e0a_spinning_cube, e0b_axes_grid, e0c_movement_rig, e0d_texture,
         e0e_more_textures, e0f_spinning_textured_cube, e0g_spinning_textured_sphere, e0h_skysphere,
+        e0i_wave_texture,
     },
 };
 
@@ -34,6 +35,7 @@ fn examples() -> Vec<Box<dyn Fn()>> {
         Box::new(application::spawn::<e0f_spinning_textured_cube::Example>),
         Box::new(application::spawn::<e0g_spinning_textured_sphere::Example>),
         Box::new(application::spawn::<e0h_skysphere::Example>),
+        Box::new(application::spawn::<e0i_wave_texture::Example>),
     ]
 }
 

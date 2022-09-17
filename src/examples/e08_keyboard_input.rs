@@ -77,18 +77,19 @@ impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         let distance = SPEED / 60.0;
 
-        let translation = self.translation.array3_mut().unwrap();
-        if key_state.is_pressed("ArrowLeft") {
-            translation[0] -= distance;
-        }
-        if key_state.is_pressed("ArrowRight") {
-            translation[0] += distance;
-        }
-        if key_state.is_pressed("ArrowDown") {
-            translation[1] -= distance;
-        }
-        if key_state.is_pressed("ArrowUp") {
-            translation[1] += distance;
+        if let Some(translation) = self.translation.data_ref_mut().array3_mut() {
+            if key_state.is_pressed("ArrowLeft") {
+                translation[0] -= distance;
+            }
+            if key_state.is_pressed("ArrowRight") {
+                translation[0] += distance;
+            }
+            if key_state.is_pressed("ArrowDown") {
+                translation[1] -= distance;
+            }
+            if key_state.is_pressed("ArrowUp") {
+                translation[1] += distance;
+            }
         }
     }
 

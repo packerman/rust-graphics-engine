@@ -48,8 +48,7 @@ impl AsyncCreator for Example {
         )?;
         let material = material::texture::create(
             context,
-            Texture::load_from_source(context, "images/set01/earth.jpg", Default::default())
-                .await?,
+            Texture::load_from_source(context, "images/earth.jpg", Default::default()).await?,
             TextureUnit::from(0),
             Default::default(),
         )?;

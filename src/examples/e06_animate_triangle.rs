@@ -73,10 +73,11 @@ impl AsyncCreator for Example {
 
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
-        let translation = self.translation.array3_mut().unwrap();
-        translation[0] += 0.01;
-        if translation[0] > 1.2 {
-            translation[0] = -1.2;
+        if let Some(translation) = self.translation.data_ref_mut().array3_mut() {
+            translation[0] += 0.01;
+            if translation[0] > 1.2 {
+                translation[0] = -1.2;
+            }
         }
     }
 

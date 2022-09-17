@@ -1,7 +1,7 @@
 pub mod basic;
 pub mod texture;
 
-use std::{cell::RefCell, collections::HashMap};
+use std::collections::HashMap;
 
 use anyhow::Result;
 use glm::Mat4;
@@ -19,9 +19,9 @@ pub struct Material {
     uniforms: HashMap<String, Uniform>,
     render_settings: Vec<RenderSetting>,
     pub draw_style: u32,
-    model_matrix: RefCell<Uniform>,
-    view_matrix: RefCell<Uniform>,
-    projection_matrix: RefCell<Uniform>,
+    model_matrix: Uniform,
+    view_matrix: Uniform,
+    projection_matrix: Uniform,
 }
 
 impl Material {
@@ -62,9 +62,9 @@ impl Material {
         for uniform in self.uniforms.values() {
             uniform.upload_data(context);
         }
-        self.model_matrix.borrow().upload_data(context);
-        self.view_matrix.borrow().upload_data(context);
-        self.projection_matrix.borrow().upload_data(context);
+        self.model_matrix.upload_data(context);
+        self.view_matrix.upload_data(context);
+        self.projection_matrix.upload_data(context);
     }
 
     pub fn update_render_settings(&self, context: &WebGl2RenderingContext) {
@@ -73,17 +73,21 @@ impl Material {
         }
     }
 
-    fn set_matrix(uniform: &RefCell<Uniform>, matrix: Mat4) {
-        *uniform.borrow_mut().mat4_mut().unwrap() = matrix;
+    pub fn uniform(&self, name: &str) -> Option<&Uniform> {
+        self.uniforms.get(name)
+    }
+
+    fn set_matrix(uniform: &Uniform, matrix: Mat4) {
+        *uniform.data_ref_mut().mat4_mut().unwrap() = matrix;
     }
 }
 
 pub struct MaterialSettings<'a> {
-    vertex_shader: &'a str,
-    fragment_shader: &'a str,
-    uniforms: Vec<(&'a str, UniformData)>,
-    render_settings: Vec<RenderSetting>,
-    draw_style: u32,
+    pub vertex_shader: &'a str,
+    pub fragment_shader: &'a str,
+    pub uniforms: Vec<(&'a str, UniformData)>,
+    pub render_settings: Vec<RenderSetting>,
+    pub draw_style: u32,
 }
 
 impl FromWithContext<WebGl2RenderingContext, MaterialSettings<'_>> for Material {
@@ -102,24 +106,24 @@ impl FromWithContext<WebGl2RenderingContext, MaterialSettings<'_>> for Material 
                 ))
             })
             .collect();
-        let model_matrix = RefCell::new(Uniform::new_with_data(
+        let model_matrix = Uniform::new_with_data(
             context,
             UniformData::from(Mat4::default()),
             &program,
             "modelMatrix",
-        )?);
-        let view_matrix = RefCell::new(Uniform::new_with_data(
+        )?;
+        let view_matrix = Uniform::new_with_data(
             context,
             UniformData::from(Mat4::default()),
             &program,
             "viewMatrix",
-        )?);
-        let projection_matrix = RefCell::new(Uniform::new_with_data(
+        )?;
+        let projection_matrix = Uniform::new_with_data(
             context,
             UniformData::from(Mat4::default()),
             &program,
             "projectionMatrix",
-        )?);
+        )?;
         Ok(Material {
             program,
             uniforms: uniforms?.into_iter().collect(),

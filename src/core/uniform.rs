@@ -1,3 +1,5 @@
+use std::cell::{RefCell, RefMut};
+
 use anyhow::Result;
 use glm::{Mat4, Vec2};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
@@ -22,6 +24,34 @@ pub enum UniformData {
 impl UniformData {
     pub fn sampler2d(texture: Texture, unit: TextureUnit) -> Self {
         UniformData::Sampler2D { texture, unit }
+    }
+
+    pub fn array3_mut(&mut self) -> Option<&mut [f32; 3]> {
+        match self {
+            UniformData::Array3(data) => Some(data),
+            _ => None,
+        }
+    }
+
+    pub fn color_mut(&mut self) -> Option<&mut Color> {
+        match self {
+            UniformData::Color(data) => Some(data),
+            _ => None,
+        }
+    }
+
+    pub fn mat4_mut(&mut self) -> Option<&mut Mat4> {
+        match self {
+            UniformData::Mat4(data) => Some(data),
+            _ => None,
+        }
+    }
+
+    pub fn float_mut(&mut self) -> Option<&mut f32> {
+        match self {
+            UniformData::Float(data) => Some(data),
+            _ => None,
+        }
     }
 }
 
@@ -63,7 +93,7 @@ impl From<Vec2> for UniformData {
 
 #[derive(Clone)]
 pub struct Uniform {
-    pub data: UniformData,
+    data: RefCell<UniformData>,
     location: WebGlUniformLocation,
 }
 
@@ -75,13 +105,16 @@ impl Uniform {
         name: &str,
     ) -> Result<Self> {
         let location = gl::get_uniform_location(context, program, name)?;
-        let uniform = Uniform { data, location };
+        let uniform = Uniform {
+            data: RefCell::new(data),
+            location,
+        };
         Ok(uniform)
     }
 
     pub fn upload_data(&self, context: &WebGl2RenderingContext) {
         let location = Some(&self.location);
-        match &self.data {
+        match &*self.data.borrow() {
             UniformData::Boolean(data) => context.uniform1i(location, i32::from(*data)),
             UniformData::Float(data) => context.uniform1f(location, *data),
             UniformData::Array3(data) => context.uniform1fv_with_f32_array(location, data),
@@ -98,24 +131,7 @@ impl Uniform {
         }
     }
 
-    pub fn array3_mut(&mut self) -> Option<&mut [f32; 3]> {
-        match &mut self.data {
-            UniformData::Array3(data) => Some(data),
-            _ => None,
-        }
-    }
-
-    pub fn color_mut(&mut self) -> Option<&mut Color> {
-        match &mut self.data {
-            UniformData::Color(data) => Some(data),
-            _ => None,
-        }
-    }
-
-    pub fn mat4_mut(&mut self) -> Option<&mut Mat4> {
-        match &mut self.data {
-            UniformData::Mat4(data) => Some(data),
-            _ => None,
-        }
+    pub fn data_ref_mut(&self) -> RefMut<UniformData> {
+        self.data.borrow_mut()
     }
 }

@@ -16,3 +16,4 @@ pub mod e0e_more_textures;
 pub mod e0f_spinning_textured_cube;
 pub mod e0g_spinning_textured_sphere;
 pub mod e0h_skysphere;
+pub mod e0i_wave_texture;
