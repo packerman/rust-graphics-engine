@@ -5,7 +5,7 @@ use crate::examples::{
     e05_two_triangles, e06_animate_triangle, e07_animate_triangle_time, e08_keyboard_input,
     e09_move_triangle, e0a_spinning_cube, e0b_axes_grid, e0c_movement_rig, e0d_texture,
     e0e_more_textures, e0f_spinning_textured_cube, e0g_spinning_textured_sphere, e0h_skysphere,
-    e0i_wave_texture, e0j_blend_textures, e0k_distort_texture,
+    e0i_wave_texture, e0j_blend_textures, e0k_distort_texture, e0l_procedural_texture,
 };
 
 pub fn run_example() {
@@ -35,6 +35,7 @@ fn examples() -> Vec<Box<dyn Fn()>> {
         e0i_wave_texture::example(),
         e0j_blend_textures::example(),
         e0k_distort_texture::example(),
+        e0l_procedural_texture::example(),
     ]
 }
 
