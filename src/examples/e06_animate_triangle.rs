@@ -1,9 +1,12 @@
+use std::ops::DerefMut;
+
 use anyhow::Result;
 use async_trait::async_trait;
+use glm::Vec3;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::{Application, AsyncCreator},
+    application::{self, Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -30,7 +33,7 @@ void main()
 }
 "##;
 
-pub struct Example {
+struct Example {
     program: WebGlProgram,
     position: Attribute,
     translation: Uniform,
@@ -51,7 +54,7 @@ impl AsyncCreator for Example {
 
         let translation = Uniform::new_with_data(
             context,
-            UniformData::from([-0.5_f32, 0.0, 0.0]),
+            UniformData::from(glm::vec3(-0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
         )?;
@@ -73,10 +76,12 @@ impl AsyncCreator for Example {
 
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
-        let translation = self.translation.array3_mut().unwrap();
-        translation[0] += 0.01;
-        if translation[0] > 1.2 {
-            translation[0] = -1.2;
+        if let Ok(translation) = <&mut Vec3>::try_from(self.translation.data_ref_mut().deref_mut())
+        {
+            translation[0] += 0.01;
+            if translation[0] > 1.2 {
+                translation[0] = -1.2;
+            }
         }
     }
 
@@ -91,4 +96,8 @@ impl Application for Example {
             self.position.count(),
         );
     }
+}
+
+pub fn example() -> Box<dyn Fn()> {
+    Box::new(application::spawn::<Example>)
 }

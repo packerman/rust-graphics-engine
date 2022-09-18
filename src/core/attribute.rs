@@ -136,7 +136,7 @@ impl<const N: usize> From<&Vec<SVector<f32, N>>> for AttributeData {
 impl From<&Vec<Color>> for AttributeData {
     fn from(data: &Vec<Color>) -> Self {
         fn flatten_color(data: &[Color]) -> Vec<f32> {
-            data.iter().flat_map(|item| item.to_rgba_vec()).collect()
+            data.iter().flat_map(<Vec<f32>>::from).collect()
         }
         Self::new_with_flat_array(flatten_color(data), 4, data.len())
     }
@@ -145,7 +145,7 @@ impl From<&Vec<Color>> for AttributeData {
 impl<const N: usize> From<&[Color; N]> for AttributeData {
     fn from(data: &[Color; N]) -> Self {
         fn flatten_color<const N: usize>(data: &[Color; N]) -> Vec<f32> {
-            data.iter().flat_map(|item| item.to_rgba_vec()).collect()
+            data.iter().flat_map(<Vec<f32>>::from).collect()
         }
         Self::new_with_flat_array(flatten_color(data), 4, data.len())
     }

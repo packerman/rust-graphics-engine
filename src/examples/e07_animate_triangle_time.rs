@@ -1,9 +1,12 @@
+use std::ops::DerefMut;
+
 use anyhow::Result;
 use async_trait::async_trait;
+use glm::Vec3;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::{Application, AsyncCreator},
+    application::{self, Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -30,7 +33,7 @@ void main()
 }
 "##;
 
-pub struct Example {
+struct Example {
     program: WebGlProgram,
     position: Attribute,
     translation: Uniform,
@@ -52,7 +55,7 @@ impl AsyncCreator for Example {
 
         let translation = Uniform::new_with_data(
             context,
-            UniformData::from([-0.5_f32, 0.0, 0.0]),
+            UniformData::from(glm::vec3(-0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
         )?;
@@ -76,14 +79,16 @@ impl AsyncCreator for Example {
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
         let t = self.frame as f32 / 60.0;
-        let translation = self.translation.array3_mut().unwrap();
-        translation[0] = 0.75 * t.cos();
-        translation[1] = 0.75 * t.sin();
-
-        let color = self.base_color.color_mut().unwrap();
-        color[0] = (t.sin() + 1.0) / 2.0;
-        color[1] = ((t + 2.1).sin() + 1.0) / 2.0;
-        color[2] = ((t + 4.2).sin() + 1.0) / 2.0;
+        if let Ok(translation) = <&mut Vec3>::try_from(self.translation.data_ref_mut().deref_mut())
+        {
+            translation[0] = 0.75 * t.cos();
+            translation[1] = 0.75 * t.sin();
+        }
+        if let Ok(color) = <&mut Color>::try_from(self.base_color.data_ref_mut().deref_mut()) {
+            color[0] = (t.sin() + 1.0) / 2.0;
+            color[1] = ((t + 2.1).sin() + 1.0) / 2.0;
+            color[2] = ((t + 4.2).sin() + 1.0) / 2.0;
+        }
         self.frame += 1;
     }
 
@@ -98,4 +103,8 @@ impl Application for Example {
             self.position.count(),
         );
     }
+}
+
+pub fn example() -> Box<dyn Fn()> {
+    Box::new(application::spawn::<Example>)
 }

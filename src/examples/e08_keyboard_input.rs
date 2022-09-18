@@ -1,9 +1,12 @@
+use std::ops::DerefMut;
+
 use anyhow::Result;
 use async_trait::async_trait;
+use glm::Vec3;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::{Application, AsyncCreator},
+    application::{self, Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -30,7 +33,7 @@ void main()
 }
 "##;
 
-pub struct Example {
+struct Example {
     program: WebGlProgram,
     position: Attribute,
     translation: Uniform,
@@ -53,7 +56,7 @@ impl AsyncCreator for Example {
 
         let translation = Uniform::new_with_data(
             context,
-            UniformData::from([-0.5_f32, 0.0, 0.0]),
+            UniformData::from(glm::vec3(-0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
         )?;
@@ -77,18 +80,20 @@ impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         let distance = SPEED / 60.0;
 
-        let translation = self.translation.array3_mut().unwrap();
-        if key_state.is_pressed("ArrowLeft") {
-            translation[0] -= distance;
-        }
-        if key_state.is_pressed("ArrowRight") {
-            translation[0] += distance;
-        }
-        if key_state.is_pressed("ArrowDown") {
-            translation[1] -= distance;
-        }
-        if key_state.is_pressed("ArrowUp") {
-            translation[1] += distance;
+        if let Ok(translation) = <&mut Vec3>::try_from(self.translation.data_ref_mut().deref_mut())
+        {
+            if key_state.is_pressed("ArrowLeft") {
+                translation[0] -= distance;
+            }
+            if key_state.is_pressed("ArrowRight") {
+                translation[0] += distance;
+            }
+            if key_state.is_pressed("ArrowDown") {
+                translation[1] -= distance;
+            }
+            if key_state.is_pressed("ArrowUp") {
+                translation[1] += distance;
+            }
         }
     }
 
@@ -103,4 +108,8 @@ impl Application for Example {
             self.position.count(),
         );
     }
+}
+
+pub fn example() -> Box<dyn Fn()> {
+    Box::new(application::spawn::<Example>)
 }

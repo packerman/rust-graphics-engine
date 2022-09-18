@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
-    application::{Application, AsyncCreator},
+    application::{self, Application, AsyncCreator},
     camera::Camera,
     convert::FromWithContext,
     geometry::{BoxGeometry, Geometry},
@@ -18,7 +18,7 @@ use crate::core::{
     texture::{Texture, TextureUnit},
 };
 
-pub struct Example {
+struct Example {
     renderer: Renderer,
     scene: Rc<Node>,
     mesh: Rc<Node>,
@@ -39,8 +39,7 @@ impl AsyncCreator for Example {
         let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
         let material = material::texture::create(
             context,
-            Texture::load_from_source(context, "images/set01/crate.png", Default::default())
-                .await?,
+            Texture::load_from_source(context, "images/crate.png", Default::default()).await?,
             TextureUnit::from(0),
             Default::default(),
         )?;
@@ -68,4 +67,8 @@ impl Application for Example {
     fn render(&self, context: &WebGl2RenderingContext) {
         self.renderer.render(context, &self.scene, &self.camera)
     }
+}
+
+pub fn example() -> Box<dyn Fn()> {
+    Box::new(application::spawn::<Example>)
 }

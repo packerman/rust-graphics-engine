@@ -1,10 +1,12 @@
+use std::ops::DerefMut;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::{Application, AsyncCreator},
+    application::{self, Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -32,7 +34,7 @@ void main()
 }
 "##;
 
-pub struct Example {
+struct Example {
     program: WebGlProgram,
     position: Attribute,
     model_matrix: Uniform,
@@ -85,64 +87,67 @@ impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         let move_amount = self.move_speed * DELTA_TIME_SEC;
         let turn_mount = self.turn_speed * DELTA_TIME_SEC;
-        let model_matrix = self.model_matrix.mat4_mut().unwrap();
-        // global
-        if key_state.is_pressed("KeyW") {
-            let m = matrix::translation(0.0, move_amount, 0.0);
-            *model_matrix = m * *model_matrix;
-        }
-        if key_state.is_pressed("KeyS") {
-            let m = matrix::translation(0.0, -move_amount, 0.0);
-            *model_matrix = m * *model_matrix;
-        }
-        if key_state.is_pressed("KeyA") {
-            let m = matrix::translation(-move_amount, 0.0, 0.0);
-            *model_matrix = m * *model_matrix;
-        }
-        if key_state.is_pressed("KeyD") {
-            let m = matrix::translation(move_amount, 0.0, 0.0);
-            *model_matrix = m * *model_matrix;
-        }
-        if key_state.is_pressed("KeyZ") {
-            let m = matrix::translation(0.0, 0.0, move_amount);
-            *model_matrix = m * *model_matrix;
-        }
-        if key_state.is_pressed("KeyX") {
-            let m = matrix::translation(0.0, 0.0, -move_amount);
-            *model_matrix = m * *model_matrix;
-        }
-        if key_state.is_pressed("KeyQ") {
-            let m = matrix::rotation_z(turn_mount);
-            *model_matrix = m * *model_matrix;
-        }
-        if key_state.is_pressed("KeyE") {
-            let m = matrix::rotation_z(-turn_mount);
-            *model_matrix = m * *model_matrix;
-        }
-        // local
-        if key_state.is_pressed("KeyI") {
-            let m = matrix::translation(0.0, move_amount, 0.0);
-            *model_matrix *= m;
-        }
-        if key_state.is_pressed("KeyK") {
-            let m = matrix::translation(0.0, -move_amount, 0.0);
-            *model_matrix *= m;
-        }
-        if key_state.is_pressed("KeyJ") {
-            let m = matrix::translation(-move_amount, 0.0, 0.0);
-            *model_matrix *= m;
-        }
-        if key_state.is_pressed("KeyL") {
-            let m = matrix::translation(move_amount, 0.0, 0.0);
-            *model_matrix *= m;
-        }
-        if key_state.is_pressed("KeyU") {
-            let m = matrix::rotation_z(turn_mount);
-            *model_matrix *= m;
-        }
-        if key_state.is_pressed("KeyO") {
-            let m = matrix::rotation_z(-turn_mount);
-            *model_matrix *= m;
+        if let Ok(model_matrix) =
+            <&mut Mat4>::try_from(self.model_matrix.data_ref_mut().deref_mut())
+        {
+            // global
+            if key_state.is_pressed("KeyW") {
+                let m = matrix::translation(0.0, move_amount, 0.0);
+                *model_matrix = m * *model_matrix;
+            }
+            if key_state.is_pressed("KeyS") {
+                let m = matrix::translation(0.0, -move_amount, 0.0);
+                *model_matrix = m * *model_matrix;
+            }
+            if key_state.is_pressed("KeyA") {
+                let m = matrix::translation(-move_amount, 0.0, 0.0);
+                *model_matrix = m * *model_matrix;
+            }
+            if key_state.is_pressed("KeyD") {
+                let m = matrix::translation(move_amount, 0.0, 0.0);
+                *model_matrix = m * *model_matrix;
+            }
+            if key_state.is_pressed("KeyZ") {
+                let m = matrix::translation(0.0, 0.0, move_amount);
+                *model_matrix = m * *model_matrix;
+            }
+            if key_state.is_pressed("KeyX") {
+                let m = matrix::translation(0.0, 0.0, -move_amount);
+                *model_matrix = m * *model_matrix;
+            }
+            if key_state.is_pressed("KeyQ") {
+                let m = matrix::rotation_z(turn_mount);
+                *model_matrix = m * *model_matrix;
+            }
+            if key_state.is_pressed("KeyE") {
+                let m = matrix::rotation_z(-turn_mount);
+                *model_matrix = m * *model_matrix;
+            }
+            // local
+            if key_state.is_pressed("KeyI") {
+                let m = matrix::translation(0.0, move_amount, 0.0);
+                *model_matrix *= m;
+            }
+            if key_state.is_pressed("KeyK") {
+                let m = matrix::translation(0.0, -move_amount, 0.0);
+                *model_matrix *= m;
+            }
+            if key_state.is_pressed("KeyJ") {
+                let m = matrix::translation(-move_amount, 0.0, 0.0);
+                *model_matrix *= m;
+            }
+            if key_state.is_pressed("KeyL") {
+                let m = matrix::translation(move_amount, 0.0, 0.0);
+                *model_matrix *= m;
+            }
+            if key_state.is_pressed("KeyU") {
+                let m = matrix::rotation_z(turn_mount);
+                *model_matrix *= m;
+            }
+            if key_state.is_pressed("KeyO") {
+                let m = matrix::rotation_z(-turn_mount);
+                *model_matrix *= m;
+            }
         }
     }
 
@@ -155,4 +160,8 @@ impl Application for Example {
         self.model_matrix.upload_data(context);
         context.draw_arrays(WebGl2RenderingContext::TRIANGLES, 0, self.position.count());
     }
+}
+
+pub fn example() -> Box<dyn Fn()> {
+    Box::new(application::spawn::<Example>)
 }

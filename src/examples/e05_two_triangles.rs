@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::{Application, AsyncCreator},
+    application::{self, Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -30,7 +30,7 @@ void main()
 }
 "##;
 
-pub struct Example {
+struct Example {
     program: WebGlProgram,
     position: Attribute,
     translation1: Uniform,
@@ -53,13 +53,13 @@ impl AsyncCreator for Example {
 
         let translation1 = Uniform::new_with_data(
             context,
-            UniformData::from([-0.5_f32, 0.0, 0.0]),
+            UniformData::from(glm::vec3(-0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
         )?;
         let translation2 = Uniform::new_with_data(
             context,
-            UniformData::from([0.5_f32, 0.0, 0.0]),
+            UniformData::from(glm::vec3(0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
         )?;
@@ -108,4 +108,8 @@ impl Application for Example {
             self.position.count(),
         );
     }
+}
+
+pub fn example() -> Box<dyn Fn()> {
+    Box::new(application::spawn::<Example>)
 }
