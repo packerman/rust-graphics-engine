@@ -7,9 +7,6 @@ uniform mat4 modelMatrix;
 in vec3 vertexPosition;
 in vec2 vertexUV;
 
-uniform vec2 repeatUV;
-uniform vec2 offsetUV;
-
 out vec2 uv;
 
 void main() {
