@@ -1,5 +1,8 @@
+use std::ops::DerefMut;
+
 use anyhow::Result;
 use async_trait::async_trait;
+use glm::Vec3;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
@@ -76,11 +79,12 @@ impl AsyncCreator for Example {
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
         let t = self.frame as f32 / 60.0;
-        if let Some(translation) = self.translation.data_ref_mut().vec3_mut() {
+        if let Ok(translation) = <&mut Vec3>::try_from(self.translation.data_ref_mut().deref_mut())
+        {
             translation[0] = 0.75 * t.cos();
             translation[1] = 0.75 * t.sin();
         }
-        if let Some(color) = self.base_color.data_ref_mut().color_mut() {
+        if let Ok(color) = <&mut Color>::try_from(self.base_color.data_ref_mut().deref_mut()) {
             color[0] = (t.sin() + 1.0) / 2.0;
             color[1] = ((t + 2.1).sin() + 1.0) / 2.0;
             color[2] = ((t + 4.2).sin() + 1.0) / 2.0;

@@ -1,3 +1,5 @@
+use std::ops::DerefMut;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use glm::Mat4;
@@ -85,7 +87,9 @@ impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         let move_amount = self.move_speed * DELTA_TIME_SEC;
         let turn_mount = self.turn_speed * DELTA_TIME_SEC;
-        if let Some(model_matrix) = self.model_matrix.data_ref_mut().mat4_mut() {
+        if let Ok(model_matrix) =
+            <&mut Mat4>::try_from(self.model_matrix.data_ref_mut().deref_mut())
+        {
             // global
             if key_state.is_pressed("KeyW") {
                 let m = matrix::translation(0.0, move_amount, 0.0);

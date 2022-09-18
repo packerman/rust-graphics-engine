@@ -1,5 +1,8 @@
+use std::ops::DerefMut;
+
 use anyhow::Result;
 use async_trait::async_trait;
+use glm::Vec3;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
@@ -77,7 +80,8 @@ impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         let distance = SPEED / 60.0;
 
-        if let Some(translation) = self.translation.data_ref_mut().vec3_mut() {
+        if let Ok(translation) = <&mut Vec3>::try_from(self.translation.data_ref_mut().deref_mut())
+        {
             if key_state.is_pressed("ArrowLeft") {
                 translation[0] -= distance;
             }
