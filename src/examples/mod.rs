@@ -19,3 +19,4 @@ pub mod e0h_skysphere;
 pub mod e0i_wave_texture;
 pub mod e0j_blend_textures;
 pub mod e0k_distort_texture;
+pub mod e0l_random_texture;
