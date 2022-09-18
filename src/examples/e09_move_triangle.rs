@@ -4,7 +4,7 @@ use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::{Application, AsyncCreator},
+    application::{self, Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -32,7 +32,7 @@ void main()
 }
 "##;
 
-pub struct Example {
+struct Example {
     program: WebGlProgram,
     position: Attribute,
     model_matrix: Uniform,
@@ -156,4 +156,8 @@ impl Application for Example {
         self.model_matrix.upload_data(context);
         context.draw_arrays(WebGl2RenderingContext::TRIANGLES, 0, self.position.count());
     }
+}
+
+pub fn example() -> Box<dyn Fn()> {
+    Box::new(application::spawn::<Example>)
 }

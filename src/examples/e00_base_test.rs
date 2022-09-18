@@ -3,13 +3,13 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
-    application::{Application, AsyncCreator},
+    application::{self, Application, AsyncCreator},
     color::Color,
     gl,
     input::KeyState,
 };
 
-pub struct Example;
+struct Example;
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
@@ -25,4 +25,8 @@ impl Application for Example {
     fn render(&self, context: &WebGl2RenderingContext) {
         context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
     }
+}
+
+pub fn example() -> Box<dyn Fn()> {
+    Box::new(application::spawn::<Example>)
 }

@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::{Application, AsyncCreator},
+    application::{self, Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -32,7 +32,7 @@ void main()
 }
 "##;
 
-pub struct Example {
+struct Example {
     program: WebGlProgram,
     position_attribute: Attribute,
     #[allow(dead_code)]
@@ -90,4 +90,8 @@ impl Application for Example {
             self.position_attribute.count(),
         );
     }
+}
+
+pub fn example() -> Box<dyn Fn()> {
+    Box::new(application::spawn::<Example>)
 }

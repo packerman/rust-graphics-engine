@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
-    application::{Application, AsyncCreator},
+    application::{self, Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -28,7 +28,7 @@ void main()
 }
 "##;
 
-pub struct Example {
+struct Example {
     program: WebGlProgram,
     attribute: Attribute,
 }
@@ -67,4 +67,8 @@ impl Application for Example {
         context.use_program(Some(&self.program));
         context.draw_arrays(WebGl2RenderingContext::LINE_LOOP, 0, self.attribute.count());
     }
+}
+
+pub fn example() -> Box<dyn Fn()> {
+    Box::new(application::spawn::<Example>)
 }

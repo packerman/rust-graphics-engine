@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlVertexArrayObject};
 
 use crate::core::{
-    application::{Application, AsyncCreator},
+    application::{self, Application, AsyncCreator},
     attribute::{Attribute, AttributeData},
     color::Color,
     gl,
@@ -28,7 +28,7 @@ void main()
 }
 "##;
 
-pub struct Example {
+struct Example {
     program: WebGlProgram,
     triangle_position: Attribute,
     vao_triangle: WebGlVertexArrayObject,
@@ -93,4 +93,8 @@ impl Application for Example {
             self.square_position.count(),
         );
     }
+}
+
+pub fn example() -> Box<dyn Fn()> {
+    Box::new(application::spawn::<Example>)
 }
