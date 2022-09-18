@@ -33,11 +33,3 @@ float fractalRandom(vec2 uv, float scale) {
 
     return value;
 }
-
-in vec2 uv;
-out vec4 fragColor;
-
-void main() {
-    float r = fractalRandom(uv, 4.0);
-    fragColor = vec4(r, r, r, 1);
-}
