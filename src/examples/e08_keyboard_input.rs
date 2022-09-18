@@ -53,7 +53,7 @@ impl AsyncCreator for Example {
 
         let translation = Uniform::new_with_data(
             context,
-            UniformData::from([-0.5_f32, 0.0, 0.0]),
+            UniformData::from(glm::vec3(-0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
         )?;
@@ -77,7 +77,7 @@ impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         let distance = SPEED / 60.0;
 
-        if let Some(translation) = self.translation.data_ref_mut().array3_mut() {
+        if let Some(translation) = self.translation.data_ref_mut().vec3_mut() {
             if key_state.is_pressed("ArrowLeft") {
                 translation[0] -= distance;
             }

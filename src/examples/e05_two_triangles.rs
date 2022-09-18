@@ -53,13 +53,13 @@ impl AsyncCreator for Example {
 
         let translation1 = Uniform::new_with_data(
             context,
-            UniformData::from([-0.5_f32, 0.0, 0.0]),
+            UniformData::from(glm::vec3(-0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
         )?;
         let translation2 = Uniform::new_with_data(
             context,
-            UniformData::from([0.5_f32, 0.0, 0.0]),
+            UniformData::from(glm::vec3(0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
         )?;

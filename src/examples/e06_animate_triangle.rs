@@ -51,7 +51,7 @@ impl AsyncCreator for Example {
 
         let translation = Uniform::new_with_data(
             context,
-            UniformData::from([-0.5_f32, 0.0, 0.0]),
+            UniformData::from(glm::vec3(-0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
         )?;
@@ -73,7 +73,7 @@ impl AsyncCreator for Example {
 
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
-        if let Some(translation) = self.translation.data_ref_mut().array3_mut() {
+        if let Some(translation) = self.translation.data_ref_mut().vec3_mut() {
             translation[0] += 0.01;
             if translation[0] > 1.2 {
                 translation[0] = -1.2;

@@ -1,7 +1,7 @@
 use std::cell::{RefCell, RefMut};
 
 use anyhow::Result;
-use glm::{Mat4, Vec2};
+use glm::{Mat4, Vec2, Vec3};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
 use super::{
@@ -14,7 +14,7 @@ use super::{
 pub enum UniformData {
     Boolean(bool),
     Float(f32),
-    Array3([f32; 3]),
+    Vec3(Vec3),
     Color(Color),
     Mat4(Mat4),
     Sampler2D { texture: Texture, unit: TextureUnit },
@@ -26,9 +26,9 @@ impl UniformData {
         UniformData::Sampler2D { texture, unit }
     }
 
-    pub fn array3_mut(&mut self) -> Option<&mut [f32; 3]> {
+    pub fn vec3_mut(&mut self) -> Option<&mut Vec3> {
         match self {
-            UniformData::Array3(data) => Some(data),
+            UniformData::Vec3(data) => Some(data),
             _ => None,
         }
     }
@@ -67,9 +67,9 @@ impl From<f32> for UniformData {
     }
 }
 
-impl From<[f32; 3]> for UniformData {
-    fn from(data: [f32; 3]) -> Self {
-        UniformData::Array3(data)
+impl From<Vec3> for UniformData {
+    fn from(data: Vec3) -> Self {
+        UniformData::Vec3(data)
     }
 }
 
@@ -117,7 +117,7 @@ impl Uniform {
         match &*self.data.borrow() {
             UniformData::Boolean(data) => context.uniform1i(location, i32::from(*data)),
             UniformData::Float(data) => context.uniform1f(location, *data),
-            UniformData::Array3(data) => context.uniform1fv_with_f32_array(location, data),
+            UniformData::Vec3(data) => context.uniform3f(location, data.x, data.y, data.z),
             UniformData::Color(data) => {
                 context.uniform4f(location, data[0], data[1], data[2], data[3])
             }
