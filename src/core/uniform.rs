@@ -1,6 +1,7 @@
 use std::{
     cell::{RefCell, RefMut},
     convert::TryFrom,
+    ops::Deref,
 };
 
 use anyhow::{anyhow, Result};
@@ -133,7 +134,7 @@ impl Uniform {
 
     pub fn upload_data(&self, context: &WebGl2RenderingContext) {
         let location = Some(&self.location);
-        match &*self.data.borrow() {
+        match self.data.borrow().deref() {
             UniformData::Boolean(data) => context.uniform1i(location, i32::from(*data)),
             UniformData::Float(data) => context.uniform1f(location, *data),
             UniformData::Vec3(data) => context.uniform3f(location, data.x, data.y, data.z),

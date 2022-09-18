@@ -94,14 +94,6 @@ impl Color {
         Self::from_rgb(123, 104, 238)
     }
 
-    pub fn to_rgb_vec(self) -> Vec<f32> {
-        vec![self.0.x, self.0.y, self.0.z]
-    }
-
-    pub fn to_rgba_vec(self) -> Vec<f32> {
-        vec![self.0.x, self.0.y, self.0.z, self.0.w]
-    }
-
     fn from_rgb(red: u8, green: u8, blue: u8) -> Color {
         Self::new(
             f32::from(red) / 255.0,
@@ -112,15 +104,15 @@ impl Color {
     }
 }
 
-impl From<Color> for [f32; 3] {
-    fn from(color: Color) -> Self {
-        [color.0.x, color.0.y, color.0.z]
-    }
-}
-
 impl From<Color> for Vec3 {
     fn from(color: Color) -> Self {
         glm::vec4_to_vec3(&color.0)
+    }
+}
+
+impl From<&Color> for Vec<f32> {
+    fn from(color: &Color) -> Self {
+        vec![color.0.x, color.0.y, color.0.z, color.0.w]
     }
 }
 

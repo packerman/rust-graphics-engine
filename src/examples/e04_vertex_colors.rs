@@ -1,5 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
+use glm::Vec3;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
@@ -59,7 +60,7 @@ impl AsyncCreator for Example {
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
         position_attribute.associate_variable(context, &program, "position");
 
-        let color_data: [[f32; 3]; 6] = [
+        let color_data: Vec<Vec3> = vec![
             Color::red().into(),
             Color::dark_orange().into(),
             Color::yellow().into(),
