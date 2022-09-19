@@ -3,9 +3,9 @@ use anyhow::{anyhow, Result};
 use crate::examples::{
     e00_base_test, e01_point, e02_hexagon_lines, e03_two_shapes, e04_vertex_colors,
     e05_two_triangles, e06_animate_triangle, e07_animate_triangle_time, e08_keyboard_input,
-    e09_move_triangle, e0a_spinning_cube, e0b_axes_grid, e0c_movement_rig, e0d_texture,
-    e0e_more_textures, e0f_spinning_textured_cube, e0g_spinning_textured_sphere, e0h_skysphere,
-    e0i_wave_texture, e0j_blend_textures, e0k_distort_texture,
+    e09_move_triangle, e10_spinning_cube, e11_axes_grid, e12_movement_rig, e13_texture,
+    e14_more_textures, e15_spinning_textured_cube, e16_spinning_textured_sphere, e17_skysphere,
+    e18_wave_texture, e19_blend_textures, e20_distort_texture, e21_procedural_texture,
 };
 
 pub fn run_example() {
@@ -24,17 +24,18 @@ fn examples() -> Vec<Box<dyn Fn()>> {
         e07_animate_triangle_time::example(),
         e08_keyboard_input::example(),
         e09_move_triangle::example(),
-        e0a_spinning_cube::example(),
-        e0b_axes_grid::example(),
-        e0c_movement_rig::example(),
-        e0d_texture::example(),
-        e0e_more_textures::example(),
-        e0f_spinning_textured_cube::example(),
-        e0g_spinning_textured_sphere::example(),
-        e0h_skysphere::example(),
-        e0i_wave_texture::example(),
-        e0j_blend_textures::example(),
-        e0k_distort_texture::example(),
+        e10_spinning_cube::example(),
+        e11_axes_grid::example(),
+        e12_movement_rig::example(),
+        e13_texture::example(),
+        e14_more_textures::example(),
+        e15_spinning_textured_cube::example(),
+        e16_spinning_textured_sphere::example(),
+        e17_skysphere::example(),
+        e18_wave_texture::example(),
+        e19_blend_textures::example(),
+        e20_distort_texture::example(),
+        e21_procedural_texture::example(),
     ]
 }
 
