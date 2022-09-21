@@ -14,7 +14,7 @@ use crate::core::{
     mesh::Mesh,
     node::Node,
     renderer::Renderer,
-    texture::{Texture, TextureUnit},
+    texture::{Texture, TextureData, TextureUnit},
 };
 
 struct Example {
@@ -37,7 +37,11 @@ impl AsyncCreator for Example {
         let geometry = Geometry::from_with_context(context, Rectangle::default())?;
         let material = material::texture::create(
             context,
-            Texture::load_from_source(context, "images/grid.png", Default::default()).await?,
+            Texture::new(
+                context,
+                TextureData::load_from_source("images/grid.png").await?,
+                Default::default(),
+            )?,
             TextureUnit::from(0),
             Default::default(),
         )?;

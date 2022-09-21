@@ -14,7 +14,7 @@ use crate::core::{
     mesh::Mesh,
     node::Node,
     renderer::{Renderer, RendererOptions},
-    texture::{Texture, TextureUnit},
+    texture::{Texture, TextureData, TextureUnit},
     uniform::UniformData,
     web,
 };
@@ -47,24 +47,22 @@ impl AsyncCreator for Example {
                     (
                         "noise",
                         UniformData::sampler2d(
-                            Texture::load_from_source(
+                            Texture::new(
                                 context,
-                                "images/noise.png",
+                                TextureData::load_from_source("images/noise.png").await?,
                                 Default::default(),
-                            )
-                            .await?,
+                            )?,
                             TextureUnit::from(0),
                         ),
                     ),
                     (
                         "image",
                         UniformData::sampler2d(
-                            Texture::load_from_source(
+                            Texture::new(
                                 context,
-                                "images/grid.png",
+                                TextureData::load_from_source("images/grid.png").await?,
                                 Default::default(),
-                            )
-                            .await?,
+                            )?,
                             TextureUnit::from(1),
                         ),
                     ),
