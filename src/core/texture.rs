@@ -7,10 +7,7 @@ use web_sys::{
     HtmlCanvasElement, HtmlImageElement, WebGl2RenderingContext, WebGlTexture, WebGlUniformLocation,
 };
 
-use super::{
-    gl,
-    web::{self, document},
-};
+use super::{gl, web};
 
 #[derive(Clone, Copy)]
 pub struct TextureProperties {
@@ -104,9 +101,7 @@ impl TextureData {
     const TYPE: u32 = WebGl2RenderingContext::UNSIGNED_BYTE;
 
     pub async fn load_from_source(source: &str) -> Result<Self> {
-        self::load_image(source)
-            .await
-            .map(|image| Self::from(image))
+        self::load_image(source).await.map(Self::from)
     }
 
     pub fn tex_image_2d(
@@ -174,7 +169,7 @@ impl Texture {
             WebGl2RenderingContext::TEXTURE_2D,
             WebGl2RenderingContext::RGBA as i32,
             WebGl2RenderingContext::RGBA,
-        );
+        )?;
         context.generate_mipmap(WebGl2RenderingContext::TEXTURE_2D);
         self.properties.upload_data(context);
         Ok(())
@@ -209,7 +204,7 @@ pub async fn load_image(source: &str) -> Result<HtmlImageElement> {
     Ok(image)
 }
 
-struct TextTexture<'a> {
+pub struct TextTexture<'a> {
     width: u32,
     height: u32,
     // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/font
@@ -235,7 +230,7 @@ impl Default for TextTexture<'_> {
     }
 }
 
-fn make_text_texture(text: &str, text_texture: TextTexture) -> Result<HtmlCanvasElement> {
+pub fn make_text_canvas(text: &str, text_texture: TextTexture) -> Result<HtmlCanvasElement> {
     let canvas = web::new_canvas(text_texture.width, text_texture.height)?;
     let context = web::get_2d_context(&canvas)?;
     context.set_font(text_texture.font);
