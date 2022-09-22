@@ -271,7 +271,7 @@ impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
             let transform = matrix::translation(0.0, cylinder.height / 2.0, 0.0)
                 * matrix::rotation_y(-Angle::RIGHT)
                 * matrix::rotation_x(-Angle::RIGHT);
-            top_geometry.appply_matrix_mut(context, &transform, "vertexPosition")?;
+            top_geometry.apply_matrix_mut(context, &transform, "vertexPosition")?;
             geometry.merge_mut(context, top_geometry)?;
         }
         if cylinder.closed_bottom {
@@ -282,7 +282,7 @@ impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
             let transform = matrix::translation(0.0, -cylinder.height / 2.0, 0.0)
                 * matrix::rotation_y(-Angle::RIGHT)
                 * matrix::rotation_x(Angle::RIGHT);
-            bottom_geometry.appply_matrix_mut(context, &transform, "vertexPosition")?;
+            bottom_geometry.apply_matrix_mut(context, &transform, "vertexPosition")?;
             geometry.merge_mut(context, bottom_geometry)?;
         }
         Ok(geometry)

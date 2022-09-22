@@ -75,6 +75,7 @@ impl AsyncCreator for Example {
                 TextureData::try_from(TextTexture {
                     text: "Hello, World!",
                     font: "bold 36px sans-serif",
+                    font_style: "blue",
                     ..Default::default()
                 })?,
                 Default::default(),

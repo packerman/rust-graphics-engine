@@ -11,7 +11,7 @@ pub struct TextTexture<'a> {
     pub font: &'a str,
     pub text_align: &'a str,
     pub text_baseline: &'a str,
-    pub fill_style: &'a str,
+    pub font_style: &'a str,
     pub background_style: &'a str,
     pub border_style: &'a str,
     pub border_width: f64,
@@ -26,7 +26,7 @@ impl Default for TextTexture<'_> {
             font: "32px sans-serif",
             text_align: "center",
             text_baseline: "middle",
-            fill_style: "black",
+            font_style: "black",
             background_style: "white",
             border_style: "red",
             border_width: 1.0,
@@ -66,7 +66,7 @@ fn create_text_canvas(text_texture: TextTexture) -> Result<HtmlCanvasElement> {
     context.set_font(text_texture.font);
     context.set_text_align(text_texture.text_align);
     context.set_text_baseline(text_texture.text_baseline);
-    context.set_fill_style(&JsValue::from_str(text_texture.fill_style));
+    context.set_fill_style(&JsValue::from_str(text_texture.font_style));
     context
         .fill_text(
             text_texture.text,

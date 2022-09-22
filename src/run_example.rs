@@ -6,7 +6,7 @@ use crate::examples::{
     e09_move_triangle, e10_spinning_cube, e11_axes_grid, e12_movement_rig, e13_texture,
     e14_more_textures, e15_spinning_textured_cube, e16_spinning_textured_sphere, e17_skysphere,
     e18_wave_texture, e19_blend_textures, e20_distort_texture, e21_procedural_texture,
-    e22_text_texture,
+    e22_text_texture, e23_billboarding,
 };
 
 pub fn run_example() {
@@ -38,6 +38,7 @@ fn examples() -> Vec<Box<dyn Fn()>> {
         e20_distort_texture::example(),
         e21_procedural_texture::example(),
         e22_text_texture::example(),
+        e23_billboarding::example(),
     ]
 }
 

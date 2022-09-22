@@ -38,7 +38,7 @@ impl Geometry {
             .count()
     }
 
-    pub fn appply_matrix_mut(
+    pub fn apply_matrix_mut(
         &mut self,
         context: &WebGl2RenderingContext,
         matrix: &Mat4,

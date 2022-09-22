@@ -58,7 +58,7 @@ impl AsyncCreator for Example {
                 geometry,
                 Rc::clone(&material),
             )?));
-            mesh.appply_matrix(&matrix::translation(-3.0, -0.5, 0.0), Default::default());
+            mesh.apply_matrix(&matrix::translation(-3.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
         {
@@ -75,7 +75,7 @@ impl AsyncCreator for Example {
                 geometry,
                 Rc::clone(&material),
             )?));
-            mesh.appply_matrix(&matrix::translation(0.0, -0.5, 0.0), Default::default());
+            mesh.apply_matrix(&matrix::translation(0.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
         {
@@ -92,7 +92,7 @@ impl AsyncCreator for Example {
                 geometry,
                 Rc::clone(&material),
             )?));
-            mesh.appply_matrix(&matrix::translation(3.0, -0.5, 0.0), Default::default());
+            mesh.apply_matrix(&matrix::translation(3.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
 

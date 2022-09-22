@@ -3,7 +3,7 @@ use std::{
     ops::{Div, Mul, Neg},
 };
 
-use glm::Mat4;
+use glm::{Mat4, Vec3};
 
 pub fn identity() -> Mat4 {
     glm::identity()
@@ -124,4 +124,9 @@ impl From<Perspective> for Mat4 {
             perspective.far,
         )
     }
+}
+
+pub fn look_at(position: &Vec3, target: &Vec3) -> Mat4 {
+    let up = glm::vec3(0.0, 1.0, 0.0);
+    glm::look_at(position, target, &up)
 }
