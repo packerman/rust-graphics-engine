@@ -9,15 +9,15 @@ use crate::core::{
     camera::Camera,
     color::Color,
     convert::FromWithContext,
-    extras::GridHelper,
+    extras::{text_texture::TextTexture, GridHelper},
     geometry::{BoxGeometry, Geometry},
     input::KeyState,
     material,
     matrix::Angle,
     mesh::Mesh,
     node::Node,
-    renderer::Renderer,
-    texture::{self, Texture, TextureData, TextureUnit},
+    renderer::{Renderer, RendererOptions},
+    texture::{Texture, TextureData, TextureUnit},
 };
 
 struct Example {
@@ -29,13 +29,21 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
-        let renderer = Renderer::new_initialized(context, Default::default());
+        let renderer = Renderer::new(
+            context,
+            RendererOptions {
+                clear_color: Color::black(),
+                ..Default::default()
+            },
+        );
         let scene = Node::new_group();
 
         let camera = Rc::new(RefCell::new(Camera::default()));
         {
             let camera = Node::new_camera(Rc::clone(&camera));
-            camera.set_position(&glm::vec3(-1.5, 1.5, 3.0));
+            camera.rotate_y(Angle::from_degrees(-45.0), Default::default());
+            camera.rotate_x(Angle::from_degrees(-30.0), Default::default());
+            camera.set_position(&glm::vec3(-1.5, 1.5, 1.25));
             scene.add_child(&camera);
         }
         {
@@ -52,12 +60,23 @@ impl AsyncCreator for Example {
             scene.add_child(&grid);
         }
 
-        let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
+        let geometry = Geometry::from_with_context(
+            context,
+            BoxGeometry {
+                width: 1.25,
+                height: 1.25,
+                depth: 1.25,
+            },
+        )?;
         let material = material::texture::create(
             context,
             Texture::new(
                 context,
-                TextureData::from(texture::make_text_canvas("Hello", Default::default())?),
+                TextureData::try_from(TextTexture {
+                    text: "Hello, World!",
+                    font: "bold 36px sans-serif",
+                    ..Default::default()
+                })?,
                 Default::default(),
             )?,
             TextureUnit::from(0),
