@@ -1,4 +1,5 @@
 pub mod movement_rig;
+pub mod text_texture;
 
 use std::rc::Rc;
 

@@ -20,3 +20,5 @@ pub mod e18_wave_texture;
 pub mod e19_blend_textures;
 pub mod e20_distort_texture;
 pub mod e21_procedural_texture;
+pub mod e22_text_texture;
+pub mod e23_billboarding;

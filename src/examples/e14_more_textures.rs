@@ -18,7 +18,7 @@ use crate::core::{
     mesh::Mesh,
     node::Node,
     renderer::Renderer,
-    texture::{Texture, TextureUnit},
+    texture::{Texture, TextureData, TextureUnit},
 };
 
 struct Example {
@@ -30,7 +30,7 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
-        let renderer = Renderer::new_initialized(context, Default::default());
+        let renderer = Renderer::new(context, Default::default());
         let scene = Node::new_group();
 
         let camera = Rc::new(RefCell::new(Camera::default()));
@@ -43,7 +43,11 @@ impl AsyncCreator for Example {
 
         let material = Rc::new(material::texture::create(
             context,
-            Texture::load_from_source(context, "images/grid.png", Default::default()).await?,
+            Texture::new(
+                context,
+                TextureData::load_from_source("images/grid.png").await?,
+                Default::default(),
+            )?,
             TextureUnit::from(0),
             Default::default(),
         )?);
@@ -54,7 +58,7 @@ impl AsyncCreator for Example {
                 geometry,
                 Rc::clone(&material),
             )?));
-            mesh.appply_matrix(&matrix::translation(-3.0, -0.5, 0.0), Default::default());
+            mesh.apply_matrix(&matrix::translation(-3.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
         {
@@ -71,7 +75,7 @@ impl AsyncCreator for Example {
                 geometry,
                 Rc::clone(&material),
             )?));
-            mesh.appply_matrix(&matrix::translation(0.0, -0.5, 0.0), Default::default());
+            mesh.apply_matrix(&matrix::translation(0.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
         {
@@ -88,7 +92,7 @@ impl AsyncCreator for Example {
                 geometry,
                 Rc::clone(&material),
             )?));
-            mesh.appply_matrix(&matrix::translation(3.0, -0.5, 0.0), Default::default());
+            mesh.apply_matrix(&matrix::translation(3.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
 

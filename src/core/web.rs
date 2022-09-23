@@ -2,7 +2,8 @@ use anyhow::{anyhow, Result};
 use futures::Future;
 use wasm_bindgen::{closure::WasmClosureFnOnce, prelude::*, JsCast};
 use web_sys::{
-    Document, HtmlCanvasElement, HtmlImageElement, Performance, WebGl2RenderingContext, Window,
+    CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlImageElement, Performance,
+    WebGl2RenderingContext, Window,
 };
 
 // Straight taken from https://rustwasm.github.io/book/game-of-life/debugging.html
@@ -45,6 +46,15 @@ pub fn get_webgl2_context(canvas: &HtmlCanvasElement) -> Result<WebGl2RenderingC
         .ok_or_else(|| anyhow!("Cannot find webgl2 context"))?
         .dyn_into::<WebGl2RenderingContext>()
         .map_err(|err| anyhow!("Cannot cast element {:#?} to WebGl2RenderingContext", err))
+}
+
+pub fn get_2d_context(canvas: &HtmlCanvasElement) -> Result<CanvasRenderingContext2d> {
+    canvas
+        .get_context("2d")
+        .map_err(|err| anyhow!("Error when getting 2d context: {:#?}", err))?
+        .ok_or_else(|| anyhow!("Cannot find 2d context"))?
+        .dyn_into::<CanvasRenderingContext2d>()
+        .map_err(|err| anyhow!("Cannot cast element {:#?} to CanvasRenderingContext2d", err))
 }
 
 pub fn performance() -> Result<Performance> {
@@ -101,6 +111,17 @@ pub fn get_canvas(context: &WebGl2RenderingContext) -> Result<HtmlCanvasElement>
 
 pub fn new_image() -> Result<HtmlImageElement> {
     HtmlImageElement::new().map_err(|err| anyhow!("Cannot create HtmlImageElement: {:#?}", err))
+}
+
+pub fn new_canvas(width: u32, height: u32) -> Result<HtmlCanvasElement> {
+    let canvas = document()?
+        .create_element("canvas")
+        .map_err(|err| anyhow!("Cannot create HtmlCanvasElement: {:#?}", err))?
+        .dyn_into::<HtmlCanvasElement>()
+        .map_err(|err| anyhow!("Cannot cast element {:#?} to HtmlCanvasElement", err))?;
+    canvas.set_width(width);
+    canvas.set_height(height);
+    Ok(canvas)
 }
 
 pub fn closure_once<F, A, R>(f: F) -> Closure<F::FnMut>

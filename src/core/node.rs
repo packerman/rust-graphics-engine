@@ -5,7 +5,7 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use glm::{vec3, Mat4, Vec3};
+use glm::{Mat4, Vec3};
 
 use super::{
     camera::Camera,
@@ -130,7 +130,7 @@ impl Node {
         result
     }
 
-    pub fn appply_matrix(&self, matrix: &Mat4, transform: Transform) {
+    pub fn apply_matrix(&self, matrix: &Mat4, transform: Transform) {
         match transform {
             Transform::Local => self.transform.replace_with(|&mut old| old * matrix),
             Transform::Global => self.transform.replace_with(|&mut old| matrix * old),
@@ -145,41 +145,40 @@ impl Node {
 
     pub fn translate(&self, x: f32, y: f32, z: f32, transform: Transform) {
         let m = matrix::translation(x, y, z);
-        self.appply_matrix(&m, transform);
+        self.apply_matrix(&m, transform);
     }
 
     pub fn rotate_x(&self, angle: Angle, transform: Transform) {
         let m = matrix::rotation_x(angle);
-        self.appply_matrix(&m, transform);
+        self.apply_matrix(&m, transform);
     }
 
     pub fn rotate_y(&self, angle: Angle, transform: Transform) {
         let m = matrix::rotation_y(angle);
-        self.appply_matrix(&m, transform);
+        self.apply_matrix(&m, transform);
     }
 
     #[allow(dead_code)]
     pub fn rotate_z(&self, angle: Angle, transform: Transform) {
         let m = matrix::rotation_z(angle);
-        self.appply_matrix(&m, transform);
+        self.apply_matrix(&m, transform);
     }
 
     #[allow(dead_code)]
     pub fn scale(&self, s: f32, transform: Transform) {
         let m = matrix::scale(s);
-        self.appply_matrix(&m, transform);
+        self.apply_matrix(&m, transform);
     }
 
     #[allow(dead_code)]
-    pub fn get_position(&self) -> Vec3 {
+    pub fn position(&self) -> Vec3 {
         let transform = self.transform.borrow();
-        vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])
+        glm::vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])
     }
 
-    #[allow(dead_code)]
-    pub fn get_world_position(&self) -> Vec3 {
+    pub fn world_position(&self) -> Vec3 {
         let transform = self.world_matrix();
-        vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])
+        glm::vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])
     }
 
     pub fn set_position(&self, position: &Vec3) {
@@ -187,6 +186,10 @@ impl Node {
         transform[(0, 3)] = position[0];
         transform[(1, 3)] = position[1];
         transform[(2, 3)] = position[2];
+    }
+
+    pub fn look_at(&self, target: &Vec3) {
+        *self.transform.borrow_mut() = matrix::look_at(&self.world_position(), target);
     }
 
     fn create_parent_child_relation(&self, child: &Rc<Node>) {
@@ -207,5 +210,44 @@ impl Node {
             .borrow()
             .iter()
             .position(|node| ptr::eq(Rc::as_ptr(node), child))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn world_position_works() {
+        let node = Node::new_group();
+        node.apply_matrix(&matrix::translation(3.0, 5.0, 1.0), Default::default());
+        assert_eq!(node.world_position(), glm::vec3(3.0, 5.0, 1.0));
+    }
+
+    #[test]
+    fn look_at_works() {
+        let node = Node::new_group();
+        node.apply_matrix(&matrix::translation(0.0, 1.0, 0.0), Default::default());
+        assert_eq!(
+            node.world_matrix(),
+            glm::mat4(
+                1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0
+            )
+        );
+        node.look_at(&glm::vec3(0.0, 1.0, 5.0));
+        assert_eq!(
+            node.world_matrix(),
+            glm::mat4(
+                -1.0, 0.0, -0.0, 0.0, 0.0, 1.0, -0.0, 1.0, 0.0, -0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0
+            )
+        );
+        assert_eq!(node.world_position(), glm::vec3(0.0, 1.0, 0.0));
+        node.look_at(&glm::vec3(0.0, 1.0, 5.0));
+        assert_eq!(
+            node.world_matrix(),
+            glm::mat4(
+                -1.0, 0.0, -0.0, 0.0, 0.0, 1.0, -0.0, 1.0, 0.0, -0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0
+            )
+        );
     }
 }

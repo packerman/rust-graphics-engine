@@ -6,12 +6,16 @@ use super::{camera::Camera, color::Color, gl, node::Node, web};
 
 pub struct RendererOptions {
     pub clear_color: Color,
+    pub blending: bool,
+    pub flip_y: bool,
 }
 
 impl Default for RendererOptions {
     fn default() -> Self {
         Self {
             clear_color: Color::black(),
+            blending: true,
+            flip_y: true,
         }
     }
 }
@@ -19,17 +23,21 @@ impl Default for RendererOptions {
 pub struct Renderer;
 
 impl Renderer {
-    pub fn new_initialized(context: &WebGl2RenderingContext, options: RendererOptions) -> Self {
+    pub fn new(context: &WebGl2RenderingContext, options: RendererOptions) -> Self {
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
         gl::set_clear_color(context, &options.clear_color);
 
-        context.enable(WebGl2RenderingContext::BLEND);
-        context.blend_func(
-            WebGl2RenderingContext::SRC_ALPHA,
-            WebGl2RenderingContext::ONE_MINUS_SRC_ALPHA,
-        );
+        if options.blending {
+            context.enable(WebGl2RenderingContext::BLEND);
+            context.blend_func(
+                WebGl2RenderingContext::SRC_ALPHA,
+                WebGl2RenderingContext::ONE_MINUS_SRC_ALPHA,
+            );
+        }
 
-        context.pixel_storei(WebGl2RenderingContext::UNPACK_FLIP_Y_WEBGL, 1);
+        if options.flip_y {
+            context.pixel_storei(WebGl2RenderingContext::UNPACK_FLIP_Y_WEBGL, 1);
+        }
 
         Self
     }

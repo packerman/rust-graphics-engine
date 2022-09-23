@@ -22,6 +22,10 @@ impl Color {
         Self::from_rgb(128, 128, 128)
     }
 
+    pub fn dark_slate_gray() -> Color {
+        Self::from_rgb(47, 79, 79)
+    }
+
     pub fn black() -> Color {
         Self::from_rgb(0, 0, 0)
     }

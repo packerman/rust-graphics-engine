@@ -15,7 +15,7 @@ use crate::core::{
     mesh::Mesh,
     node::{Node, Transform},
     renderer::{Renderer, RendererOptions},
-    texture::{Texture, TextureUnit},
+    texture::{Texture, TextureData, TextureUnit},
 };
 
 struct Example {
@@ -28,7 +28,7 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
-        let renderer = Renderer::new_initialized(context, RendererOptions::default());
+        let renderer = Renderer::new(context, RendererOptions::default());
         let scene = Node::new_group();
 
         let camera = Rc::new(RefCell::new(Camera::default()));
@@ -48,7 +48,11 @@ impl AsyncCreator for Example {
         )?;
         let material = material::texture::create(
             context,
-            Texture::load_from_source(context, "images/earth.jpg", Default::default()).await?,
+            Texture::new(
+                context,
+                TextureData::load_from_source("images/earth.jpg").await?,
+                Default::default(),
+            )?,
             TextureUnit::from(0),
             Default::default(),
         )?;
