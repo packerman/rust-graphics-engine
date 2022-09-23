@@ -35,7 +35,7 @@ impl AsyncCreator for Example {
         let renderer = Renderer::new(
             context,
             RendererOptions {
-                clear_color: Color::gray(),
+                clear_color: Color::dark_slate_gray(),
                 ..Default::default()
             },
         );
@@ -74,8 +74,8 @@ fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
         context,
         TextureData::try_from(TextTexture {
             text: "This is a Crate.",
-            width: 256,
-            height: 128,
+            width: 320,
+            height: 160,
             border_width: 4.0,
             font: "bold 40px arial",
             font_style: "blue",

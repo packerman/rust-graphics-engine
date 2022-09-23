@@ -5,7 +5,7 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use glm::{vec3, Mat4, Vec3};
+use glm::{Mat4, Vec3};
 
 use super::{
     camera::Camera,
@@ -210,5 +210,44 @@ impl Node {
             .borrow()
             .iter()
             .position(|node| ptr::eq(Rc::as_ptr(node), child))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn world_position_works() {
+        let node = Node::new_group();
+        node.apply_matrix(&matrix::translation(3.0, 5.0, 1.0), Default::default());
+        assert_eq!(node.world_position(), glm::vec3(3.0, 5.0, 1.0));
+    }
+
+    #[test]
+    fn look_at_works() {
+        let node = Node::new_group();
+        node.apply_matrix(&matrix::translation(0.0, 1.0, 0.0), Default::default());
+        assert_eq!(
+            node.world_matrix(),
+            glm::mat4(
+                1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0
+            )
+        );
+        node.look_at(&glm::vec3(0.0, 1.0, 5.0));
+        assert_eq!(
+            node.world_matrix(),
+            glm::mat4(
+                -1.0, 0.0, -0.0, 0.0, 0.0, 1.0, -0.0, 1.0, 0.0, -0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0
+            )
+        );
+        assert_eq!(node.world_position(), glm::vec3(0.0, 1.0, 0.0));
+        node.look_at(&glm::vec3(0.0, 1.0, 5.0));
+        assert_eq!(
+            node.world_matrix(),
+            glm::mat4(
+                -1.0, 0.0, -0.0, 0.0, 0.0, 1.0, -0.0, 1.0, 0.0, -0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0
+            )
+        );
     }
 }

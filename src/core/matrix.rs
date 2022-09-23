@@ -127,6 +127,30 @@ impl From<Perspective> for Mat4 {
 }
 
 pub fn look_at(position: &Vec3, target: &Vec3) -> Mat4 {
-    let up = glm::vec3(0.0, 1.0, 0.0);
-    glm::look_at(position, target, &up)
+    let world_up = glm::vec3(0.0, 1.0, 0.0);
+    let forward = target - position;
+    let right = forward.cross(&world_up);
+    assert!(right.norm_squared() > 0.0);
+    let up = right.cross(&forward);
+    let forward = forward.normalize();
+    let right = right.normalize();
+    let up = up.normalize();
+    glm::mat4(
+        right[0],
+        up[0],
+        -forward[0],
+        position[0],
+        right[1],
+        up[1],
+        -forward[1],
+        position[1],
+        right[2],
+        up[2],
+        -forward[2],
+        position[2],
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+    )
 }
