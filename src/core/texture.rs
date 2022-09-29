@@ -176,7 +176,7 @@ impl Texture {
     }
 }
 
-pub async fn load_image(source: &str) -> Result<HtmlImageElement> {
+async fn load_image(source: &str) -> Result<HtmlImageElement> {
     let image = web::new_image()?;
     let (sender, receiver) = oneshot::channel::<Result<()>>();
     let success = Rc::new(Mutex::new(Some(sender)));

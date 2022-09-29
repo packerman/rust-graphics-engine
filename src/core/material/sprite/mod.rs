@@ -11,19 +11,21 @@ use crate::core::{
 
 use super::{Material, MaterialSettings, RenderSetting};
 
-pub struct TextureMaterial {
+pub struct SpriteMaterial {
     pub base_color: Color,
-    pub repeat_uv: Vec2,
-    pub offset_uv: Vec2,
+    pub billboard: bool,
+    pub tile_number: f32,
+    pub tile_count: Vec2,
     pub double_side: bool,
 }
 
-impl Default for TextureMaterial {
+impl Default for SpriteMaterial {
     fn default() -> Self {
         Self {
             base_color: Color::white(),
-            repeat_uv: glm::vec2(1.0, 1.0),
-            offset_uv: glm::vec2(0.0, 0.0),
+            billboard: false,
+            tile_number: -1.0,
+            tile_count: glm::vec2(1.0, 1.0),
             double_side: true,
         }
     }
@@ -33,7 +35,7 @@ pub fn create(
     context: &WebGl2RenderingContext,
     texture: Texture,
     unit: TextureUnit,
-    texture_material: TextureMaterial,
+    sprite_material: SpriteMaterial,
 ) -> Result<Material> {
     Material::from_with_context(
         context,
@@ -41,12 +43,13 @@ pub fn create(
             vertex_shader: include_str!("vertex.glsl"),
             fragment_shader: include_str!("fragment.glsl"),
             uniforms: vec![
-                ("baseColor", UniformData::from(texture_material.base_color)),
-                ("textureSampler", UniformData::sampler2d(texture, unit)),
-                ("repeatUV", UniformData::from(texture_material.repeat_uv)),
-                ("offsetUV", UniformData::from(texture_material.offset_uv)),
+                ("baseColor", UniformData::from(sprite_material.base_color)),
+                ("texture0", UniformData::sampler2d(texture, unit)),
+                ("billboard", UniformData::from(sprite_material.billboard)),
+                ("tileNumber", UniformData::from(sprite_material.tile_number)),
+                ("tileCount", UniformData::from(sprite_material.tile_count)),
             ],
-            render_settings: vec![RenderSetting::CullFace(!texture_material.double_side)],
+            render_settings: vec![RenderSetting::CullFace(!sprite_material.double_side)],
             draw_style: WebGl2RenderingContext::TRIANGLES,
         },
     )

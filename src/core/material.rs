@@ -1,4 +1,5 @@
 pub mod basic;
+pub mod sprite;
 pub mod texture;
 
 use std::{collections::HashMap, ops::DerefMut};
