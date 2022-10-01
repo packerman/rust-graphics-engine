@@ -1,7 +1,8 @@
 pub mod basic;
+pub mod sprite;
 pub mod texture;
 
-use std::{collections::HashMap, ops::DerefMut};
+use std::collections::HashMap;
 
 use anyhow::Result;
 use glm::Mat4;
@@ -78,8 +79,7 @@ impl Material {
     }
 
     fn set_matrix(uniform: &Uniform, matrix: Mat4) {
-        let mut data = uniform.data_ref_mut();
-        let m = <&mut Mat4>::try_from(data.deref_mut()).unwrap();
+        let mut m = uniform.mat4_mut().unwrap();
         *m = matrix;
     }
 }

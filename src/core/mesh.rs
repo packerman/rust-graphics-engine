@@ -47,6 +47,10 @@ impl Mesh {
         }
     }
 
+    pub fn material(&self) -> &Material {
+        &self.material
+    }
+
     fn vao(&self) -> &WebGlVertexArrayObject {
         &self.vao
     }

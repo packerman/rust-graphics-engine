@@ -23,9 +23,8 @@ use crate::core::{
 struct Example {
     renderer: Renderer,
     scene: Rc<Node>,
-    camera: Rc<RefCell<Camera>>,
     rig: Rc<Node>,
-    camera_node: Rc<Node>,
+    camera: Rc<Node>,
     label: Rc<Node>,
 }
 
@@ -41,12 +40,11 @@ impl AsyncCreator for Example {
         );
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
         let rig = Node::new_movement_rig(Default::default());
-        let camera_node = Node::new_camera(Rc::clone(&camera));
+        let camera = Node::new_camera(Rc::new(RefCell::new(Camera::default())));
         {
             rig.set_position(&glm::vec3(0.0, 1.0, 5.0));
-            rig.add_child(&camera_node);
+            rig.add_child(&camera);
             scene.add_child(&rig);
         }
         let label = self::create_label(context)?;
@@ -61,9 +59,8 @@ impl AsyncCreator for Example {
         Ok(Example {
             renderer,
             scene,
-            camera,
             rig,
-            camera_node,
+            camera,
             label,
         })
     }
@@ -124,11 +121,12 @@ async fn create_crate_mesh(context: &WebGl2RenderingContext) -> Result<Rc<Node>>
 impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         self.rig.update(key_state);
-        self.label.look_at(&self.camera_node.world_position());
+        self.label.look_at(&self.camera.world_position());
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.renderer.render(context, &self.scene, &self.camera)
+        self.renderer
+            .render(context, &self.scene, self.camera.camera().unwrap())
     }
 }
 

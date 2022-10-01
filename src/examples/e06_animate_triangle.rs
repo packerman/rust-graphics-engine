@@ -1,8 +1,5 @@
-use std::ops::DerefMut;
-
 use anyhow::Result;
 use async_trait::async_trait;
-use glm::Vec3;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use crate::core::{
@@ -76,8 +73,7 @@ impl AsyncCreator for Example {
 
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
-        if let Ok(translation) = <&mut Vec3>::try_from(self.translation.data_ref_mut().deref_mut())
-        {
+        if let Ok(mut translation) = self.translation.vec3_mut() {
             translation[0] += 0.01;
             if translation[0] > 1.2 {
                 translation[0] = -1.2;
