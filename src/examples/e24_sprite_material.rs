@@ -75,7 +75,6 @@ impl AsyncCreator for Example {
 
 impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
-        self.rig.update(key_state);
         let tile_number = ((web::now().unwrap() as f32) * self.tiles_per_second / 1000.0).floor();
         if let Some(mesh) = self.sprite.mesh() {
             if let Some(uniform) = mesh.material().uniform("tileNumber") {
@@ -84,6 +83,7 @@ impl Application for Example {
                 }
             }
         }
+        self.rig.update(key_state);
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
