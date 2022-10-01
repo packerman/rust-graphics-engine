@@ -1,10 +1,9 @@
 use std::{
     cell::{RefCell, RefMut},
-    convert::TryFrom,
     ops::Deref,
 };
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use glm::{Mat4, Vec2, Vec3};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
@@ -14,7 +13,7 @@ use super::{
     texture::{Texture, TextureUnit},
 };
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum UniformData {
     Boolean(bool),
     Float(f32),
@@ -28,6 +27,34 @@ pub enum UniformData {
 impl UniformData {
     pub fn sampler2d(texture: Texture, unit: TextureUnit) -> Self {
         UniformData::Sampler2D { texture, unit }
+    }
+
+    pub fn float_mut(&mut self) -> Option<&mut f32> {
+        match self {
+            UniformData::Float(data) => Some(data),
+            _ => None,
+        }
+    }
+
+    pub fn vec3_mut(&mut self) -> Option<&mut Vec3> {
+        match self {
+            UniformData::Vec3(data) => Some(data),
+            _ => None,
+        }
+    }
+
+    pub fn color_mut(&mut self) -> Option<&mut Color> {
+        match self {
+            UniformData::Color(data) => Some(data),
+            _ => None,
+        }
+    }
+
+    pub fn mat4_mut(&mut self) -> Option<&mut Mat4> {
+        match self {
+            UniformData::Mat4(data) => Some(data),
+            _ => None,
+        }
     }
 }
 
@@ -64,50 +91,6 @@ impl From<Mat4> for UniformData {
 impl From<Vec2> for UniformData {
     fn from(data: Vec2) -> Self {
         UniformData::Vec2(data)
-    }
-}
-
-impl<'a> TryFrom<&'a mut UniformData> for &'a mut Vec3 {
-    type Error = anyhow::Error;
-
-    fn try_from(value: &'a mut UniformData) -> Result<Self> {
-        match value {
-            UniformData::Vec3(data) => Ok(data),
-            _ => Err(anyhow!("Cannot convert uniform to vec3")),
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a mut UniformData> for &'a mut Color {
-    type Error = anyhow::Error;
-
-    fn try_from(value: &'a mut UniformData) -> Result<Self> {
-        match value {
-            UniformData::Color(data) => Ok(data),
-            _ => Err(anyhow!("Cannot convert uniform to color")),
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a mut UniformData> for &'a mut Mat4 {
-    type Error = anyhow::Error;
-
-    fn try_from(value: &'a mut UniformData) -> Result<Self> {
-        match value {
-            UniformData::Mat4(data) => Ok(data),
-            _ => Err(anyhow!("Cannot convert uniform to mat4")),
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a mut UniformData> for &'a mut f32 {
-    type Error = anyhow::Error;
-
-    fn try_from(value: &'a mut UniformData) -> Result<Self> {
-        match value {
-            UniformData::Float(data) => Ok(data),
-            _ => Err(anyhow!("Cannot convert uniform to f32")),
-        }
     }
 }
 
@@ -151,7 +134,19 @@ impl Uniform {
         }
     }
 
-    pub fn data_ref_mut(&self) -> RefMut<UniformData> {
-        self.data.borrow_mut()
+    pub fn float_mut(&self) -> Result<RefMut<f32>, RefMut<UniformData>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.float_mut())
+    }
+
+    pub fn vec3_mut(&self) -> Result<RefMut<Vec3>, RefMut<UniformData>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.vec3_mut())
+    }
+
+    pub fn color_mut(&self) -> Result<RefMut<Color>, RefMut<UniformData>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.color_mut())
+    }
+
+    pub fn mat4_mut(&self) -> Result<RefMut<Mat4>, RefMut<UniformData>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.mat4_mut())
     }
 }

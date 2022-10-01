@@ -1,4 +1,4 @@
-use std::{cell::RefCell, ops::DerefMut, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -78,7 +78,7 @@ impl Application for Example {
         let tile_number = ((web::now().unwrap() as f32) * self.tiles_per_second / 1000.0).floor();
         if let Some(mesh) = self.sprite.mesh() {
             if let Some(uniform) = mesh.material().uniform("tileNumber") {
-                if let Ok(data) = <&mut f32>::try_from(uniform.data_ref_mut().deref_mut()) {
+                if let Ok(mut data) = uniform.float_mut() {
                     *data = tile_number;
                 }
             }

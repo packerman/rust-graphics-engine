@@ -2,7 +2,7 @@ use std::ops::{Index, IndexMut};
 
 use glm::{Vec3, Vec4};
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Color(Vec4);
 
 impl Color {

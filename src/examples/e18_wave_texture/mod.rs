@@ -1,4 +1,4 @@
-use std::{cell::RefCell, ops::DerefMut, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -90,7 +90,7 @@ impl AsyncCreator for Example {
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
         if let Some(uniform) = self.wave_material.uniform("time") {
-            if let Ok(time) = <&mut f32>::try_from(uniform.data_ref_mut().deref_mut()) {
+            if let Ok(mut time) = uniform.float_mut() {
                 *time = (web::now().unwrap() / 1000.0) as f32;
             }
         }

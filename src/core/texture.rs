@@ -9,7 +9,7 @@ use web_sys::{
 
 use super::{gl, web};
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct TextureProperties {
     mag_filter: i32,
     min_filter: i32,
@@ -51,7 +51,7 @@ impl TextureProperties {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct TextureUnit {
     reference: u32,
     number: i32,
@@ -135,7 +135,7 @@ impl TextureData {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Texture {
     texture: WebGlTexture,
     properties: TextureProperties,
