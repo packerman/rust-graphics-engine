@@ -7,7 +7,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Result};
-use glm::Mat4;
+use glm::{Mat4, Vec2};
 use web_sys::WebGl2RenderingContext;
 
 use super::{
@@ -84,6 +84,8 @@ impl<const N: usize> FromWithContext<WebGl2RenderingContext, [(&str, AttributeDa
 pub struct Rectangle {
     pub width: f32,
     pub height: f32,
+    pub position: Vec2,
+    pub alignment: Vec2,
 }
 
 impl Default for Rectangle {
@@ -91,17 +93,33 @@ impl Default for Rectangle {
         Self {
             width: 1.0,
             height: 1.0,
+            position: glm::vec2(0.0, 0.0),
+            alignment: glm::vec2(0.5, 0.5),
         }
     }
 }
 
 impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, rectangle: Rectangle) -> Result<Self> {
+        let (x, y) = (rectangle.position.x, rectangle.position.y);
+        let (a, b) = (rectangle.alignment.x, rectangle.alignment.y);
         let points = [
-            [-rectangle.width / 2.0, -rectangle.height / 2.0, 0.0],
-            [rectangle.width / 2.0, -rectangle.height / 2.0, 0.0],
-            [-rectangle.width / 2.0, rectangle.height / 2.0, 0.0],
-            [rectangle.width / 2.0, rectangle.height / 2.0, 0.0],
+            [x + (-a) * rectangle.width, y + (-b) * rectangle.height, 0.0],
+            [
+                x + (1.0 - a) * rectangle.width,
+                y + (-b) * rectangle.height,
+                0.0,
+            ],
+            [
+                x + (-a) * rectangle.width,
+                y + (1.0 - b) * rectangle.height,
+                0.0,
+            ],
+            [
+                x + (1.0 - a) * rectangle.width,
+                y + (1.0 - b) * rectangle.height,
+                0.0,
+            ],
         ];
         let colors = [Color::white(), Color::red(), Color::lime(), Color::blue()];
         let uvs = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]];

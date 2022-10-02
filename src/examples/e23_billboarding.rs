@@ -91,6 +91,7 @@ fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
         Rectangle {
             width: 1.0,
             height: 0.5,
+            ..Default::default()
         },
     )?;
     geometry.apply_matrix_mut(
