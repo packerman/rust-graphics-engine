@@ -60,6 +60,7 @@ fn rectangle_mesh(
         Rectangle {
             width: 0.7,
             height: 0.7,
+            ..Default::default()
         },
     )?;
     let node = Node::new_mesh(Box::new(Mesh::new(context, geometry, Rc::new(material))?));

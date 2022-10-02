@@ -66,6 +66,7 @@ impl AsyncCreator for Example {
                 Rectangle {
                     width: 100.0,
                     height: 100.0,
+                    ..Default::default()
                 },
             )?;
             let material = Rc::new(material::texture::create(

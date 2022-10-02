@@ -19,6 +19,12 @@ macro_rules! error {
     }
 }
 
+macro_rules! debug {
+    ( $( $t:tt )* ) => {
+        web_sys::console::debug_1(&format!( $( $t )* ).into());
+    }
+}
+
 pub fn window() -> Result<Window> {
     web_sys::window().ok_or_else(|| anyhow!("Cannot find window"))
 }

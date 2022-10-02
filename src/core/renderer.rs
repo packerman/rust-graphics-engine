@@ -20,6 +20,32 @@ impl Default for RendererOptions {
     }
 }
 
+pub struct ClearBuffers {
+    pub color: bool,
+    pub depth: bool,
+}
+
+impl ClearBuffers {
+    pub const ALL: Self = Self {
+        color: true,
+        depth: true,
+    };
+
+    pub const DEPTH_ONLY: Self = Self {
+        color: false,
+        depth: true,
+    };
+
+    fn call(&self, context: &WebGl2RenderingContext) {
+        if self.color {
+            context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
+        }
+        if self.depth {
+            context.clear(WebGl2RenderingContext::DEPTH_BUFFER_BIT);
+        }
+    }
+}
+
 pub struct Renderer;
 
 impl Renderer {
@@ -43,10 +69,18 @@ impl Renderer {
     }
 
     pub fn render(&self, context: &WebGl2RenderingContext, scene: &Node, camera: &RefCell<Camera>) {
+        self.render_clear(context, scene, camera, ClearBuffers::ALL);
+    }
+
+    pub fn render_clear(
+        &self,
+        context: &WebGl2RenderingContext,
+        scene: &Node,
+        camera: &RefCell<Camera>,
+        clear_buffers: ClearBuffers,
+    ) {
+        clear_buffers.call(context);
         let canvas = web::get_canvas(context).unwrap();
-        context.clear(
-            WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT,
-        );
         let (width, height) = web::canvas_size(&canvas);
         context.viewport(0, 0, width as i32, height as i32);
         let nodes = scene.descendants();

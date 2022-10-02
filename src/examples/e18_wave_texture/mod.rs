@@ -67,6 +67,7 @@ impl AsyncCreator for Example {
                 Rectangle {
                     width: 1.5,
                     height: 1.5,
+                    ..Default::default()
                 },
             )?;
 

@@ -120,6 +120,7 @@ pub fn auto_resize_canvas(context: Rc<WebGl2RenderingContext>) -> Result<()> {
         if let Ok(window) = web::window() {
             if let Ok((width, height)) = web::window_inner_size(&window) {
                 if let Ok(canvas) = web::get_canvas(&context) {
+                    debug!("Canvas resize: {}x{}", width, height);
                     web::set_canvas_size(&canvas, (width as u32, height as u32))
                 }
             }

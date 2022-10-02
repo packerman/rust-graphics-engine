@@ -23,3 +23,4 @@ pub mod e21_procedural_texture;
 pub mod e22_text_texture;
 pub mod e23_billboarding;
 pub mod e24_sprite_material;
+pub mod e25_heads_up_display;
