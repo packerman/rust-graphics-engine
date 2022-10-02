@@ -23,17 +23,17 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new_perspective(projection: Perspective, view_matrix: Mat4) -> Self {
+    pub fn new_perspective(projection: Perspective) -> Self {
         Self {
             projection: Projection::Perspective(projection),
-            view_matrix,
+            view_matrix: matrix::identity(),
         }
     }
 
-    pub fn new_ortographic(projection: Ortographic, view_matrix: Mat4) -> Self {
+    pub fn new_ortographic(projection: Ortographic) -> Self {
         Self {
             projection: Projection::Ortographic(projection),
-            view_matrix,
+            view_matrix: matrix::identity(),
         }
     }
 
@@ -63,7 +63,7 @@ impl Camera {
 
 impl Default for Camera {
     fn default() -> Self {
-        Camera::new_perspective(Default::default(), matrix::identity())
+        Camera::new_perspective(Default::default())
     }
 }
 
