@@ -13,7 +13,7 @@ pub fn translation(x: f32, y: f32, z: f32) -> Mat4 {
     glm::translation(&glm::vec3(x, y, z))
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Angle {
     radians: f32,
 }
@@ -71,12 +71,10 @@ impl Neg for Angle {
     }
 }
 
-#[allow(dead_code)]
 pub fn rotation_x(angle: Angle) -> Mat4 {
     glm::rotation(angle.to_radians(), &glm::vec3(1.0, 0.0, 0.0))
 }
 
-#[allow(dead_code)]
 pub fn rotation_y(angle: Angle) -> Mat4 {
     glm::rotation(angle.to_radians(), &glm::vec3(0.0, 1.0, 0.0))
 }
@@ -90,7 +88,7 @@ pub fn scale(s: f32) -> Mat4 {
     glm::scaling(&glm::vec3(s, s, s))
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Perspective {
     pub aspect_ratio: f32,
     pub angle_of_view: Angle,
@@ -122,6 +120,42 @@ impl From<Perspective> for Mat4 {
             perspective.angle_of_view.to_radians(),
             perspective.near,
             perspective.far,
+        )
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Ortographic {
+    pub left: f32,
+    pub right: f32,
+    pub bottom: f32,
+    pub top: f32,
+    pub near: f32,
+    pub far: f32,
+}
+
+impl Default for Ortographic {
+    fn default() -> Self {
+        Self {
+            left: -1.0,
+            right: 1.0,
+            bottom: -1.0,
+            top: 1.0,
+            near: -1.0,
+            far: 1.0,
+        }
+    }
+}
+
+impl From<Ortographic> for Mat4 {
+    fn from(orto: Ortographic) -> Self {
+        glm::ortho(
+            orto.left,
+            orto.right,
+            orto.bottom,
+            orto.top,
+            orto.near,
+            orto.far,
         )
     }
 }
