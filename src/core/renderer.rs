@@ -115,6 +115,16 @@ impl Renderer {
             context.bind_framebuffer(WebGl2RenderingContext::FRAMEBUFFER, None);
             resolution = self::get_canvas_size(context);
         }
+        self.render_with_resolution(context, scene, camera, resolution)
+    }
+
+    fn render_with_resolution(
+        &self,
+        context: &WebGl2RenderingContext,
+        scene: &Node,
+        camera: &RefCell<Camera>,
+        resolution: (i32, i32),
+    ) {
         self::viewport(context, resolution);
 
         let nodes = scene.descendants();
