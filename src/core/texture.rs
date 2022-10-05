@@ -11,9 +11,9 @@ use super::{gl, web};
 
 #[derive(Debug, Clone)]
 pub struct TextureProperties {
-    mag_filter: i32,
-    min_filter: i32,
-    wrap: i32,
+    pub mag_filter: i32,
+    pub min_filter: i32,
+    pub wrap: i32,
 }
 
 impl Default for TextureProperties {
@@ -83,6 +83,7 @@ impl From<i32> for TextureUnit {
 pub enum TextureData {
     Image(HtmlImageElement),
     Canvas(HtmlCanvasElement),
+    Buffer { width: i32, height: i32 },
 }
 
 impl From<HtmlImageElement> for TextureData {
@@ -102,6 +103,10 @@ impl TextureData {
 
     pub async fn load_from_source(source: &str) -> Result<Self> {
         self::load_image(source).await.map(Self::from)
+    }
+
+    pub fn new_buffer(width: i32, height: i32) -> Self {
+        Self::Buffer { width, height }
     }
 
     pub fn tex_image_2d(
@@ -129,6 +134,18 @@ impl TextureData {
                     format,
                     Self::TYPE,
                     canvas,
+                ),
+            TextureData::Buffer {  width, height } => context
+                .tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_array_buffer_view(
+                    target,
+                    0,
+                    internal_format,
+                    *width,
+                    *height,
+                    0,
+                    format,
+                    Self::TYPE,
+                    None
                 ),
         };
         result.map_err(|err| anyhow!("Error when uploading texture data: {:#?}", err))

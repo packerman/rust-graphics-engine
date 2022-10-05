@@ -13,6 +13,7 @@ pub mod material;
 pub mod matrix;
 pub mod mesh;
 pub mod node;
+pub mod render_target;
 pub mod renderer;
 pub mod texture;
 pub mod uniform;

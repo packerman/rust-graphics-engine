@@ -96,12 +96,6 @@ pub struct Perspective {
     pub far: f32,
 }
 
-impl Perspective {
-    pub fn set_aspect_ratio(&mut self, width: u32, height: u32) {
-        self.aspect_ratio = (width as f32) / (height as f32);
-    }
-}
-
 impl Default for Perspective {
     fn default() -> Self {
         Self {

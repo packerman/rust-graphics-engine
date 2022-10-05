@@ -4,8 +4,8 @@ use anyhow::{anyhow, Ok, Result};
 
 use wasm_bindgen::JsValue;
 use web_sys::{
-    WebGl2RenderingContext, WebGlBuffer, WebGlProgram, WebGlShader, WebGlTexture,
-    WebGlUniformLocation, WebGlVertexArrayObject,
+    WebGl2RenderingContext, WebGlBuffer, WebGlFramebuffer, WebGlProgram, WebGlRenderbuffer,
+    WebGlShader, WebGlTexture, WebGlUniformLocation, WebGlVertexArrayObject,
 };
 
 use super::color::Color;
@@ -139,5 +139,26 @@ pub fn get_uniform_location(
 pub fn create_texture(context: &WebGl2RenderingContext) -> Result<WebGlTexture> {
     context
         .create_texture()
-        .ok_or_else(|| anyhow!("Cannot create buffer"))
+        .ok_or_else(|| anyhow!("Cannot create texture"))
+}
+
+pub fn create_framebuffer(context: &WebGl2RenderingContext) -> Result<WebGlFramebuffer> {
+    context
+        .create_framebuffer()
+        .ok_or_else(|| anyhow!("Cannot create framebuffer"))
+}
+
+pub fn create_renderbuffer(context: &WebGl2RenderingContext) -> Result<WebGlRenderbuffer> {
+    context
+        .create_renderbuffer()
+        .ok_or_else(|| anyhow!("Cannot create renderbuffer"))
+}
+
+pub fn check_framebuffer_status(context: &WebGl2RenderingContext, target: u32) -> Result<()> {
+    let status = context.check_framebuffer_status(target);
+    if status == WebGl2RenderingContext::FRAMEBUFFER_COMPLETE {
+        Ok(())
+    } else {
+        Err(anyhow!("Framebuffer error: {:#?}", status))
+    }
 }

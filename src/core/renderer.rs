@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use web_sys::WebGl2RenderingContext;
 
-use super::{camera::Camera, color::Color, gl, node::Node, web};
+use super::{camera::Camera, color::Color, gl, node::Node, render_target::RenderTarget, web};
 
 pub struct RendererOptions {
     pub clear_color: Color,
@@ -69,7 +69,7 @@ impl Renderer {
     }
 
     pub fn render(&self, context: &WebGl2RenderingContext, scene: &Node, camera: &RefCell<Camera>) {
-        self.render_clear(context, scene, camera, ClearBuffers::ALL);
+        self.render_generic(context, scene, camera, ClearBuffers::ALL, None);
     }
 
     pub fn render_clear(
@@ -79,15 +79,49 @@ impl Renderer {
         camera: &RefCell<Camera>,
         clear_buffers: ClearBuffers,
     ) {
+        self.render_generic(context, scene, camera, clear_buffers, None)
+    }
+
+    pub fn render_to_target(
+        &self,
+        context: &WebGl2RenderingContext,
+        scene: &Node,
+        camera: &RefCell<Camera>,
+        render_target: &RenderTarget,
+    ) {
+        self.render_generic(
+            context,
+            scene,
+            camera,
+            ClearBuffers::ALL,
+            Some(render_target),
+        );
+    }
+
+    pub fn render_generic(
+        &self,
+        context: &WebGl2RenderingContext,
+        scene: &Node,
+        camera: &RefCell<Camera>,
+        clear_buffers: ClearBuffers,
+        render_target: Option<&RenderTarget>,
+    ) {
         clear_buffers.call(context);
-        let canvas = web::get_canvas(context).unwrap();
-        let (width, height) = web::canvas_size(&canvas);
-        context.viewport(0, 0, width as i32, height as i32);
+        let resolution: (i32, i32);
+        if let Some(render_target) = render_target {
+            render_target.bind(context);
+            resolution = render_target.size();
+        } else {
+            context.bind_framebuffer(WebGl2RenderingContext::FRAMEBUFFER, None);
+            resolution = self::get_canvas_size(context);
+        }
+        self::viewport(context, resolution);
+
         let nodes = scene.descendants();
 
         for node in nodes.iter() {
             if let Some(camera) = node.camera() {
-                camera.borrow_mut().set_aspect_ratio(width, height);
+                camera.borrow_mut().set_aspect_ratio(resolution);
                 camera.borrow_mut().update_view_matrix(&node.world_matrix());
             }
         }
@@ -99,4 +133,14 @@ impl Renderer {
             }
         }
     }
+}
+
+fn get_canvas_size(context: &WebGl2RenderingContext) -> (i32, i32) {
+    let canvas = web::get_canvas(context).unwrap();
+    let (width, height) = web::canvas_size(&canvas);
+    (width as i32, height as i32)
+}
+
+fn viewport(context: &WebGl2RenderingContext, size: (i32, i32)) {
+    context.viewport(0, 0, size.0, size.1)
 }
