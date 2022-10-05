@@ -11,6 +11,7 @@ pub struct RenderTarget {
     width: i32,
     height: i32,
     framebuffer: WebGlFramebuffer,
+    texture: Texture,
 }
 
 impl RenderTarget {
@@ -20,6 +21,10 @@ impl RenderTarget {
 
     pub fn size(&self) -> (i32, i32) {
         (self.width, self.height)
+    }
+
+    pub fn texture(&self) -> &Texture {
+        &self.texture
     }
 }
 
@@ -67,6 +72,7 @@ impl RenderTarget {
             width,
             height,
             framebuffer,
+            texture,
         })
     }
 
