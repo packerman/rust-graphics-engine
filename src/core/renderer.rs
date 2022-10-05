@@ -20,35 +20,13 @@ impl Default for RendererOptions {
     }
 }
 
-pub struct ClearBuffers {
-    pub color: bool,
-    pub depth: bool,
-}
-
-impl ClearBuffers {
-    pub const ALL: Self = Self {
-        color: true,
-        depth: true,
-    };
-
-    pub const DEPTH_ONLY: Self = Self {
-        color: false,
-        depth: true,
-    };
-
-    fn call(&self, context: &WebGl2RenderingContext) {
-        if self.color {
-            context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
-        }
-        if self.depth {
-            context.clear(WebGl2RenderingContext::DEPTH_BUFFER_BIT);
-        }
-    }
-}
-
 pub struct Renderer;
 
 impl Renderer {
+    pub const CLEAR_ALL: u32 =
+        WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT;
+    pub const CLEAR_DEPTH_ONLY: u32 = WebGl2RenderingContext::DEPTH_BUFFER_BIT;
+
     pub fn new(context: &WebGl2RenderingContext, options: RendererOptions) -> Self {
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
         gl::set_clear_color(context, &options.clear_color);
@@ -69,7 +47,7 @@ impl Renderer {
     }
 
     pub fn render(&self, context: &WebGl2RenderingContext, scene: &Node, camera: &RefCell<Camera>) {
-        self.render_generic(context, scene, camera, ClearBuffers::ALL, None);
+        self.render_generic(context, scene, camera, Self::CLEAR_ALL, None);
     }
 
     pub fn render_clear(
@@ -77,9 +55,9 @@ impl Renderer {
         context: &WebGl2RenderingContext,
         scene: &Node,
         camera: &RefCell<Camera>,
-        clear_buffers: ClearBuffers,
+        clear_mask: u32,
     ) {
-        self.render_generic(context, scene, camera, clear_buffers, None)
+        self.render_generic(context, scene, camera, clear_mask, None)
     }
 
     pub fn render_to_target(
@@ -89,13 +67,7 @@ impl Renderer {
         camera: &RefCell<Camera>,
         render_target: &RenderTarget,
     ) {
-        self.render_generic(
-            context,
-            scene,
-            camera,
-            ClearBuffers::ALL,
-            Some(render_target),
-        );
+        self.render_generic(context, scene, camera, Self::CLEAR_ALL, Some(render_target));
     }
 
     pub fn render_generic(
@@ -103,10 +75,10 @@ impl Renderer {
         context: &WebGl2RenderingContext,
         scene: &Node,
         camera: &RefCell<Camera>,
-        clear_buffers: ClearBuffers,
+        clear_mask: u32,
         render_target: Option<&RenderTarget>,
     ) {
-        clear_buffers.call(context);
+        context.clear(clear_mask);
         let resolution: (i32, i32);
         if let Some(render_target) = render_target {
             render_target.bind(context);
@@ -151,6 +123,6 @@ fn get_canvas_size(context: &WebGl2RenderingContext) -> (i32, i32) {
     (width as i32, height as i32)
 }
 
-fn viewport(context: &WebGl2RenderingContext, size: (i32, i32)) {
-    context.viewport(0, 0, size.0, size.1)
+fn viewport(context: &WebGl2RenderingContext, resolution: (i32, i32)) {
+    context.viewport(0, 0, resolution.0, resolution.1)
 }

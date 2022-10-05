@@ -16,7 +16,7 @@ use crate::core::{
     matrix::{Angle, Ortographic},
     mesh::Mesh,
     node::Node,
-    renderer::{ClearBuffers, Renderer, RendererOptions},
+    renderer::{Renderer, RendererOptions},
     texture::{Texture, TextureData, TextureUnit},
 };
 
@@ -100,7 +100,7 @@ impl Application for Example {
             context,
             &self.hud_scene,
             &self.hud_camera,
-            ClearBuffers::DEPTH_ONLY,
+            Renderer::CLEAR_DEPTH_ONLY,
         );
     }
 }
