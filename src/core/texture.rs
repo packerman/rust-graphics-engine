@@ -49,6 +49,11 @@ impl TextureProperties {
             self.wrap,
         );
     }
+
+    fn has_mipmap_filter(&self) -> bool {
+        self.min_filter != WebGl2RenderingContext::LINEAR as i32
+            && self.min_filter != WebGl2RenderingContext::NEAREST as i32
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -175,19 +180,25 @@ impl Texture {
         Ok(texture)
     }
 
+    pub fn bind(&self, context: &WebGl2RenderingContext) {
+        context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, Some(self.texture()));
+    }
+
     pub fn texture(&self) -> &WebGlTexture {
         &self.texture
     }
 
     pub fn upload_data(&self, context: &WebGl2RenderingContext) -> Result<()> {
-        context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, Some(self.texture()));
+        self.bind(context);
         self.data.tex_image_2d(
             context,
             WebGl2RenderingContext::TEXTURE_2D,
             WebGl2RenderingContext::RGBA as i32,
             WebGl2RenderingContext::RGBA,
         )?;
-        context.generate_mipmap(WebGl2RenderingContext::TEXTURE_2D);
+        if self.properties.has_mipmap_filter() {
+            context.generate_mipmap(WebGl2RenderingContext::TEXTURE_2D);
+        }
         self.properties.upload_data(context);
         Ok(())
     }

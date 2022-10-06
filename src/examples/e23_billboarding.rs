@@ -67,7 +67,7 @@ impl AsyncCreator for Example {
 }
 
 fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
-    let texture = Texture::new(
+    let texture = Rc::new(Texture::new(
         context,
         TextureData::try_from(TextTexture {
             text: "This is a Crate.",
@@ -79,7 +79,7 @@ fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
             ..Default::default()
         })?,
         Default::default(),
-    )?;
+    )?);
     let material = Rc::new(material::texture::create(
         context,
         texture,
@@ -107,11 +107,11 @@ async fn create_crate_mesh(context: &WebGl2RenderingContext) -> Result<Rc<Node>>
     let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
     let material = Rc::new(material::texture::create(
         context,
-        Texture::new(
+        Rc::new(Texture::new(
             context,
             TextureData::load_from_source("images/crate.png").await?,
             Default::default(),
-        )?,
+        )?),
         TextureUnit::from(1),
         Default::default(),
     )?);

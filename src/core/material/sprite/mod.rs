@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use anyhow::Result;
 use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
@@ -33,7 +35,7 @@ impl Default for SpriteMaterial {
 
 pub fn create(
     context: &WebGl2RenderingContext,
-    texture: Texture,
+    texture: Rc<Texture>,
     unit: TextureUnit,
     sprite_material: SpriteMaterial,
 ) -> Result<Material> {

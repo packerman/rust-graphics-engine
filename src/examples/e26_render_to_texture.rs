@@ -33,12 +33,19 @@ struct Example {
     sky_camera: Rc<RefCell<Camera>>,
     sphere: Rc<Node>,
     render_target: RenderTarget,
+    screen: Rc<Node>,
 }
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
-        let renderer = Renderer::new(context, RendererOptions::default());
+        let renderer = Renderer::new(
+            context,
+            RendererOptions {
+                clear_color: Color::gray(),
+                ..Default::default()
+            },
+        );
         let scene = Node::new_group();
 
         let camera = Rc::new(RefCell::new(Camera::default()));
@@ -61,11 +68,11 @@ impl AsyncCreator for Example {
                 )?,
                 Rc::new(material::texture::create(
                     context,
-                    Texture::new(
+                    Rc::new(Texture::new(
                         context,
                         TextureData::load_from_source("images/sky-earth.jpg").await?,
                         Default::default(),
-                    )?,
+                    )?),
                     TextureUnit::from(0),
                     Default::default(),
                 )?),
@@ -85,11 +92,11 @@ impl AsyncCreator for Example {
                 )?,
                 Rc::new(material::texture::create(
                     context,
-                    Texture::new(
+                    Rc::new(Texture::new(
                         context,
                         TextureData::load_from_source("images/grass.jpg").await?,
                         Default::default(),
-                    )?,
+                    )?),
                     TextureUnit::from(1),
                     TextureMaterial {
                         repeat_uv: glm::vec2(50.0, 50.0),
@@ -105,11 +112,11 @@ impl AsyncCreator for Example {
             Geometry::from_with_context(context, Sphere::default())?,
             Rc::new(material::texture::create(
                 context,
-                Texture::new(
+                Rc::new(Texture::new(
                     context,
                     TextureData::load_from_source("images/grid.png").await?,
                     Default::default(),
-                )?,
+                )?),
                 TextureUnit::from(2),
                 Default::default(),
             )?),
@@ -144,31 +151,31 @@ impl AsyncCreator for Example {
             scene.add_child(&box_mesh);
         }
         let render_target = RenderTarget::new(context, 512, 512)?;
-        {
-            let screen = Node::new_mesh(Box::new(Mesh::new(
+        let screen = Node::new_mesh(Box::new(Mesh::new(
+            context,
+            Geometry::from_with_context(
                 context,
-                Geometry::from_with_context(
-                    context,
-                    Rectangle {
-                        width: 1.8,
-                        height: 1.8,
-                        ..Default::default()
-                    },
-                )?,
-                Rc::new(material::texture::create(
-                    context,
-                    render_target.texture().clone(),
-                    TextureUnit::from(3),
-                    Default::default(),
-                )?),
-            )?));
+                Rectangle {
+                    width: 1.8,
+                    height: 1.8,
+                    ..Default::default()
+                },
+            )?,
+            Rc::new(material::texture::create(
+                context,
+                Rc::clone(render_target.texture()),
+                TextureUnit::from(3),
+                Default::default(),
+            )?),
+        )?));
+        {
             screen.set_position(&glm::vec3(1.2, 1.0, 0.11));
             scene.add_child(&screen);
         }
         let sky_camera = Rc::new(RefCell::new(Camera::default()));
         {
             let sky_camera = Node::new_camera(Rc::clone(&sky_camera));
-            sky_camera.set_position(&glm::vec3(0.0, 10.0, 0.01));
+            sky_camera.set_position(&glm::vec3(0.0, 10.0, 0.1));
             sky_camera.look_at(&glm::vec3(0.0, 0.0, 0.0));
             scene.add_child(&sky_camera);
         }
@@ -181,6 +188,7 @@ impl AsyncCreator for Example {
             sky_camera,
             sphere,
             render_target,
+            screen,
         })
     }
 }
@@ -193,8 +201,10 @@ impl Application for Example {
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
+        self.scene.remove_child(&self.screen);
         self.renderer
             .render_to_target(context, &self.scene, &self.sky_camera, &self.render_target);
+        self.scene.add_child(&self.screen);
         self.renderer.render(context, &self.scene, &self.camera);
     }
 }
