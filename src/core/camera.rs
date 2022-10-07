@@ -17,6 +17,7 @@ impl From<Projection> for Mat4 {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Camera {
     projection: Projection,
     view_matrix: Mat4,

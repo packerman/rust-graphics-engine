@@ -78,7 +78,6 @@ impl Renderer {
         clear_mask: u32,
         render_target: Option<&RenderTarget>,
     ) {
-        context.clear(clear_mask);
         let resolution: (i32, i32);
         if let Some(render_target) = render_target {
             render_target.bind(context);
@@ -87,6 +86,7 @@ impl Renderer {
             context.bind_framebuffer(WebGl2RenderingContext::FRAMEBUFFER, None);
             resolution = self::get_canvas_size(context);
         }
+        context.clear(clear_mask);
         self.render_with_resolution(context, scene, camera, resolution)
     }
 

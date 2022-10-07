@@ -27,6 +27,7 @@ impl Default for Transform {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum NodeKind {
     Group,
     Mesh(Box<Mesh>),
@@ -34,6 +35,7 @@ pub enum NodeKind {
     MovementRig(Box<MovementRig>),
 }
 
+#[derive(Debug, Clone)]
 pub struct Node {
     me: Weak<Node>,
     transform: RefCell<Mat4>,

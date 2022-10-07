@@ -71,9 +71,6 @@ impl RenderTarget {
             Some(&depth_buffer),
         );
         gl::check_framebuffer_status(context, WebGl2RenderingContext::FRAMEBUFFER)?;
-        context.bind_framebuffer(WebGl2RenderingContext::FRAMEBUFFER, None);
-        context.bind_renderbuffer(WebGl2RenderingContext::RENDERBUFFER, None);
-        context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, None);
         Ok(RenderTarget {
             width,
             height,

@@ -33,19 +33,12 @@ struct Example {
     sky_camera: Rc<RefCell<Camera>>,
     sphere: Rc<Node>,
     render_target: RenderTarget,
-    screen: Rc<Node>,
 }
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
-        let renderer = Renderer::new(
-            context,
-            RendererOptions {
-                clear_color: Color::gray(),
-                ..Default::default()
-            },
-        );
+        let renderer = Renderer::new(context, RendererOptions::default());
         let scene = Node::new_group();
 
         let camera = Rc::new(RefCell::new(Camera::default()));
@@ -188,7 +181,6 @@ impl AsyncCreator for Example {
             sky_camera,
             sphere,
             render_target,
-            screen,
         })
     }
 }
@@ -201,10 +193,8 @@ impl Application for Example {
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.scene.remove_child(&self.screen);
         self.renderer
             .render_to_target(context, &self.scene, &self.sky_camera, &self.render_target);
-        self.scene.add_child(&self.screen);
         self.renderer.render(context, &self.scene, &self.camera);
     }
 }

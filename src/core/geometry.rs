@@ -17,6 +17,7 @@ use super::{
     matrix::Angle,
 };
 
+#[derive(Debug, Clone)]
 pub struct Geometry {
     attributes: HashMap<String, Attribute>,
 }

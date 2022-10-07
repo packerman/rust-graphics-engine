@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use crate::core::{application::Loop, input::KeyState, matrix::Angle, node::Node};
 
+#[derive(Debug, Clone)]
 pub struct Properties {
     pub linear_speed: f32,
     pub angular_speed: Angle,
@@ -36,6 +37,7 @@ impl Default for Properties {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct MovementRig {
     properties: Properties,
     look_attachment: Rc<Node>,

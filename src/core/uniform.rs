@@ -98,7 +98,7 @@ impl From<Vec2> for UniformData {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Uniform {
     data: RefCell<UniformData>,
     location: WebGlUniformLocation,

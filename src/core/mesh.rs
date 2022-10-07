@@ -6,6 +6,7 @@ use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
 use super::{camera::Camera, geometry::Geometry, gl, material::Material};
 
+#[derive(Debug, Clone)]
 pub struct Mesh {
     vao: WebGlVertexArrayObject,
     visible: bool,
