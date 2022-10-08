@@ -6,7 +6,7 @@ use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
 
 use super::{color::Color, gl};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DataKind {
     size: i32,
     gl_type: u32,
@@ -18,6 +18,7 @@ impl DataKind {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct AttributeData {
     data: Vec<f32>,
     kind: DataKind,
@@ -151,6 +152,7 @@ impl<const N: usize> From<&[Color; N]> for AttributeData {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Attribute {
     data: AttributeData,
     buffer: WebGlBuffer,

@@ -70,7 +70,7 @@ impl AsyncCreator for Example {
         )?;
         let material = material::texture::create(
             context,
-            Texture::new(
+            Rc::new(Texture::new(
                 context,
                 TextureData::try_from(TextTexture {
                     text: "Hello, World!",
@@ -79,7 +79,7 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 })?,
                 Default::default(),
-            )?,
+            )?),
             TextureUnit::from(0),
             Default::default(),
         )?;

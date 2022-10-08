@@ -49,11 +49,11 @@ impl AsyncCreator for Example {
             )?;
             let material = Rc::new(material::texture::create(
                 context,
-                Texture::new(
+                Rc::new(Texture::new(
                     context,
                     TextureData::load_from_source("images/sky-earth.jpg").await?,
                     Default::default(),
-                )?,
+                )?),
                 TextureUnit::from(0),
                 Default::default(),
             )?);
@@ -71,11 +71,11 @@ impl AsyncCreator for Example {
             )?;
             let material = Rc::new(material::texture::create(
                 context,
-                Texture::new(
+                Rc::new(Texture::new(
                     context,
                     TextureData::load_from_source("images/grass.jpg").await?,
                     Default::default(),
-                )?,
+                )?),
                 TextureUnit::from(1),
                 TextureMaterial {
                     repeat_uv: glm::vec2(50.0, 50.0),

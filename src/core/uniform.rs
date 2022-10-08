@@ -1,6 +1,7 @@
 use std::{
     cell::{RefCell, RefMut},
     ops::Deref,
+    rc::Rc,
 };
 
 use anyhow::Result;
@@ -20,12 +21,15 @@ pub enum UniformData {
     Vec3(Vec3),
     Color(Color),
     Mat4(Mat4),
-    Sampler2D { texture: Texture, unit: TextureUnit },
+    Sampler2D {
+        texture: Rc<Texture>,
+        unit: TextureUnit,
+    },
     Vec2(Vec2),
 }
 
 impl UniformData {
-    pub fn sampler2d(texture: Texture, unit: TextureUnit) -> Self {
+    pub fn sampler2d(texture: Rc<Texture>, unit: TextureUnit) -> Self {
         UniformData::Sampler2D { texture, unit }
     }
 
@@ -94,7 +98,7 @@ impl From<Vec2> for UniformData {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Uniform {
     data: RefCell<UniformData>,
     location: WebGlUniformLocation,

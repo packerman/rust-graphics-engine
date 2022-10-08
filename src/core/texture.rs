@@ -11,9 +11,9 @@ use super::{gl, web};
 
 #[derive(Debug, Clone)]
 pub struct TextureProperties {
-    mag_filter: i32,
-    min_filter: i32,
-    wrap: i32,
+    pub mag_filter: i32,
+    pub min_filter: i32,
+    pub wrap: i32,
 }
 
 impl Default for TextureProperties {
@@ -49,6 +49,11 @@ impl TextureProperties {
             self.wrap,
         );
     }
+
+    fn has_mipmap_filter(&self) -> bool {
+        self.min_filter != WebGl2RenderingContext::LINEAR as i32
+            && self.min_filter != WebGl2RenderingContext::NEAREST as i32
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -83,6 +88,7 @@ impl From<i32> for TextureUnit {
 pub enum TextureData {
     Image(HtmlImageElement),
     Canvas(HtmlCanvasElement),
+    Buffer { width: i32, height: i32 },
 }
 
 impl From<HtmlImageElement> for TextureData {
@@ -102,6 +108,10 @@ impl TextureData {
 
     pub async fn load_from_source(source: &str) -> Result<Self> {
         self::load_image(source).await.map(Self::from)
+    }
+
+    pub fn new_buffer(width: i32, height: i32) -> Self {
+        Self::Buffer { width, height }
     }
 
     pub fn tex_image_2d(
@@ -129,6 +139,18 @@ impl TextureData {
                     format,
                     Self::TYPE,
                     canvas,
+                ),
+            TextureData::Buffer {  width, height } => context
+                .tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_array_buffer_view(
+                    target,
+                    0,
+                    internal_format,
+                    *width,
+                    *height,
+                    0,
+                    format,
+                    Self::TYPE,
+                    None
                 ),
         };
         result.map_err(|err| anyhow!("Error when uploading texture data: {:#?}", err))
@@ -158,19 +180,25 @@ impl Texture {
         Ok(texture)
     }
 
+    pub fn bind(&self, context: &WebGl2RenderingContext) {
+        context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, Some(self.texture()));
+    }
+
     pub fn texture(&self) -> &WebGlTexture {
         &self.texture
     }
 
     pub fn upload_data(&self, context: &WebGl2RenderingContext) -> Result<()> {
-        context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, Some(self.texture()));
+        self.bind(context);
         self.data.tex_image_2d(
             context,
             WebGl2RenderingContext::TEXTURE_2D,
             WebGl2RenderingContext::RGBA as i32,
             WebGl2RenderingContext::RGBA,
         )?;
-        context.generate_mipmap(WebGl2RenderingContext::TEXTURE_2D);
+        if self.properties.has_mipmap_filter() {
+            context.generate_mipmap(WebGl2RenderingContext::TEXTURE_2D);
+        }
         self.properties.upload_data(context);
         Ok(())
     }

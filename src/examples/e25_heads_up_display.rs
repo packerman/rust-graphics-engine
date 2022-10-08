@@ -16,7 +16,7 @@ use crate::core::{
     matrix::{Angle, Ortographic},
     mesh::Mesh,
     node::Node,
-    renderer::{ClearBuffers, Renderer, RendererOptions},
+    renderer::{Renderer, RendererOptions},
     texture::{Texture, TextureData, TextureUnit},
 };
 
@@ -53,11 +53,11 @@ impl AsyncCreator for Example {
             let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
             let material = Rc::new(material::texture::create(
                 context,
-                Texture::new(
+                Rc::new(Texture::new(
                     context,
                     TextureData::load_from_source("images/crate.png").await?,
                     Default::default(),
-                )?,
+                )?),
                 TextureUnit::from(0),
                 Default::default(),
             )?);
@@ -100,7 +100,7 @@ impl Application for Example {
             context,
             &self.hud_scene,
             &self.hud_camera,
-            ClearBuffers::DEPTH_ONLY,
+            Renderer::CLEAR_DEPTH_ONLY,
         );
     }
 }
@@ -137,11 +137,11 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
             )?,
             Rc::new(material::texture::create(
                 context,
-                Texture::new(
+                Rc::new(Texture::new(
                     context,
                     TextureData::load_from_source("images/crate-sim.png").await?,
                     Default::default(),
-                )?,
+                )?),
                 TextureUnit::from(0),
                 Default::default(),
             )?),
@@ -162,11 +162,11 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
             )?,
             Rc::new(material::texture::create(
                 context,
-                Texture::new(
+                Rc::new(Texture::new(
                     context,
                     TextureData::load_from_source("images/version-1.png").await?,
                     Default::default(),
-                )?,
+                )?),
                 TextureUnit::from(1),
                 Default::default(),
             )?),

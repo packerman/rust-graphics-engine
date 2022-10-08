@@ -17,6 +17,7 @@ impl From<Projection> for Mat4 {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Camera {
     projection: Projection,
     view_matrix: Mat4,
@@ -46,9 +47,9 @@ impl Camera {
         }
     }
 
-    pub fn set_aspect_ratio(&mut self, width: u32, height: u32) {
+    pub fn set_aspect_ratio(&mut self, resolution: (i32, i32)) {
         if let Projection::Perspective(perspective) = &mut self.projection {
-            perspective.set_aspect_ratio(width, height);
+            perspective.aspect_ratio = resolution.0 as f32 / resolution.1 as f32;
         }
     }
 
@@ -83,7 +84,7 @@ mod tests {
     fn set_aspect_ratio_works() {
         let mut camera = Camera::default();
         assert_eq!(aspect_ratio(&camera).unwrap(), 1.0);
-        camera.set_aspect_ratio(800, 600);
+        camera.set_aspect_ratio((800, 600));
         assert_eq!(aspect_ratio(&camera).unwrap(), 1.3333334);
     }
 }
