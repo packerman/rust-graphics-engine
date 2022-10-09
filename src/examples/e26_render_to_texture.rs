@@ -50,9 +50,9 @@ impl AsyncCreator for Example {
             rig.set_position(&glm::vec3(0.0, 1.0, 4.0));
         }
         {
-            let sky = Node::new_mesh(Box::new(Mesh::new(
+            let sky = Node::new_mesh(Mesh::initialize(
                 context,
-                Geometry::from_with_context(
+                <Box<Geometry>>::from_with_context(
                     context,
                     Sphere {
                         radius: 50.0,
@@ -69,13 +69,13 @@ impl AsyncCreator for Example {
                     TextureUnit::from(0),
                     Default::default(),
                 )?,
-            )?));
+            )?);
             scene.add_child(&sky);
         }
         {
-            let grass = Node::new_mesh(Box::new(Mesh::new(
+            let grass = Node::new_mesh(Mesh::initialize(
                 context,
-                Geometry::from_with_context(
+                <Box<Geometry>>::from_with_context(
                     context,
                     Rectangle {
                         width: 100.0,
@@ -96,13 +96,13 @@ impl AsyncCreator for Example {
                         ..Default::default()
                     },
                 )?,
-            )?));
+            )?);
             grass.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grass);
         }
-        let sphere = Node::new_mesh(Box::new(Mesh::new(
+        let sphere = Node::new_mesh(Mesh::initialize(
             context,
-            Geometry::from_with_context(context, Sphere::default())?,
+            <Box<Geometry>>::from_with_context(context, Sphere::default())?,
             material::texture::create(
                 context,
                 Texture::initialize(
@@ -113,15 +113,15 @@ impl AsyncCreator for Example {
                 TextureUnit::from(2),
                 Default::default(),
             )?,
-        )?));
+        )?);
         {
             sphere.set_position(&glm::vec3(-1.2, 1.0, 0.0));
             scene.add_child(&sphere);
         }
         {
-            let box_mesh = Node::new_mesh(Box::new(Mesh::new(
+            let box_mesh = Node::new_mesh(Mesh::initialize(
                 context,
-                Geometry::from_with_context(
+                <Box<Geometry>>::from_with_context(
                     context,
                     BoxGeometry {
                         width: 2.0,
@@ -139,14 +139,14 @@ impl AsyncCreator for Example {
                         ..Default::default()
                     },
                 )?),
-            )?));
+            )?);
             box_mesh.set_position(&glm::vec3(1.2, 1.0, 0.0));
             scene.add_child(&box_mesh);
         }
         let render_target = RenderTarget::new(context, 512, 512)?;
-        let screen = Node::new_mesh(Box::new(Mesh::new(
+        let screen = Node::new_mesh(Mesh::initialize(
             context,
-            Geometry::from_with_context(
+            <Box<Geometry>>::from_with_context(
                 context,
                 Rectangle {
                     width: 1.8,
@@ -160,7 +160,7 @@ impl AsyncCreator for Example {
                 TextureUnit::from(3),
                 Default::default(),
             )?,
-        )?));
+        )?);
         {
             screen.set_position(&glm::vec3(1.2, 1.0, 0.11));
             scene.add_child(&screen);

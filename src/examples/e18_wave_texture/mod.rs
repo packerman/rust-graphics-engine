@@ -62,7 +62,7 @@ impl AsyncCreator for Example {
             },
         )?);
         {
-            let geometry = Geometry::from_with_context(
+            let geometry = <Box<Geometry>>::from_with_context(
                 context,
                 Rectangle {
                     width: 1.5,
@@ -71,11 +71,11 @@ impl AsyncCreator for Example {
                 },
             )?;
 
-            let mesh = Node::new_mesh(Box::new(Mesh::new(
+            let mesh = Node::new_mesh(Mesh::initialize(
                 context,
                 geometry,
                 Rc::clone(&wave_material),
-            )?));
+            )?);
             scene.add_child(&mesh);
         }
 

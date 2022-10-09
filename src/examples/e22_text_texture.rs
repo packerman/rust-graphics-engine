@@ -55,12 +55,12 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 },
             )?;
-            let grid = Node::new_mesh(Box::new(grid));
+            let grid = Node::new_mesh(grid);
             grid.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grid);
         }
 
-        let geometry = Geometry::from_with_context(
+        let geometry = <Box<Geometry>>::from_with_context(
             context,
             BoxGeometry {
                 width: 1.25,
@@ -83,7 +83,7 @@ impl AsyncCreator for Example {
             TextureUnit::from(0),
             Default::default(),
         )?;
-        let mesh = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
+        let mesh = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
         mesh.set_position(&glm::vec3(0.0, 0.5, 0.0));
         scene.add_child(&mesh);
         Ok(Example {

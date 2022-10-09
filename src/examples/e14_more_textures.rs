@@ -52,17 +52,13 @@ impl AsyncCreator for Example {
             Default::default(),
         )?);
         {
-            let geometry = Geometry::from_with_context(context, Sphere::default())?;
-            let mesh = Node::new_mesh(Box::new(Mesh::new(
-                context,
-                geometry,
-                Rc::clone(&material),
-            )?));
+            let geometry = <Box<Geometry>>::from_with_context(context, Sphere::default())?;
+            let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::clone(&material))?);
             mesh.apply_matrix(&matrix::translation(-3.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
         {
-            let geometry = Geometry::from_with_context(
+            let geometry = <Box<Geometry>>::from_with_context(
                 context,
                 Cone {
                     radius: 1.0,
@@ -70,16 +66,12 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 },
             )?;
-            let mesh = Node::new_mesh(Box::new(Mesh::new(
-                context,
-                geometry,
-                Rc::clone(&material),
-            )?));
+            let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::clone(&material))?);
             mesh.apply_matrix(&matrix::translation(0.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
         {
-            let geometry = Geometry::from_with_context(
+            let geometry = <Box<Geometry>>::from_with_context(
                 context,
                 Cylinder {
                     radius: 0.8,
@@ -87,11 +79,7 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 },
             )?;
-            let mesh = Node::new_mesh(Box::new(Mesh::new(
-                context,
-                geometry,
-                Rc::clone(&material),
-            )?));
+            let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::clone(&material))?);
             mesh.apply_matrix(&matrix::translation(3.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }

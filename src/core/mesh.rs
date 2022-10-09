@@ -10,14 +10,14 @@ use super::{camera::Camera, geometry::Geometry, gl, material::Material};
 pub struct Mesh {
     vao: WebGlVertexArrayObject,
     visible: bool,
-    geometry: Geometry,
+    geometry: Box<Geometry>,
     material: Rc<Material>,
 }
 
 impl Mesh {
-    pub fn new(
+    pub fn initialize(
         context: &WebGl2RenderingContext,
-        geometry: Geometry,
+        geometry: Box<Geometry>,
         material: Rc<Material>,
     ) -> Result<Self> {
         let vao = gl::create_vertex_array(context)?;

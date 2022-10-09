@@ -56,7 +56,7 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
             axes_helper.axis_colors[2],
             axes_helper.axis_colors[2],
         ];
-        let geometry = Geometry::from_with_context(
+        let geometry = <Box<Geometry>>::from_with_context(
             context,
             [
                 ("vertexPosition", AttributeData::from(&position_data)),
@@ -74,7 +74,7 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
                 line_type: LineType::Segments,
             },
         )?);
-        Mesh::new(context, geometry, material)
+        Mesh::initialize(context, geometry, material)
     }
 }
 
@@ -131,7 +131,7 @@ impl FromWithContext<WebGl2RenderingContext, GridHelper> for Mesh {
                 color_data.push(grid_helper.grid_color);
             }
         }
-        let geometry = Geometry::from_with_context(
+        let geometry = <Box<Geometry>>::from_with_context(
             context,
             [
                 ("vertexPosition", AttributeData::from(&position_data)),
@@ -149,6 +149,6 @@ impl FromWithContext<WebGl2RenderingContext, GridHelper> for Mesh {
                 line_type: LineType::Segments,
             },
         )?);
-        Mesh::new(context, geometry, material)
+        Mesh::initialize(context, geometry, material)
     }
 }

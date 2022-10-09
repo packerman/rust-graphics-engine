@@ -34,17 +34,17 @@ impl AsyncCreator for Example {
         camera_node.set_position(&glm::vec3(0.5, 1.0, 5.0));
         scene.add_child(&camera_node);
 
-        let axes = Box::new(Mesh::from_with_context(
+        let axes = Mesh::from_with_context(
             context,
             AxesHelper {
                 axis_length: 2.0,
                 ..Default::default()
             },
-        )?);
+        )?;
         let axes = Node::new_mesh(axes);
         scene.add_child(&axes);
 
-        let grid = Box::new(Mesh::from_with_context(
+        let grid = Mesh::from_with_context(
             context,
             GridHelper {
                 size: 20.0,
@@ -52,7 +52,7 @@ impl AsyncCreator for Example {
                 center_color: Color::yellow(),
                 ..Default::default()
             },
-        )?);
+        )?;
         let grid = Node::new_mesh(grid);
         grid.rotate_x(-Angle::RIGHT, Transform::default());
         scene.add_child(&grid);

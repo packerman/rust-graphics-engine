@@ -55,10 +55,7 @@ impl AsyncCreator for Example {
             scene.add_child(&sprite);
         }
         {
-            let grid = Node::new_mesh(Box::new(Mesh::from_with_context(
-                context,
-                GridHelper::default(),
-            )?));
+            let grid = Node::new_mesh(Mesh::from_with_context(context, GridHelper::default())?);
             grid.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grid);
         }
@@ -96,7 +93,7 @@ pub fn example() -> Box<dyn Fn()> {
 }
 
 async fn create_sprite(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
-    let geometry = Geometry::from_with_context(context, Rectangle::default())?;
+    let geometry = <Box<Geometry>>::from_with_context(context, Rectangle::default())?;
     let tile_set = Texture::initialize(
         context,
         TextureData::load_from_source("images/rolling-ball.png").await?,
@@ -113,6 +110,6 @@ async fn create_sprite(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
             ..Default::default()
         },
     )?);
-    let sprite = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
+    let sprite = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
     Ok(sprite)
 }

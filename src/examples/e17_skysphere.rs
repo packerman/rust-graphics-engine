@@ -40,7 +40,7 @@ impl AsyncCreator for Example {
             rig.set_position(&glm::vec3(0.0, 1.0, 4.0));
         }
         {
-            let geometry = Geometry::from_with_context(
+            let geometry = <Box<Geometry>>::from_with_context(
                 context,
                 Sphere {
                     radius: 50.0,
@@ -57,11 +57,11 @@ impl AsyncCreator for Example {
                 TextureUnit::from(0),
                 Default::default(),
             )?;
-            let sky = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
+            let sky = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
             scene.add_child(&sky);
         }
         {
-            let geometry = Geometry::from_with_context(
+            let geometry = <Box<Geometry>>::from_with_context(
                 context,
                 Rectangle {
                     width: 100.0,
@@ -82,7 +82,7 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 },
             )?;
-            let grass = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
+            let grass = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
             grass.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grass);
         }

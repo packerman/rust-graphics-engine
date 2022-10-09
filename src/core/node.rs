@@ -30,7 +30,7 @@ impl Default for Transform {
 #[derive(Debug, Clone)]
 pub enum NodeKind {
     Group,
-    Mesh(Box<Mesh>),
+    Mesh(Mesh),
     Camera(Rc<RefCell<Camera>>),
     MovementRig(Box<MovementRig>),
 }
@@ -49,7 +49,7 @@ impl Node {
         Self::new(NodeKind::Group)
     }
 
-    pub fn new_mesh(mesh: Box<Mesh>) -> Rc<Self> {
+    pub fn new_mesh(mesh: Mesh) -> Rc<Self> {
         Self::new(NodeKind::Mesh(mesh))
     }
 

@@ -38,7 +38,7 @@ impl AsyncCreator for Example {
             scene.add_child(&camera);
         }
 
-        let geometry = Geometry::from_with_context(
+        let geometry = <Box<Geometry>>::from_with_context(
             context,
             Sphere {
                 radius_segments: 64,
@@ -56,7 +56,7 @@ impl AsyncCreator for Example {
             TextureUnit::from(0),
             Default::default(),
         )?;
-        let mesh = Box::new(Mesh::new(context, geometry, material)?);
+        let mesh = Mesh::initialize(context, geometry, material)?;
         let mesh = Node::new_mesh(mesh);
         scene.add_child(&mesh);
 

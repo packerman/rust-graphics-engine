@@ -50,7 +50,7 @@ impl AsyncCreator for Example {
             scene.add_child(&rig);
         }
         {
-            let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
+            let geometry = <Box<Geometry>>::from_with_context(context, BoxGeometry::default())?;
             let material = material::texture::create(
                 context,
                 Texture::initialize(
@@ -61,19 +61,19 @@ impl AsyncCreator for Example {
                 TextureUnit::from(0),
                 Default::default(),
             )?;
-            let crate_mesh = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
+            let crate_mesh = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
             crate_mesh.set_position(&glm::vec3(0.0, 0.5, 0.0));
             scene.add_child(&crate_mesh);
         }
         {
-            let grid = Node::new_mesh(Box::new(Mesh::from_with_context(
+            let grid = Node::new_mesh(Mesh::from_with_context(
                 context,
                 GridHelper {
                     grid_color: Color::white(),
                     center_color: Color::yellow(),
                     ..Default::default()
                 },
-            )?));
+            )?);
             grid.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grid);
         }
@@ -124,9 +124,9 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
         scene.add_child(&camera);
     }
     {
-        let label1 = Node::new_mesh(Box::new(Mesh::new(
+        let label1 = Node::new_mesh(Mesh::initialize(
             context,
-            Geometry::from_with_context(
+            <Box<Geometry>>::from_with_context(
                 context,
                 Rectangle {
                     width: 600.0,
@@ -145,13 +145,13 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
                 TextureUnit::from(0),
                 Default::default(),
             )?,
-        )?));
+        )?);
         scene.add_child(&label1);
     }
     {
-        let label2 = Node::new_mesh(Box::new(Mesh::new(
+        let label2 = Node::new_mesh(Mesh::initialize(
             context,
-            Geometry::from_with_context(
+            <Box<Geometry>>::from_with_context(
                 context,
                 Rectangle {
                     width: 400.0,
@@ -170,7 +170,7 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
                 TextureUnit::from(1),
                 Default::default(),
             )?,
-        )?));
+        )?);
         scene.add_child(&label2);
     }
     Ok((scene, camera))
