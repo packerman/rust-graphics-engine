@@ -29,7 +29,7 @@ impl AsyncCreator for Example {
         let renderer = Renderer::new(context, Default::default());
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera = Camera::new_perspective(Default::default());
         let camera_node = Node::new_camera(Rc::clone(&camera));
         camera_node.set_position(&glm::vec3(0.0, 0.0, 1.0));
         scene.add_child(&camera_node);

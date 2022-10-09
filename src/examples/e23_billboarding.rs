@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -41,7 +41,7 @@ impl AsyncCreator for Example {
         let scene = Node::new_group();
 
         let rig = Node::new_movement_rig(Default::default());
-        let camera = Node::new_camera(Rc::new(RefCell::new(Camera::default())));
+        let camera = Node::new_camera(Camera::new_perspective(Default::default()));
         {
             rig.set_position(&glm::vec3(0.0, 1.0, 5.0));
             rig.add_child(&camera);

@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use glm::Mat4;
 
 use super::matrix::{self, Ortographic, Perspective};
@@ -24,18 +26,19 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new_perspective(projection: Perspective) -> Self {
-        Self {
-            projection: Projection::Perspective(projection),
+    fn new(projection: Projection) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(Self {
+            projection,
             view_matrix: matrix::identity(),
-        }
+        }))
     }
 
-    pub fn new_ortographic(projection: Ortographic) -> Self {
-        Self {
-            projection: Projection::Ortographic(projection),
-            view_matrix: matrix::identity(),
-        }
+    pub fn new_perspective(projection: Perspective) -> Rc<RefCell<Self>> {
+        Self::new(Projection::Perspective(projection))
+    }
+
+    pub fn new_ortographic(projection: Ortographic) -> Rc<RefCell<Self>> {
+        Self::new(Projection::Ortographic(projection))
     }
 
     pub fn update_view_matrix(&mut self, world_matrix: &Mat4) -> bool {
@@ -62,18 +65,12 @@ impl Camera {
     }
 }
 
-impl Default for Camera {
-    fn default() -> Self {
-        Camera::new_perspective(Default::default())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn aspect_ratio(camera: &Camera) -> Option<f32> {
-        if let Projection::Perspective(perspective) = camera.projection {
+    fn aspect_ratio(camera: &RefCell<Camera>) -> Option<f32> {
+        if let Projection::Perspective(perspective) = camera.borrow().projection {
             Some(perspective.aspect_ratio)
         } else {
             None
@@ -82,9 +79,9 @@ mod tests {
 
     #[test]
     fn set_aspect_ratio_works() {
-        let mut camera = Camera::default();
+        let camera = Camera::new_perspective(Default::default());
         assert_eq!(aspect_ratio(&camera).unwrap(), 1.0);
-        camera.set_aspect_ratio((800, 600));
+        camera.borrow_mut().set_aspect_ratio((800, 600));
         assert_eq!(aspect_ratio(&camera).unwrap(), 1.3333334);
     }
 }

@@ -41,7 +41,7 @@ impl AsyncCreator for Example {
         );
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera = Camera::new_perspective(Default::default());
         let rig = Node::new_movement_rig(Default::default());
         {
             rig.set_position(&glm::vec3(0.0, 0.5, 3.0));
@@ -111,14 +111,14 @@ pub fn example() -> Box<dyn Fn()> {
 
 async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<RefCell<Camera>>)> {
     let scene = Node::new_group();
-    let camera = Rc::new(RefCell::new(Camera::new_ortographic(Ortographic {
+    let camera = Camera::new_ortographic(Ortographic {
         left: 0.0,
         right: 800.0,
         bottom: 0.0,
         top: 600.0,
         near: 1.0,
         far: -1.0,
-    })));
+    });
     {
         let camera = Node::new_camera(Rc::clone(&camera));
         scene.add_child(&camera);

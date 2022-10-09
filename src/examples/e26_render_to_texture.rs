@@ -41,7 +41,7 @@ impl AsyncCreator for Example {
         let renderer = Renderer::new(context, RendererOptions::default());
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera = Camera::new_perspective(Default::default());
         let rig = Node::new_movement_rig(Default::default());
         {
             let camera = Node::new_camera(Rc::clone(&camera));
@@ -165,7 +165,7 @@ impl AsyncCreator for Example {
             screen.set_position(&glm::vec3(1.2, 1.0, 0.11));
             scene.add_child(&screen);
         }
-        let sky_camera = Rc::new(RefCell::new(Camera::default()));
+        let sky_camera = Camera::new_perspective(Default::default());
         {
             let sky_camera = Node::new_camera(Rc::clone(&sky_camera));
             sky_camera.set_position(&glm::vec3(0.0, 10.0, 0.1));

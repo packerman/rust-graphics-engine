@@ -42,7 +42,7 @@ impl AsyncCreator for Example {
         );
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera = Camera::new_perspective(Default::default());
         let rig = Node::new_movement_rig(Default::default());
         {
             rig.set_position(&glm::vec3(0.0, 0.5, 3.0));
