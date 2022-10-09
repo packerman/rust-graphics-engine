@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
@@ -58,7 +60,7 @@ impl Default for PointMaterial {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material {
+impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Rc<Material> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         point_material: PointMaterial,
@@ -73,7 +75,7 @@ impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material {
             "pointSize",
             UniformData::from(point_material.point_size),
         )?;
-        Ok(material)
+        Ok(Rc::new(material))
     }
 }
 
@@ -100,7 +102,7 @@ impl Default for LineMaterial {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, LineMaterial> for Material {
+impl FromWithContext<WebGl2RenderingContext, LineMaterial> for Rc<Material> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         line_material: LineMaterial,
@@ -112,7 +114,7 @@ impl FromWithContext<WebGl2RenderingContext, LineMaterial> for Material {
         };
         let mut material = self::basic_material(context, draw_style, line_material.basic)?;
         material.add_render_setting(RenderSetting::LineWidth(line_material.line_width));
-        Ok(material)
+        Ok(Rc::new(material))
     }
 }
 
@@ -122,7 +124,7 @@ pub struct SurfaceMaterial {
     pub double_side: bool,
 }
 
-impl FromWithContext<WebGl2RenderingContext, SurfaceMaterial> for Material {
+impl FromWithContext<WebGl2RenderingContext, SurfaceMaterial> for Rc<Material> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         surface_material: SurfaceMaterial,
@@ -133,6 +135,6 @@ impl FromWithContext<WebGl2RenderingContext, SurfaceMaterial> for Material {
             surface_material.basic,
         )?;
         material.add_render_setting(RenderSetting::CullFace(!surface_material.double_side));
-        Ok(material)
+        Ok(Rc::new(material))
     }
 }

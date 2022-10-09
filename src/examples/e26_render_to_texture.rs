@@ -129,7 +129,7 @@ impl AsyncCreator for Example {
                         depth: 0.2,
                     },
                 )?,
-                Rc::new(Material::from_with_context(
+                <Rc<Material>>::from_with_context(
                     context,
                     SurfaceMaterial {
                         basic: BasicMaterial {
@@ -138,7 +138,7 @@ impl AsyncCreator for Example {
                         },
                         ..Default::default()
                     },
-                )?),
+                )?,
             )?);
             box_mesh.set_position(&glm::vec3(1.2, 1.0, 0.0));
             scene.add_child(&box_mesh);
