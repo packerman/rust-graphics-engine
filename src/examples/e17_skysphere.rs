@@ -47,16 +47,16 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 },
             )?;
-            let material = Rc::new(material::texture::create(
+            let material = material::texture::create(
                 context,
-                Rc::new(Texture::new(
+                Texture::initialize(
                     context,
                     TextureData::load_from_source("images/sky-earth.jpg").await?,
                     Default::default(),
-                )?),
+                )?,
                 TextureUnit::from(0),
                 Default::default(),
-            )?);
+            )?;
             let sky = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
             scene.add_child(&sky);
         }
@@ -69,19 +69,19 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 },
             )?;
-            let material = Rc::new(material::texture::create(
+            let material = material::texture::create(
                 context,
-                Rc::new(Texture::new(
+                Texture::initialize(
                     context,
                     TextureData::load_from_source("images/grass.jpg").await?,
                     Default::default(),
-                )?),
+                )?,
                 TextureUnit::from(1),
                 TextureMaterial {
                     repeat_uv: glm::vec2(50.0, 50.0),
                     ..Default::default()
                 },
-            )?);
+            )?;
             let grass = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
             grass.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grass);

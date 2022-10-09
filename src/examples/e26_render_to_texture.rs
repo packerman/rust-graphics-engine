@@ -59,16 +59,16 @@ impl AsyncCreator for Example {
                         ..Default::default()
                     },
                 )?,
-                Rc::new(material::texture::create(
+                material::texture::create(
                     context,
-                    Rc::new(Texture::new(
+                    Texture::initialize(
                         context,
                         TextureData::load_from_source("images/sky-earth.jpg").await?,
                         Default::default(),
-                    )?),
+                    )?,
                     TextureUnit::from(0),
                     Default::default(),
-                )?),
+                )?,
             )?));
             scene.add_child(&sky);
         }
@@ -83,19 +83,19 @@ impl AsyncCreator for Example {
                         ..Default::default()
                     },
                 )?,
-                Rc::new(material::texture::create(
+                material::texture::create(
                     context,
-                    Rc::new(Texture::new(
+                    Texture::initialize(
                         context,
                         TextureData::load_from_source("images/grass.jpg").await?,
                         Default::default(),
-                    )?),
+                    )?,
                     TextureUnit::from(1),
                     TextureMaterial {
                         repeat_uv: glm::vec2(50.0, 50.0),
                         ..Default::default()
                     },
-                )?),
+                )?,
             )?));
             grass.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grass);
@@ -103,16 +103,16 @@ impl AsyncCreator for Example {
         let sphere = Node::new_mesh(Box::new(Mesh::new(
             context,
             Geometry::from_with_context(context, Sphere::default())?,
-            Rc::new(material::texture::create(
+            material::texture::create(
                 context,
-                Rc::new(Texture::new(
+                Texture::initialize(
                     context,
                     TextureData::load_from_source("images/grid.png").await?,
                     Default::default(),
-                )?),
+                )?,
                 TextureUnit::from(2),
                 Default::default(),
-            )?),
+            )?,
         )?));
         {
             sphere.set_position(&glm::vec3(-1.2, 1.0, 0.0));
@@ -154,12 +154,12 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 },
             )?,
-            Rc::new(material::texture::create(
+            material::texture::create(
                 context,
                 Rc::clone(render_target.texture()),
                 TextureUnit::from(3),
                 Default::default(),
-            )?),
+            )?,
         )?));
         {
             screen.set_position(&glm::vec3(1.2, 1.0, 0.11));

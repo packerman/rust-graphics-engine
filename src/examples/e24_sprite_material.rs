@@ -97,11 +97,11 @@ pub fn example() -> Box<dyn Fn()> {
 
 async fn create_sprite(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
     let geometry = Geometry::from_with_context(context, Rectangle::default())?;
-    let tile_set = Rc::new(Texture::new(
+    let tile_set = Texture::initialize(
         context,
         TextureData::load_from_source("images/rolling-ball.png").await?,
         Default::default(),
-    )?);
+    )?;
     let material = Rc::new(material::sprite::create(
         context,
         tile_set,

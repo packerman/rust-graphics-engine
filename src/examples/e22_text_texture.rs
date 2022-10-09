@@ -70,7 +70,7 @@ impl AsyncCreator for Example {
         )?;
         let material = material::texture::create(
             context,
-            Rc::new(Texture::new(
+            Texture::initialize(
                 context,
                 TextureData::try_from(TextTexture {
                     text: "Hello, World!",
@@ -79,11 +79,11 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 })?,
                 Default::default(),
-            )?),
+            )?,
             TextureUnit::from(0),
             Default::default(),
         )?;
-        let mesh = Node::new_mesh(Box::new(Mesh::new(context, geometry, Rc::new(material))?));
+        let mesh = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
         mesh.set_position(&glm::vec3(0.0, 0.5, 0.0));
         scene.add_child(&mesh);
         Ok(Example {

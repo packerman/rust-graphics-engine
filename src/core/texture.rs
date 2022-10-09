@@ -165,11 +165,11 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn new(
+    pub fn initialize(
         context: &WebGl2RenderingContext,
         data: TextureData,
         properties: TextureProperties,
-    ) -> Result<Self> {
+    ) -> Result<Rc<Self>> {
         let texture = gl::create_texture(context)?;
         let texture = Texture {
             texture,
@@ -177,7 +177,7 @@ impl Texture {
             properties,
         };
         texture.upload_data(context)?;
-        Ok(texture)
+        Ok(Rc::new(texture))
     }
 
     pub fn bind(&self, context: &WebGl2RenderingContext) {

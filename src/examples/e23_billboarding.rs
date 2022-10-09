@@ -67,7 +67,7 @@ impl AsyncCreator for Example {
 }
 
 fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
-    let texture = Rc::new(Texture::new(
+    let texture = Texture::initialize(
         context,
         TextureData::try_from(TextTexture {
             text: "This is a Crate.",
@@ -79,13 +79,9 @@ fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
             ..Default::default()
         })?,
         Default::default(),
-    )?);
-    let material = Rc::new(material::texture::create(
-        context,
-        texture,
-        TextureUnit::from(0),
-        Default::default(),
-    )?);
+    )?;
+    let material =
+        material::texture::create(context, texture, TextureUnit::from(0), Default::default())?;
     let mut geometry = Geometry::from_with_context(
         context,
         Rectangle {
@@ -105,16 +101,16 @@ fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
 
 async fn create_crate_mesh(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
     let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
-    let material = Rc::new(material::texture::create(
+    let material = material::texture::create(
         context,
-        Rc::new(Texture::new(
+        Texture::initialize(
             context,
             TextureData::load_from_source("images/crate.png").await?,
             Default::default(),
-        )?),
+        )?,
         TextureUnit::from(1),
         Default::default(),
-    )?);
+    )?;
     let mesh = Box::new(Mesh::new(context, geometry, material)?);
     Ok(Node::new_mesh(mesh))
 }

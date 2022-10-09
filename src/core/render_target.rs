@@ -36,7 +36,7 @@ impl RenderTarget {
             context,
             width,
             height,
-            Rc::new(Self::create_texture(context, width, height)?),
+            Self::create_texture(context, width, height)?,
         )
     }
 
@@ -83,8 +83,8 @@ impl RenderTarget {
         context: &WebGl2RenderingContext,
         width: i32,
         height: i32,
-    ) -> Result<Texture> {
-        Texture::new(
+    ) -> Result<Rc<Texture>> {
+        Texture::initialize(
             context,
             TextureData::new_buffer(width, height),
             TextureProperties {

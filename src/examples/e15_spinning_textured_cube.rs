@@ -39,15 +39,15 @@ impl AsyncCreator for Example {
         let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
         let material = material::texture::create(
             context,
-            Rc::new(Texture::new(
+            Texture::initialize(
                 context,
                 TextureData::load_from_source("images/crate.png").await?,
                 Default::default(),
-            )?),
+            )?,
             TextureUnit::from(0),
             Default::default(),
         )?;
-        let mesh = Box::new(Mesh::new(context, geometry, Rc::new(material))?);
+        let mesh = Box::new(Mesh::new(context, geometry, material)?);
         let mesh = Node::new_mesh(mesh);
         scene.add_child(&mesh);
 

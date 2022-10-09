@@ -51,16 +51,16 @@ impl AsyncCreator for Example {
         }
         {
             let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
-            let material = Rc::new(material::texture::create(
+            let material = material::texture::create(
                 context,
-                Rc::new(Texture::new(
+                Texture::initialize(
                     context,
                     TextureData::load_from_source("images/crate.png").await?,
                     Default::default(),
-                )?),
+                )?,
                 TextureUnit::from(0),
                 Default::default(),
-            )?);
+            )?;
             let crate_mesh = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
             crate_mesh.set_position(&glm::vec3(0.0, 0.5, 0.0));
             scene.add_child(&crate_mesh);
@@ -135,16 +135,16 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
                     alignment: glm::vec2(0.0, 1.0),
                 },
             )?,
-            Rc::new(material::texture::create(
+            material::texture::create(
                 context,
-                Rc::new(Texture::new(
+                Texture::initialize(
                     context,
                     TextureData::load_from_source("images/crate-sim.png").await?,
                     Default::default(),
-                )?),
+                )?,
                 TextureUnit::from(0),
                 Default::default(),
-            )?),
+            )?,
         )?));
         scene.add_child(&label1);
     }
@@ -160,16 +160,16 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
                     alignment: glm::vec2(1.0, 0.0),
                 },
             )?,
-            Rc::new(material::texture::create(
+            material::texture::create(
                 context,
-                Rc::new(Texture::new(
+                Texture::initialize(
                     context,
                     TextureData::load_from_source("images/version-1.png").await?,
                     Default::default(),
-                )?),
+                )?,
                 TextureUnit::from(1),
                 Default::default(),
-            )?),
+            )?,
         )?));
         scene.add_child(&label2);
     }

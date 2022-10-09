@@ -47,22 +47,22 @@ impl AsyncCreator for Example {
                     (
                         "textureSampler1",
                         UniformData::sampler2d(
-                            Rc::new(Texture::new(
+                            Texture::initialize(
                                 context,
                                 TextureData::load_from_source("images/grid.png").await?,
                                 Default::default(),
-                            )?),
+                            )?,
                             TextureUnit::from(0),
                         ),
                     ),
                     (
                         "textureSampler2",
                         UniformData::sampler2d(
-                            Rc::new(Texture::new(
+                            Texture::initialize(
                                 context,
                                 TextureData::load_from_source("images/crate.png").await?,
                                 Default::default(),
-                            )?),
+                            )?,
                             TextureUnit::from(1),
                         ),
                     ),
