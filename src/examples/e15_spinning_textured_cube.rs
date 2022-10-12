@@ -36,7 +36,10 @@ impl AsyncCreator for Example {
         camera_node.set_position(&glm::vec3(0.0, 0.0, 1.8));
         scene.add_child(&camera_node);
 
-        let geometry = <Box<Geometry>>::from_with_context(context, BoxGeometry::default())?;
+        let geometry = Rc::new(Geometry::from_with_context(
+            context,
+            BoxGeometry::default(),
+        )?);
         let material = material::texture::create(
             context,
             Texture::initialize(

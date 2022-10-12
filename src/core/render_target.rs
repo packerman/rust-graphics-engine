@@ -31,8 +31,10 @@ impl RenderTarget {
 }
 
 impl RenderTarget {
-    pub fn new(context: &WebGl2RenderingContext, width: i32, height: i32) -> Result<Self> {
-        Self::new_with_texture(
+    pub fn initialize(context: &WebGl2RenderingContext, resolution: (i32, i32)) -> Result<Self> {
+        let width = resolution.0;
+        let height = resolution.1;
+        Self::initialize_with_texture(
             context,
             width,
             height,
@@ -40,7 +42,7 @@ impl RenderTarget {
         )
     }
 
-    pub fn new_with_texture(
+    pub fn initialize_with_texture(
         context: &WebGl2RenderingContext,
         width: i32,
         height: i32,

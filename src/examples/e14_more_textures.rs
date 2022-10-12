@@ -52,33 +52,33 @@ impl AsyncCreator for Example {
             Default::default(),
         )?);
         {
-            let geometry = <Box<Geometry>>::from_with_context(context, Sphere::default())?;
+            let geometry = Rc::new(Geometry::from_with_context(context, Sphere::default())?);
             let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::clone(&material))?);
             mesh.apply_matrix(&matrix::translation(-3.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
         {
-            let geometry = <Box<Geometry>>::from_with_context(
+            let geometry = Rc::new(Geometry::from_with_context(
                 context,
                 Cone {
                     radius: 1.0,
                     height: 2.0,
                     ..Default::default()
                 },
-            )?;
+            )?);
             let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::clone(&material))?);
             mesh.apply_matrix(&matrix::translation(0.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
         {
-            let geometry = <Box<Geometry>>::from_with_context(
+            let geometry = Rc::new(Geometry::from_with_context(
                 context,
                 Cylinder {
                     radius: 0.8,
                     height: 2.0,
                     ..Default::default()
                 },
-            )?;
+            )?);
             let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::clone(&material))?);
             mesh.apply_matrix(&matrix::translation(3.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);

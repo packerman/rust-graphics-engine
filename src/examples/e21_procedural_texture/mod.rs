@@ -55,14 +55,14 @@ fn rectangle_mesh(
     material: Material,
     position: Vec3,
 ) -> Result<Rc<Node>> {
-    let geometry = <Box<Geometry>>::from_with_context(
+    let geometry = Rc::new(Geometry::from_with_context(
         context,
         Rectangle {
             width: 0.7,
             height: 0.7,
             ..Default::default()
         },
-    )?;
+    )?);
     let node = Node::new_mesh(Mesh::initialize(context, geometry, Rc::new(material))?);
     node.set_position(&position);
     Ok(node)

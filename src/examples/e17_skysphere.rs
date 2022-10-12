@@ -40,13 +40,13 @@ impl AsyncCreator for Example {
             rig.set_position(&glm::vec3(0.0, 1.0, 4.0));
         }
         {
-            let geometry = <Box<Geometry>>::from_with_context(
+            let geometry = Rc::new(Geometry::from_with_context(
                 context,
                 Sphere {
                     radius: 50.0,
                     ..Default::default()
                 },
-            )?;
+            )?);
             let material = material::texture::create(
                 context,
                 Texture::initialize(
@@ -61,14 +61,14 @@ impl AsyncCreator for Example {
             scene.add_child(&sky);
         }
         {
-            let geometry = <Box<Geometry>>::from_with_context(
+            let geometry = Rc::new(Geometry::from_with_context(
                 context,
                 Rectangle {
                     width: 100.0,
                     height: 100.0,
                     ..Default::default()
                 },
-            )?;
+            )?);
             let material = material::texture::create(
                 context,
                 Texture::initialize(

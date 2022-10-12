@@ -24,7 +24,7 @@ struct ParametricSurface {
     function: Box<dyn Fn(f32, f32) -> Vec3>,
 }
 
-impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Box<Geometry> {
+impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         surface: ParametricSurface,
@@ -128,7 +128,7 @@ impl From<Plane> for ParametricSurface {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Plane> for Box<Geometry> {
+impl FromWithContext<WebGl2RenderingContext, Plane> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, plane: Plane) -> Result<Self> {
         Self::from_with_context(context, ParametricSurface::from(plane))
     }
@@ -172,7 +172,7 @@ impl From<Ellipsoid> for ParametricSurface {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Ellipsoid> for Box<Geometry> {
+impl FromWithContext<WebGl2RenderingContext, Ellipsoid> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, ellipsoid: Ellipsoid) -> Result<Self> {
         Self::from_with_context(context, ParametricSurface::from(ellipsoid))
     }
@@ -206,7 +206,7 @@ impl From<Sphere> for Ellipsoid {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Sphere> for Box<Geometry> {
+impl FromWithContext<WebGl2RenderingContext, Sphere> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, sphere: Sphere) -> Result<Self> {
         Self::from_with_context(context, Ellipsoid::from(sphere))
     }
@@ -259,7 +259,7 @@ impl From<Cylindrical> for ParametricSurface {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Box<Geometry> {
+impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, cylinder: Cylindrical) -> Result<Self> {
         let mut geometry = Self::from_with_context(context, ParametricSurface::from(cylinder))?;
 
@@ -323,7 +323,7 @@ impl From<Cylinder> for Cylindrical {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Cylinder> for Box<Geometry> {
+impl FromWithContext<WebGl2RenderingContext, Cylinder> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, cylinder: Cylinder) -> Result<Self> {
         Self::from_with_context(context, Cylindrical::from(cylinder))
     }
@@ -363,7 +363,7 @@ impl From<Prism> for Cylindrical {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Prism> for Box<Geometry> {
+impl FromWithContext<WebGl2RenderingContext, Prism> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, prism: Prism) -> Result<Self> {
         Self::from_with_context(context, Cylindrical::from(prism))
     }
@@ -403,7 +403,7 @@ impl From<Cone> for Cylindrical {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Cone> for Box<Geometry> {
+impl FromWithContext<WebGl2RenderingContext, Cone> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, cone: Cone) -> Result<Self> {
         Self::from_with_context(context, Cylindrical::from(cone))
     }
@@ -443,7 +443,7 @@ impl From<Pyramid> for Cylindrical {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Pyramid> for Box<Geometry> {
+impl FromWithContext<WebGl2RenderingContext, Pyramid> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, pyramid: Pyramid) -> Result<Self> {
         Self::from_with_context(context, Cylindrical::from(pyramid))
     }

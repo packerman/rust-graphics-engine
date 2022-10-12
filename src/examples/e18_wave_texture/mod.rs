@@ -15,7 +15,7 @@ use crate::core::{
     node::Node,
     renderer::{Renderer, RendererOptions},
     texture::{Texture, TextureData, TextureUnit},
-    uniform::UniformData,
+    uniform::{Sampler2D, UniformData},
     web,
 };
 
@@ -46,14 +46,14 @@ impl AsyncCreator for Example {
                 uniforms: vec![
                     (
                         "textureSampler",
-                        UniformData::sampler2d(
+                        UniformData::from(Sampler2D::new(
                             Texture::initialize(
                                 context,
                                 TextureData::load_from_source("images/grid.png").await?,
                                 Default::default(),
                             )?,
                             TextureUnit::from(0),
-                        ),
+                        )),
                     ),
                     ("time", UniformData::from(0.0)),
                 ],
@@ -62,14 +62,14 @@ impl AsyncCreator for Example {
             },
         )?);
         {
-            let geometry = <Box<Geometry>>::from_with_context(
+            let geometry = Rc::new(Geometry::from_with_context(
                 context,
                 Rectangle {
                     width: 1.5,
                     height: 1.5,
                     ..Default::default()
                 },
-            )?;
+            )?);
 
             let mesh = Node::new_mesh(Mesh::initialize(
                 context,

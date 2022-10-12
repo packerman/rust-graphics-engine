@@ -52,13 +52,13 @@ impl AsyncCreator for Example {
         {
             let sky = Node::new_mesh(Mesh::initialize(
                 context,
-                <Box<Geometry>>::from_with_context(
+                Rc::new(Geometry::from_with_context(
                     context,
                     Sphere {
                         radius: 50.0,
                         ..Default::default()
                     },
-                )?,
+                )?),
                 material::texture::create(
                     context,
                     Texture::initialize(
@@ -75,14 +75,14 @@ impl AsyncCreator for Example {
         {
             let grass = Node::new_mesh(Mesh::initialize(
                 context,
-                <Box<Geometry>>::from_with_context(
+                Rc::new(Geometry::from_with_context(
                     context,
                     Rectangle {
                         width: 100.0,
                         height: 100.0,
                         ..Default::default()
                     },
-                )?,
+                )?),
                 material::texture::create(
                     context,
                     Texture::initialize(
@@ -102,7 +102,7 @@ impl AsyncCreator for Example {
         }
         let sphere = Node::new_mesh(Mesh::initialize(
             context,
-            <Box<Geometry>>::from_with_context(context, Sphere::default())?,
+            Rc::new(Geometry::from_with_context(context, Sphere::default())?),
             material::texture::create(
                 context,
                 Texture::initialize(
@@ -121,14 +121,14 @@ impl AsyncCreator for Example {
         {
             let box_mesh = Node::new_mesh(Mesh::initialize(
                 context,
-                <Box<Geometry>>::from_with_context(
+                Rc::new(Geometry::from_with_context(
                     context,
                     BoxGeometry {
                         width: 2.0,
                         height: 2.0,
                         depth: 0.2,
                     },
-                )?,
+                )?),
                 <Rc<Material>>::from_with_context(
                     context,
                     SurfaceMaterial {
@@ -143,17 +143,17 @@ impl AsyncCreator for Example {
             box_mesh.set_position(&glm::vec3(1.2, 1.0, 0.0));
             scene.add_child(&box_mesh);
         }
-        let render_target = RenderTarget::new(context, 512, 512)?;
+        let render_target = RenderTarget::initialize(context, (512, 512))?;
         let screen = Node::new_mesh(Mesh::initialize(
             context,
-            <Box<Geometry>>::from_with_context(
+            Rc::new(Geometry::from_with_context(
                 context,
                 Rectangle {
                     width: 1.8,
                     height: 1.8,
                     ..Default::default()
                 },
-            )?,
+            )?),
             material::texture::create(
                 context,
                 Rc::clone(render_target.texture()),

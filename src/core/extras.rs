@@ -1,4 +1,5 @@
 pub mod movement_rig;
+pub mod postprocessor;
 pub mod text_texture;
 
 use std::rc::Rc;
@@ -56,13 +57,13 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
             axes_helper.axis_colors[2],
             axes_helper.axis_colors[2],
         ];
-        let geometry = <Box<Geometry>>::from_with_context(
+        let geometry = Rc::new(Geometry::from_with_context(
             context,
             [
                 ("vertexPosition", AttributeData::from(&position_data)),
                 ("vertexColor", AttributeData::from(&color_data)),
             ],
-        )?;
+        )?);
         let material = <Rc<Material>>::from_with_context(
             context,
             LineMaterial {
@@ -131,13 +132,13 @@ impl FromWithContext<WebGl2RenderingContext, GridHelper> for Mesh {
                 color_data.push(grid_helper.grid_color);
             }
         }
-        let geometry = <Box<Geometry>>::from_with_context(
+        let geometry = Rc::new(Geometry::from_with_context(
             context,
             [
                 ("vertexPosition", AttributeData::from(&position_data)),
                 ("vertexColor", AttributeData::from(&color_data)),
             ],
-        )?;
+        )?);
         let material = <Rc<Material>>::from_with_context(
             context,
             LineMaterial {

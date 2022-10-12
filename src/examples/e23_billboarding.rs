@@ -82,7 +82,7 @@ fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
     )?;
     let material =
         material::texture::create(context, texture, TextureUnit::from(0), Default::default())?;
-    let mut geometry = <Box<Geometry>>::from_with_context(
+    let mut geometry = Geometry::from_with_context(
         context,
         Rectangle {
             width: 1.0,
@@ -95,12 +95,15 @@ fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
         &matrix::rotation_y(Angle::STRAIGHT),
         "vertexPosition",
     )?;
-    let label = Mesh::initialize(context, geometry, material)?;
+    let label = Mesh::initialize(context, Rc::new(geometry), material)?;
     Ok(Node::new_mesh(label))
 }
 
 async fn create_crate_mesh(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
-    let geometry = <Box<Geometry>>::from_with_context(context, BoxGeometry::default())?;
+    let geometry = Rc::new(Geometry::from_with_context(
+        context,
+        BoxGeometry::default(),
+    )?);
     let material = material::texture::create(
         context,
         Texture::initialize(

@@ -50,7 +50,10 @@ impl AsyncCreator for Example {
             scene.add_child(&rig);
         }
         {
-            let geometry = <Box<Geometry>>::from_with_context(context, BoxGeometry::default())?;
+            let geometry = Rc::new(Geometry::from_with_context(
+                context,
+                BoxGeometry::default(),
+            )?);
             let material = material::texture::create(
                 context,
                 Texture::initialize(
@@ -126,7 +129,7 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
     {
         let label1 = Node::new_mesh(Mesh::initialize(
             context,
-            <Box<Geometry>>::from_with_context(
+            Rc::new(Geometry::from_with_context(
                 context,
                 Rectangle {
                     width: 600.0,
@@ -134,7 +137,7 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
                     position: glm::vec2(0.0, 600.0),
                     alignment: glm::vec2(0.0, 1.0),
                 },
-            )?,
+            )?),
             material::texture::create(
                 context,
                 Texture::initialize(
@@ -151,7 +154,7 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
     {
         let label2 = Node::new_mesh(Mesh::initialize(
             context,
-            <Box<Geometry>>::from_with_context(
+            Rc::new(Geometry::from_with_context(
                 context,
                 Rectangle {
                     width: 400.0,
@@ -159,7 +162,7 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
                     position: glm::vec2(800.0, 0.0),
                     alignment: glm::vec2(1.0, 0.0),
                 },
-            )?,
+            )?),
             material::texture::create(
                 context,
                 Texture::initialize(

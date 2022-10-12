@@ -8,7 +8,7 @@ use crate::core::{
     color::Color,
     convert::FromWithContext,
     texture::{Texture, TextureUnit},
-    uniform::UniformData,
+    uniform::{Sampler2D, UniformData},
 };
 
 use super::{Material, MaterialSettings, RenderSetting};
@@ -46,7 +46,7 @@ pub fn create(
             fragment_shader: include_str!("fragment.glsl"),
             uniforms: vec![
                 ("baseColor", UniformData::from(sprite_material.base_color)),
-                ("texture0", UniformData::sampler2d(texture, unit)),
+                ("texture0", UniformData::from(Sampler2D::new(texture, unit))),
                 ("billboard", UniformData::from(sprite_material.billboard)),
                 ("tileNumber", UniformData::from(sprite_material.tile_number)),
                 ("tileCount", UniformData::from(sprite_material.tile_count)),

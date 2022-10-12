@@ -117,7 +117,7 @@ impl Renderer {
     }
 }
 
-fn get_canvas_size(context: &WebGl2RenderingContext) -> (i32, i32) {
+pub fn get_canvas_size(context: &WebGl2RenderingContext) -> (i32, i32) {
     let canvas = web::get_canvas(context).unwrap();
     let (width, height) = web::canvas_size(&canvas);
     (width as i32, height as i32)

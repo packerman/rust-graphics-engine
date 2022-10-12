@@ -68,7 +68,7 @@ impl Geometry {
 }
 
 impl<const N: usize> FromWithContext<WebGl2RenderingContext, [(&str, AttributeData); N]>
-    for Box<Geometry>
+    for Geometry
 {
     fn from_with_context(
         context: &WebGl2RenderingContext,
@@ -78,7 +78,7 @@ impl<const N: usize> FromWithContext<WebGl2RenderingContext, [(&str, AttributeDa
         for (name, data) in attributes {
             map.insert(String::from(name), Attribute::new_with_data(context, data)?);
         }
-        Ok(Box::new(Geometry::new(map)))
+        Ok(Geometry::new(map))
     }
 }
 
@@ -100,7 +100,7 @@ impl Default for Rectangle {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Rectangle> for Box<Geometry> {
+impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, rectangle: Rectangle) -> Result<Self> {
         let (x, y) = (rectangle.position.x, rectangle.position.y);
         let (a, b) = (rectangle.alignment.x, rectangle.alignment.y);
@@ -161,7 +161,7 @@ impl Default for BoxGeometry {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Box<Geometry> {
+impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, value: BoxGeometry) -> Result<Self> {
         let points = [
             [-value.width / 2.0, -value.height / 2.0, -value.depth / 2.0],
@@ -234,7 +234,7 @@ impl Default for Polygon {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Polygon> for Box<Geometry> {
+impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, polygon: Polygon) -> Result<Self> {
         let mut position_data = Vec::with_capacity((3 * polygon.sides).into());
         let mut color_data = Vec::with_capacity((3 * polygon.sides).into());

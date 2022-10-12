@@ -15,24 +15,38 @@ use super::{
 };
 
 #[derive(Debug, Clone)]
+pub struct Sampler2D {
+    pub texture: Rc<Texture>,
+    unit: TextureUnit,
+}
+
+impl Sampler2D {
+    pub fn new(texture: Rc<Texture>, unit: TextureUnit) -> Self {
+        Self { texture, unit }
+    }
+
+    pub fn upload_data(
+        &self,
+        context: &WebGl2RenderingContext,
+        location: Option<&WebGlUniformLocation>,
+    ) {
+        self.unit
+            .upload_data(context, location, self.texture.texture());
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum UniformData {
     Boolean(bool),
     Float(f32),
     Vec3(Vec3),
     Color(Color),
     Mat4(Mat4),
-    Sampler2D {
-        texture: Rc<Texture>,
-        unit: TextureUnit,
-    },
+    Sampler2D(Sampler2D),
     Vec2(Vec2),
 }
 
 impl UniformData {
-    pub fn sampler2d(texture: Rc<Texture>, unit: TextureUnit) -> Self {
-        UniformData::Sampler2D { texture, unit }
-    }
-
     pub fn float_mut(&mut self) -> Option<&mut f32> {
         match self {
             UniformData::Float(data) => Some(data),
@@ -57,6 +71,13 @@ impl UniformData {
     pub fn mat4_mut(&mut self) -> Option<&mut Mat4> {
         match self {
             UniformData::Mat4(data) => Some(data),
+            _ => None,
+        }
+    }
+
+    pub fn sampler2d_mut(&mut self) -> Option<&mut Sampler2D> {
+        match self {
+            UniformData::Sampler2D(data) => Some(data),
             _ => None,
         }
     }
@@ -89,6 +110,12 @@ impl From<Color> for UniformData {
 impl From<Mat4> for UniformData {
     fn from(data: Mat4) -> Self {
         UniformData::Mat4(data)
+    }
+}
+
+impl From<Sampler2D> for UniformData {
+    fn from(data: Sampler2D) -> Self {
+        UniformData::Sampler2D(data)
     }
 }
 
@@ -131,9 +158,7 @@ impl Uniform {
             UniformData::Mat4(data) => {
                 context.uniform_matrix4fv_with_f32_array(location, false, data.into())
             }
-            UniformData::Sampler2D { texture, unit } => {
-                unit.upload_data(context, location, texture.texture())
-            }
+            UniformData::Sampler2D(sampler) => sampler.upload_data(context, location),
             UniformData::Vec2(data) => context.uniform2f(location, data.x, data.y),
         }
     }
@@ -152,5 +177,9 @@ impl Uniform {
 
     pub fn mat4_mut(&self) -> Result<RefMut<Mat4>, RefMut<UniformData>> {
         RefMut::filter_map(self.data.borrow_mut(), |data| data.mat4_mut())
+    }
+
+    pub fn sampler2d_mut(&self) -> Result<RefMut<Sampler2D>, RefMut<UniformData>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.sampler2d_mut())
     }
 }
