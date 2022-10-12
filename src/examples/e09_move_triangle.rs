@@ -45,7 +45,7 @@ const DELTA_TIME_SEC: f32 = 1_f32 / 60.0;
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         gl::set_clear_color(context, &Color::black());
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
@@ -70,14 +70,14 @@ impl AsyncCreator for Example {
             "projectionMatrix",
         )?;
 
-        Ok(Example {
+        Ok(Box::new(Example {
             program,
             position: position_attribute,
             model_matrix,
             projection_matrix,
             move_speed: 0.5,
             turn_speed: Angle::from_degrees(90.0),
-        })
+        }))
     }
 }
 

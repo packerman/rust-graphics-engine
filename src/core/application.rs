@@ -15,8 +15,8 @@ use super::{
 };
 
 #[async_trait(?Send)]
-pub trait AsyncCreator: Sized {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self>;
+pub trait AsyncCreator {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>>;
 }
 
 pub trait Application {

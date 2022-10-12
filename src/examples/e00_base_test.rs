@@ -13,9 +13,9 @@ struct Example;
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         gl::set_clear_color(context, &Color::black());
-        Ok(Example)
+        Ok(Box::new(Example))
     }
 }
 

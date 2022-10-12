@@ -40,7 +40,7 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = gl::create_vertex_array(context)?;
@@ -63,13 +63,13 @@ impl AsyncCreator for Example {
             "baseColor",
         )?;
 
-        Ok(Example {
+        Ok(Box::new(Example {
             program,
             position: position_attribute,
             translation,
             base_color,
             frame: 0,
-        })
+        }))
     }
 }
 

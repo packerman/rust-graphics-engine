@@ -32,7 +32,7 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::new(
             context,
             RendererOptions {
@@ -59,14 +59,14 @@ impl AsyncCreator for Example {
             grid.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grid);
         }
-        Ok(Example {
+        Ok(Box::new(Example {
             renderer,
             scene,
             camera,
             rig,
             sprite,
             tiles_per_second: 8.0,
-        })
+        }))
     }
 }
 

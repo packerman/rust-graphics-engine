@@ -25,7 +25,7 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::new(context, RendererOptions::default());
         let scene = Node::new_group();
 
@@ -42,11 +42,11 @@ impl AsyncCreator for Example {
         scene.add_child(&(rectangle_mesh(context, marble(context)?, glm::vec3(-x, -y, 0.0))?));
         scene.add_child(&(rectangle_mesh(context, wood(context)?, glm::vec3(x, -y, 0.0))?));
 
-        Ok(Example {
+        Ok(Box::new(Example {
             renderer,
             scene,
             camera,
-        })
+        }))
     }
 }
 
