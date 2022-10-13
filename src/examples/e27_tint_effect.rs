@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -9,30 +9,19 @@ use crate::core::{
     camera::Camera,
     color::Color,
     convert::FromWithContext,
-    geometry::{parametric::Sphere, BoxGeometry, Geometry, Rectangle},
+    extras::{effects, postprocessor::Postprocessor},
+    geometry::{parametric::Sphere, Geometry, Rectangle},
     input::KeyState,
-    material::{
-        self,
-        basic::{BasicMaterial, SurfaceMaterial},
-        texture::TextureMaterial,
-        Material,
-    },
+    material::{self, texture::TextureMaterial},
     matrix::Angle,
     mesh::Mesh,
     node::Node,
-    render_target::RenderTarget,
     renderer::{Renderer, RendererOptions},
     texture::{Texture, TextureData, TextureUnit},
 };
 
 struct Example {
-    renderer: Renderer,
-    scene: Rc<Node>,
-    rig: Rc<Node>,
-    camera: Rc<RefCell<Camera>>,
-    sky_camera: Rc<RefCell<Camera>>,
-    sphere: Rc<Node>,
-    render_target: RenderTarget,
+    postprocessor: Postprocessor,
 }
 
 #[async_trait(?Send)]
@@ -115,91 +104,31 @@ impl AsyncCreator for Example {
             )?,
         )?);
         {
-            sphere.set_position(&glm::vec3(-1.2, 1.0, 0.0));
+            sphere.set_position(&glm::vec3(0.0, 1.0, 0.0));
             scene.add_child(&sphere);
         }
-        {
-            let box_mesh = Node::new_mesh(Mesh::initialize(
-                context,
-                Rc::new(Geometry::from_with_context(
-                    context,
-                    BoxGeometry {
-                        width: 2.0,
-                        height: 2.0,
-                        depth: 0.2,
-                    },
-                )?),
-                <Rc<Material>>::from_with_context(
-                    context,
-                    SurfaceMaterial {
-                        basic: BasicMaterial {
-                            base_color: Color::black(),
-                            ..Default::default()
-                        },
-                        ..Default::default()
-                    },
-                )?,
-            )?);
-            box_mesh.set_position(&glm::vec3(1.2, 1.0, 0.0));
-            scene.add_child(&box_mesh);
-        }
-        let render_target = RenderTarget::initialize(context, (512, 512))?;
-        let screen = Node::new_mesh(Mesh::initialize(
-            context,
-            Rc::new(Geometry::from_with_context(
-                context,
-                Rectangle {
-                    width: 1.8,
-                    height: 1.8,
-                    ..Default::default()
-                },
-            )?),
-            material::texture::create(
-                context,
-                Rc::clone(render_target.texture()),
-                TextureUnit::from(3),
-                Default::default(),
-            )?,
-        )?);
-        {
-            screen.set_position(&glm::vec3(1.2, 1.0, 0.11));
-            scene.add_child(&screen);
-        }
-        let sky_camera = Camera::new_perspective(Default::default());
-        {
-            let sky_camera = Node::new_camera(Rc::clone(&sky_camera));
-            sky_camera.set_position(&glm::vec3(0.0, 10.0, 0.1));
-            sky_camera.look_at(&glm::vec3(0.0, 0.0, 0.0));
-            scene.add_child(&sky_camera);
-        }
 
-        Ok(Box::new(Example {
+        let postprocessor = Postprocessor::initialize(
+            context,
             renderer,
-            rig,
             scene,
             camera,
-            sky_camera,
-            sphere,
-            render_target,
-        }))
+            None,
+            vec![Box::new(|context, sampler| {
+                effects::tint(context, sampler, Color::red())
+            })],
+            TextureUnit::from(3),
+        )?;
+
+        Ok(Box::new(Example { postprocessor }))
     }
 }
 
 impl Application for Example {
-    fn update(&mut self, key_state: &KeyState) {
-        self.sphere
-            .rotate_y(Angle::STRAIGHT / 235.0, Default::default());
-        self.rig.update(key_state);
-    }
+    fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.renderer.render_to_target(
-            context,
-            &self.scene,
-            &self.sky_camera,
-            Some(&self.render_target),
-        );
-        self.renderer.render(context, &self.scene, &self.camera);
+        self.postprocessor.render(context);
     }
 }
 

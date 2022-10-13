@@ -13,25 +13,28 @@ use crate::core::{
     node::Node,
     render_target::RenderTarget,
     renderer::{self, Renderer},
+    texture::TextureUnit,
+    uniform::Sampler2D,
 };
 
 pub type Effect = Material;
 
-pub struct Postprocessor<'a> {
-    renderer: &'a Renderer,
+pub struct Postprocessor {
+    renderer: Renderer,
     scenes: Vec<Rc<Node>>,
     cameras: Vec<Rc<RefCell<Camera>>>,
     render_targets: Vec<Option<RenderTarget>>,
 }
 
-impl<'a> Postprocessor<'a> {
+impl Postprocessor {
     pub fn initialize(
         context: &WebGl2RenderingContext,
-        renderer: &'a Renderer,
+        renderer: Renderer,
         scene: Rc<Node>,
         camera: Rc<RefCell<Camera>>,
         render_target: Option<RenderTarget>,
-        effects: Vec<Effect>,
+        effects: Vec<Box<dyn Fn(&WebGl2RenderingContext, Sampler2D) -> Result<Effect>>>,
+        texture_unit: TextureUnit,
     ) -> Result<Self> {
         let geometry = Rc::new(self::create_geometry(context)?);
         let default_camera = Camera::new_ortographic(Default::default());
@@ -41,15 +44,13 @@ impl<'a> Postprocessor<'a> {
         let resolution = renderer::get_canvas_size(context);
         for effect in effects.into_iter() {
             let target = RenderTarget::initialize(context, resolution)?;
-            if let Some(uniform) = effect.uniform("texture0") {
-                if let Ok(mut sampler2d) = uniform.sampler2d_mut() {
-                    sampler2d.texture = Rc::clone(target.texture());
-                }
-            }
             scenes.push(self::create_scene(
                 context,
                 Rc::clone(&geometry),
-                effect,
+                effect(
+                    context,
+                    Sampler2D::new(Rc::clone(target.texture()), texture_unit),
+                )?,
                 Rc::clone(&default_camera),
             )?);
             cameras.push(Rc::clone(&default_camera));
@@ -63,6 +64,16 @@ impl<'a> Postprocessor<'a> {
             cameras,
             render_targets,
         })
+    }
+
+    pub fn render(&self, context: &WebGl2RenderingContext) {
+        for n in 0..self.scenes.len() {
+            let scene = &self.scenes[n];
+            let camera = &self.cameras[n];
+            let target = &self.render_targets[n];
+            self.renderer
+                .render_to_target(context, scene, camera, target.as_ref())
+        }
     }
 }
 

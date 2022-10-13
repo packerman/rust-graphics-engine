@@ -56,7 +56,7 @@ impl TextureProperties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct TextureUnit {
     reference: u32,
     number: i32,

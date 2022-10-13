@@ -1,3 +1,4 @@
+pub mod effects;
 pub mod movement_rig;
 pub mod postprocessor;
 pub mod text_texture;

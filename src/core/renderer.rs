@@ -65,9 +65,9 @@ impl Renderer {
         context: &WebGl2RenderingContext,
         scene: &Node,
         camera: &RefCell<Camera>,
-        render_target: &RenderTarget,
+        render_target: Option<&RenderTarget>,
     ) {
-        self.render_generic(context, scene, camera, Self::CLEAR_ALL, Some(render_target));
+        self.render_generic(context, scene, camera, Self::CLEAR_ALL, render_target);
     }
 
     pub fn render_generic(
