@@ -19,6 +19,7 @@ out vec2 UV;
 void main()
 {
     gl_Position = vec4(vertexPosition, 0.0, 1.0);
+    UV = vertexUV;
 }
 "##;
 
@@ -52,7 +53,7 @@ void main()
 {
     vec4 color = texture(texture0, UV);
     float gray = (color.r + color.g + color.b) / 3.0;
-    fragColor = gray * tintColor;
+    fragColor = vec4(gray * tintColor.rgb, 1.0);
 }
 "##;
 

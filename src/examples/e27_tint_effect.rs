@@ -31,12 +31,10 @@ impl AsyncCreator for Example {
         let scene = Node::new_group();
 
         let camera = Camera::new_perspective(Default::default());
-        let rig = Node::new_movement_rig(Default::default());
         {
             let camera = Node::new_camera(Rc::clone(&camera));
-            rig.add_child(&camera);
-            scene.add_child(&rig);
-            rig.set_position(&glm::vec3(0.0, 1.0, 4.0));
+            scene.add_child(&camera);
+            camera.set_position(&glm::vec3(0.0, 1.0, 4.0));
         }
         {
             let sky = Node::new_mesh(Mesh::initialize(
