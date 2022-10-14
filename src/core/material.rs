@@ -20,9 +20,9 @@ pub struct Material {
     uniforms: HashMap<String, Uniform>,
     render_settings: Vec<RenderSetting>,
     pub draw_style: u32,
-    model_matrix: Uniform,
-    view_matrix: Uniform,
-    projection_matrix: Uniform,
+    model_matrix: Option<Uniform>,
+    view_matrix: Option<Uniform>,
+    projection_matrix: Option<Uniform>,
 }
 
 impl Material {
@@ -34,7 +34,7 @@ impl Material {
     ) -> Result<()> {
         self.uniforms.insert(
             String::from(name),
-            Uniform::new_with_data(context, data, &self.program, name)?,
+            Uniform::initialize(context, data, &self.program, name)?,
         );
         Ok(())
     }
@@ -48,24 +48,30 @@ impl Material {
     }
 
     pub fn set_model_matrix(&self, matrix: Mat4) {
-        Self::set_matrix(&self.model_matrix, matrix);
+        Self::set_matrix_uniform(self.model_matrix.as_ref(), matrix);
     }
 
     pub fn set_view_matrix(&self, matrix: Mat4) {
-        Self::set_matrix(&self.view_matrix, matrix);
+        Self::set_matrix_uniform(self.view_matrix.as_ref(), matrix);
     }
 
     pub fn set_projection_matrix(&self, matrix: Mat4) {
-        Self::set_matrix(&self.projection_matrix, matrix);
+        Self::set_matrix_uniform(self.projection_matrix.as_ref(), matrix);
     }
 
     pub fn upload_uniform_data(&self, context: &WebGl2RenderingContext) {
         for uniform in self.uniforms.values() {
             uniform.upload_data(context);
         }
-        self.model_matrix.upload_data(context);
-        self.view_matrix.upload_data(context);
-        self.projection_matrix.upload_data(context);
+        if let Some(uniform) = &self.model_matrix {
+            uniform.upload_data(context);
+        }
+        if let Some(uniform) = &self.view_matrix {
+            uniform.upload_data(context);
+        }
+        if let Some(uniform) = &self.projection_matrix {
+            uniform.upload_data(context);
+        }
     }
 
     pub fn update_render_settings(&self, context: &WebGl2RenderingContext) {
@@ -78,9 +84,11 @@ impl Material {
         self.uniforms.get(name)
     }
 
-    fn set_matrix(uniform: &Uniform, matrix: Mat4) {
-        let mut m = uniform.mat4_mut().unwrap();
-        *m = matrix;
+    fn set_matrix_uniform(uniform: Option<&Uniform>, matrix: Mat4) {
+        if let Some(uniform) = uniform {
+            let mut m = uniform.mat4_mut().unwrap();
+            *m = matrix;
+        }
     }
 }
 
@@ -104,28 +112,14 @@ impl FromWithContext<WebGl2RenderingContext, MaterialSettings<'_>> for Material 
             .map(|(name, data)| {
                 Ok((
                     String::from(name),
-                    Uniform::new_with_data(context, data, &program, name)?,
+                    Uniform::initialize(context, data, &program, name)?,
                 ))
             })
             .collect();
-        let model_matrix = Uniform::new_with_data(
-            context,
-            UniformData::from(Mat4::default()),
-            &program,
-            "modelMatrix",
-        )?;
-        let view_matrix = Uniform::new_with_data(
-            context,
-            UniformData::from(Mat4::default()),
-            &program,
-            "viewMatrix",
-        )?;
-        let projection_matrix = Uniform::new_with_data(
-            context,
-            UniformData::from(Mat4::default()),
-            &program,
-            "projectionMatrix",
-        )?;
+        let model_matrix = Uniform::try_initialize::<Mat4>(context, &program, "modelMatrix");
+        let view_matrix = Uniform::try_initialize::<Mat4>(context, &program, "viewMatrix");
+        let projection_matrix =
+            Uniform::try_initialize::<Mat4>(context, &program, "projectionMatrix");
         Ok(Material {
             program,
             uniforms: uniforms?.into_iter().collect(),

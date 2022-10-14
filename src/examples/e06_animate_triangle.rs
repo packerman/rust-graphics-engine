@@ -49,13 +49,13 @@ impl AsyncCreator for Example {
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
         position_attribute.associate_variable(context, &program, "position");
 
-        let translation = Uniform::new_with_data(
+        let translation = Uniform::initialize(
             context,
             UniformData::from(glm::vec3(-0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
         )?;
-        let base_color = Uniform::new_with_data(
+        let base_color = Uniform::initialize(
             context,
             UniformData::from(Color::red()),
             &program,

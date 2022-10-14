@@ -56,14 +56,14 @@ impl AsyncCreator for Example {
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
         position_attribute.associate_variable(context, &program, "position");
 
-        let model_matrix = Uniform::new_with_data(
+        let model_matrix = Uniform::initialize(
             context,
             UniformData::from(matrix::translation(0.0, 0.0, -1.0)),
             &program,
             "modelMatrix",
         )?;
 
-        let projection_matrix: Uniform = Uniform::new_with_data(
+        let projection_matrix: Uniform = Uniform::initialize(
             context,
             UniformData::from(Mat4::from(Perspective::default())),
             &program,

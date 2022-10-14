@@ -125,7 +125,7 @@ pub struct Uniform {
 }
 
 impl Uniform {
-    pub fn new_with_data(
+    pub fn initialize(
         context: &WebGl2RenderingContext,
         data: UniformData,
         program: &WebGlProgram,
@@ -137,6 +137,22 @@ impl Uniform {
             location,
         };
         Ok(uniform)
+    }
+
+    pub fn try_initialize<T>(
+        context: &WebGl2RenderingContext,
+        program: &WebGlProgram,
+        name: &str,
+    ) -> Option<Self>
+    where
+        T: Into<UniformData> + Default,
+    {
+        let location = context.get_uniform_location(program, name)?;
+        let uniform = Uniform {
+            data: RefCell::new(T::default().into()),
+            location,
+        };
+        Some(uniform)
     }
 
     pub fn upload_data(&self, context: &WebGl2RenderingContext) {
