@@ -1,4 +1,5 @@
 use anyhow::Result;
+use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
@@ -64,5 +65,129 @@ pub fn tint(
 ) -> Result<Effect> {
     let mut effect = create_basic(context, TINT_FRAGMENT_SHADER, sampler_2d)?;
     effect.add_uniform(context, "tintColor", UniformData::from(tint_color))?;
+    Ok(effect)
+}
+
+const INVERT_FRAGMENT_SHADER: &str = r##"#version 300 es
+
+precision highp float;
+
+in vec2 UV;
+uniform sampler2D texture0;
+uniform vec4 tintColor;
+out vec4 fragColor;
+
+void main()
+{
+    vec4 color = texture(texture0, UV);
+    fragColor = vec4(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, 1.0);
+}
+"##;
+
+#[allow(dead_code)]
+pub fn invert(context: &WebGl2RenderingContext, sampler_2d: Sampler2D) -> Result<Effect> {
+    create_basic(context, INVERT_FRAGMENT_SHADER, sampler_2d)
+}
+
+const PIXELATE_FRAGMENT_SHADER: &str = r##"#version 300 es
+
+precision highp float;
+
+in vec2 UV;
+uniform sampler2D texture0;
+uniform float pixelSize;
+uniform vec2 resolution;
+out vec4 fragColor;
+
+void main()
+{
+    vec2 factor = resolution / pixelSize;
+    vec2 newUV = floor(UV * factor) / factor;
+    fragColor = texture(texture0, newUV);
+}
+"##;
+
+pub fn pixelate(
+    context: &WebGl2RenderingContext,
+    sampler_2d: Sampler2D,
+    pixel_size: u16,
+    resolution: Vec2,
+) -> Result<Effect> {
+    let mut effect = create_basic(context, PIXELATE_FRAGMENT_SHADER, sampler_2d)?;
+    effect.add_uniform(
+        context,
+        "pixelSize",
+        UniformData::from(f32::from(pixel_size)),
+    )?;
+    effect.add_uniform(context, "resolution", UniformData::from(resolution))?;
+    Ok(effect)
+}
+
+const VIGNETTE_FRAGMENT_SHADER: &str = r##"#version 300 es
+
+precision highp float;
+
+in vec2 UV;
+uniform sampler2D texture0;
+uniform float dimStart;
+uniform float dimEnd;
+uniform vec4 dimColor;
+out vec4 fragColor;
+
+void main()
+{
+    vec4 color = texture(texture0, UV);
+
+    vec2 position = 2 * UV - vec2(1.0, 1.0);
+    float d = length(position);
+    float b = (d - dimEnd) / (dimStart - dimEnd);
+    b = clamp(b, 0.0, 1.0);
+
+    fragColor = b * color + (1.0 - b) * dimColor;
+}
+"##;
+
+#[allow(dead_code)]
+pub fn vignette(
+    context: &WebGl2RenderingContext,
+    sampler_2d: Sampler2D,
+    dim_start: f32,
+    dim_end: f32,
+    dim_color: Color,
+) -> Result<Effect> {
+    let mut effect = create_basic(context, VIGNETTE_FRAGMENT_SHADER, sampler_2d)?;
+    effect.add_uniform(context, "dimStart", UniformData::from(dim_start))?;
+    effect.add_uniform(context, "dimEnd", UniformData::from(dim_end))?;
+    effect.add_uniform(context, "dimColor", UniformData::from(dim_color))?;
+    Ok(effect)
+}
+
+const COLOR_REDUCE_FRAGMENT_SHADER: &str = r##"#version 300 es
+
+precision highp float;
+
+in vec2 UV;
+uniform sampler2D texture0;
+uniform float levels;
+out vec4 fragColor;
+
+void main()
+{
+    vec4 color = texture(texture0, UV);
+
+    vec4 reduced = round(color * levels) / levels;
+    reduced.a = 1.0;
+
+    fragColor = reduced;
+}
+"##;
+
+pub fn color_reduce(
+    context: &WebGl2RenderingContext,
+    sampler_2d: Sampler2D,
+    levels: u16,
+) -> Result<Effect> {
+    let mut effect = create_basic(context, COLOR_REDUCE_FRAGMENT_SHADER, sampler_2d)?;
+    effect.add_uniform(context, "levels", UniformData::from(f32::from(levels)))?;
     Ok(effect)
 }

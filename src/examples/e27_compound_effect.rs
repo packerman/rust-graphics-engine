@@ -112,9 +112,13 @@ impl AsyncCreator for Example {
             scene,
             camera,
             None,
-            vec![Box::new(|context, sampler| {
-                effects::tint(context, sampler, Color::red())
-            })],
+            vec![
+                Box::new(|context, sampler| effects::tint(context, sampler, Color::lime())),
+                Box::new(|context, sampler| effects::color_reduce(context, sampler, 5)),
+                Box::new(|context, sampler| {
+                    effects::pixelate(context, sampler, 4, glm::vec2(800.0, 600.0))
+                }),
+            ],
             TextureUnit::from(3),
         )?;
 
