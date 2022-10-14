@@ -74,13 +74,6 @@ impl UniformData {
             _ => None,
         }
     }
-
-    pub fn sampler2d_mut(&mut self) -> Option<&mut Sampler2D> {
-        match self {
-            UniformData::Sampler2D(data) => Some(data),
-            _ => None,
-        }
-    }
 }
 
 impl From<bool> for UniformData {
@@ -177,9 +170,5 @@ impl Uniform {
 
     pub fn mat4_mut(&self) -> Result<RefMut<Mat4>, RefMut<UniformData>> {
         RefMut::filter_map(self.data.borrow_mut(), |data| data.mat4_mut())
-    }
-
-    pub fn sampler2d_mut(&self) -> Result<RefMut<Sampler2D>, RefMut<UniformData>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.sampler2d_mut())
     }
 }

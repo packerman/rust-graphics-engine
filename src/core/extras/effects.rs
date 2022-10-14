@@ -22,21 +22,6 @@ void main()
 }
 "##;
 
-const TEMPLATE_FRAGMENT_SHADER: &str = r##"#version 300 es
-
-precision highp float;
-
-in vec2 UV;
-uniform sampler2D texture0;
-out vec4 fragColor;
-
-void main()
-{
-    vec4 color = texture(texture0, UV);
-    fragColor = vec4(1.0, 1.0, 0.0, 1.0);
-}
-"##;
-
 fn create_basic(
     context: &WebGl2RenderingContext,
     fragment_shader: &str,
@@ -67,7 +52,7 @@ void main()
 {
     vec4 color = texture(texture0, UV);
     float gray = (color.r + color.g + color.b) / 3.0;
-    fragColor = vec4(gray * tintColor, 1.0);
+    fragColor = gray * tintColor;
 }
 "##;
 
