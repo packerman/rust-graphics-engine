@@ -11,7 +11,7 @@ use crate::core::{
     attribute::AttributeData,
     color::Color,
     convert::FromWithContext,
-    matrix::{self, Angle},
+    math::{angle::Angle, matrix},
 };
 
 use super::{Geometry, Polygon};

@@ -14,7 +14,7 @@ use crate::core::{
     },
     input::KeyState,
     material,
-    matrix::{self, Angle},
+    math::{angle::Angle, matrix},
     mesh::Mesh,
     node::Node,
     renderer::Renderer,

@@ -17,7 +17,7 @@ use crate::core::{
         texture::TextureMaterial,
         Material,
     },
-    matrix::Angle,
+    math::angle::Angle,
     mesh::Mesh,
     node::Node,
     render_target::RenderTarget,

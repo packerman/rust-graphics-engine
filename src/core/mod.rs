@@ -10,7 +10,7 @@ pub mod geometry;
 pub mod gl;
 pub mod input;
 pub mod material;
-pub mod matrix;
+pub mod math;
 pub mod mesh;
 pub mod node;
 pub mod render_target;

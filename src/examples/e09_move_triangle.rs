@@ -9,7 +9,10 @@ use crate::core::{
     color::Color,
     gl,
     input::KeyState,
-    matrix::{self, Angle, Perspective},
+    math::{
+        angle::Angle,
+        matrix::{self, Perspective},
+    },
     uniform::{Uniform, UniformData},
 };
 

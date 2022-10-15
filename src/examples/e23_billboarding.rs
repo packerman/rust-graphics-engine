@@ -13,7 +13,7 @@ use crate::core::{
     geometry::{BoxGeometry, Geometry, Rectangle},
     input::KeyState,
     material,
-    matrix::{self, Angle},
+    math::{angle::Angle, matrix},
     mesh::Mesh,
     node::Node,
     renderer::{Renderer, RendererOptions},

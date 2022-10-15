@@ -11,7 +11,7 @@ use super::{
     camera::Camera,
     extras::movement_rig::{self, MovementRig},
     input::KeyState,
-    matrix::{self, Angle},
+    math::{angle::Angle, matrix},
     mesh::Mesh,
 };
 

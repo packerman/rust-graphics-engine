@@ -14,7 +14,7 @@ use crate::core::{
         basic::{BasicMaterial, SurfaceMaterial},
         Material,
     },
-    matrix::Angle,
+    math::angle::Angle,
     mesh::Mesh,
     node::{Node, Transform},
     renderer::{Renderer, RendererOptions},

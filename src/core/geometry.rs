@@ -14,7 +14,7 @@ use super::{
     attribute::{Attribute, AttributeData},
     color::Color,
     convert::FromWithContext,
-    matrix::Angle,
+    math::angle::Angle,
 };
 
 #[derive(Debug, Clone)]

@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use glm::Mat4;
 
-use super::matrix::{self, Ortographic, Perspective};
+use super::math::matrix::{self, Ortographic, Perspective};
 
 #[derive(Debug, Clone, Copy)]
 enum Projection {

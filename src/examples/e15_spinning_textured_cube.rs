@@ -11,7 +11,7 @@ use crate::core::{
     geometry::{BoxGeometry, Geometry},
     input::KeyState,
     material,
-    matrix::Angle,
+    math::angle::Angle,
     mesh::Mesh,
     node::{Node, Transform},
     renderer::{Renderer, RendererOptions},
