@@ -12,7 +12,6 @@ use crate::{
         convert::FromWithContext,
         geometry::{BoxGeometry, Geometry, Rectangle},
         input::KeyState,
-        material,
         math::{angle::Angle, matrix::Ortographic},
         mesh::Mesh,
         node::Node,
@@ -20,6 +19,7 @@ use crate::{
         texture::{Texture, TextureData, TextureUnit},
     },
     extras::grid_helper::GridHelper,
+    material,
 };
 
 struct Example {

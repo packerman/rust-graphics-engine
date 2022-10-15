@@ -3,16 +3,12 @@ use std::rc::Rc;
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    attribute::AttributeData,
-    color::Color,
-    convert::FromWithContext,
-    geometry::Geometry,
-    material::{
-        basic::{BasicMaterial, LineMaterial, LineType},
-        Material,
+use crate::{
+    core::{
+        attribute::AttributeData, color::Color, convert::FromWithContext, geometry::Geometry,
+        material::Material, mesh::Mesh,
     },
-    mesh::Mesh,
+    material::basic::{BasicMaterial, LineMaterial, LineType},
 };
 
 pub struct AxesHelper {

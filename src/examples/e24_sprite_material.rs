@@ -12,7 +12,6 @@ use crate::{
         convert::FromWithContext,
         geometry::{Geometry, Rectangle},
         input::KeyState,
-        material::{self, sprite::SpriteMaterial},
         math::angle::Angle,
         mesh::Mesh,
         node::Node,
@@ -21,6 +20,7 @@ use crate::{
         web,
     },
     extras::grid_helper::GridHelper,
+    material::{self, sprite::SpriteMaterial},
 };
 
 struct Example {

@@ -7,11 +7,10 @@ use web_sys::WebGl2RenderingContext;
 use crate::core::{
     color::Color,
     convert::FromWithContext,
+    material::{Material, MaterialSettings, RenderSetting},
     texture::{Texture, TextureUnit},
     uniform::{Sampler2D, UniformData},
 };
-
-use super::{Material, MaterialSettings, RenderSetting};
 
 pub struct SpriteMaterial {
     pub base_color: Color,

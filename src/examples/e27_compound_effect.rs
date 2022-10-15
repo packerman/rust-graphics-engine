@@ -12,7 +12,6 @@ use crate::{
         convert::FromWithContext,
         geometry::{parametric::Sphere, Geometry, Rectangle},
         input::KeyState,
-        material::{self, texture::TextureMaterial},
         math::angle::Angle,
         mesh::Mesh,
         node::Node,
@@ -20,6 +19,7 @@ use crate::{
         texture::{Texture, TextureData, TextureUnit},
     },
     extras::{effects, postprocessor::Postprocessor},
+    material::{self, texture::TextureMaterial},
 };
 
 struct Example {
