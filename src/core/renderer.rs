@@ -2,7 +2,10 @@ use std::cell::RefCell;
 
 use web_sys::WebGl2RenderingContext;
 
-use super::{camera::Camera, color::Color, gl, node::Node, render_target::RenderTarget, web};
+use super::{
+    camera::Camera, color::Color, gl, math::resolution::Resolution, node::Node,
+    render_target::RenderTarget, web,
+};
 
 pub struct RendererOptions {
     pub clear_color: Color,
@@ -65,9 +68,9 @@ impl Renderer {
         context: &WebGl2RenderingContext,
         scene: &Node,
         camera: &RefCell<Camera>,
-        render_target: &RenderTarget,
+        render_target: Option<&RenderTarget>,
     ) {
-        self.render_generic(context, scene, camera, Self::CLEAR_ALL, Some(render_target));
+        self.render_generic(context, scene, camera, Self::CLEAR_ALL, render_target);
     }
 
     pub fn render_generic(
@@ -78,10 +81,10 @@ impl Renderer {
         clear_mask: u32,
         render_target: Option<&RenderTarget>,
     ) {
-        let resolution: (i32, i32);
+        let resolution: Resolution;
         if let Some(render_target) = render_target {
             render_target.bind(context);
-            resolution = render_target.size();
+            resolution = render_target.resolution();
         } else {
             context.bind_framebuffer(WebGl2RenderingContext::FRAMEBUFFER, None);
             resolution = self::get_canvas_size(context);
@@ -95,7 +98,7 @@ impl Renderer {
         context: &WebGl2RenderingContext,
         scene: &Node,
         camera: &RefCell<Camera>,
-        resolution: (i32, i32),
+        resolution: Resolution,
     ) {
         self::viewport(context, resolution);
 
@@ -103,7 +106,7 @@ impl Renderer {
 
         for node in nodes.iter() {
             if let Some(camera) = node.camera() {
-                camera.borrow_mut().set_aspect_ratio(resolution);
+                camera.borrow_mut().set_aspect_ratio(resolution.ratio());
                 camera.borrow_mut().update_view_matrix(&node.world_matrix());
             }
         }
@@ -117,12 +120,12 @@ impl Renderer {
     }
 }
 
-fn get_canvas_size(context: &WebGl2RenderingContext) -> (i32, i32) {
+pub fn get_canvas_size(context: &WebGl2RenderingContext) -> Resolution {
     let canvas = web::get_canvas(context).unwrap();
     let (width, height) = web::canvas_size(&canvas);
-    (width as i32, height as i32)
+    Resolution::new(width as i32, height as i32)
 }
 
-fn viewport(context: &WebGl2RenderingContext, resolution: (i32, i32)) {
-    context.viewport(0, 0, resolution.0, resolution.1)
+fn viewport(context: &WebGl2RenderingContext, resolution: Resolution) {
+    context.viewport(0, 0, resolution.width, resolution.height)
 }

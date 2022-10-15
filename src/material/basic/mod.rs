@@ -1,9 +1,12 @@
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{color::Color, convert::FromWithContext, uniform::UniformData};
-
-use super::{Material, MaterialSettings, RenderSetting};
+use crate::core::{
+    color::Color,
+    convert::FromWithContext,
+    material::{Material, MaterialSettings, RenderSetting},
+    uniform::UniformData,
+};
 
 pub struct BasicMaterial {
     pub base_color: Color,

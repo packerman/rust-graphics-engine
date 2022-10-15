@@ -9,7 +9,10 @@ use crate::core::{
     color::Color,
     gl,
     input::KeyState,
-    matrix::{self, Angle, Perspective},
+    math::{
+        angle::Angle,
+        matrix::{self, Perspective},
+    },
     uniform::{Uniform, UniformData},
 };
 
@@ -45,7 +48,7 @@ const DELTA_TIME_SEC: f32 = 1_f32 / 60.0;
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         gl::set_clear_color(context, &Color::black());
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
@@ -56,28 +59,28 @@ impl AsyncCreator for Example {
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
         position_attribute.associate_variable(context, &program, "position");
 
-        let model_matrix = Uniform::new_with_data(
+        let model_matrix = Uniform::initialize(
             context,
             UniformData::from(matrix::translation(0.0, 0.0, -1.0)),
             &program,
             "modelMatrix",
         )?;
 
-        let projection_matrix: Uniform = Uniform::new_with_data(
+        let projection_matrix: Uniform = Uniform::initialize(
             context,
             UniformData::from(Mat4::from(Perspective::default())),
             &program,
             "projectionMatrix",
         )?;
 
-        Ok(Example {
+        Ok(Box::new(Example {
             program,
             position: position_attribute,
             model_matrix,
             projection_matrix,
             move_speed: 0.5,
             turn_speed: Angle::from_degrees(90.0),
-        })
+        }))
     }
 }
 

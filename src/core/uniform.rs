@@ -15,24 +15,38 @@ use super::{
 };
 
 #[derive(Debug, Clone)]
+pub struct Sampler2D {
+    pub texture: Rc<Texture>,
+    unit: TextureUnit,
+}
+
+impl Sampler2D {
+    pub fn new(texture: Rc<Texture>, unit: TextureUnit) -> Self {
+        Self { texture, unit }
+    }
+
+    pub fn upload_data(
+        &self,
+        context: &WebGl2RenderingContext,
+        location: Option<&WebGlUniformLocation>,
+    ) {
+        self.unit
+            .upload_data(context, location, self.texture.texture());
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum UniformData {
     Boolean(bool),
     Float(f32),
     Vec3(Vec3),
     Color(Color),
     Mat4(Mat4),
-    Sampler2D {
-        texture: Rc<Texture>,
-        unit: TextureUnit,
-    },
+    Sampler2D(Sampler2D),
     Vec2(Vec2),
 }
 
 impl UniformData {
-    pub fn sampler2d(texture: Rc<Texture>, unit: TextureUnit) -> Self {
-        UniformData::Sampler2D { texture, unit }
-    }
-
     pub fn float_mut(&mut self) -> Option<&mut f32> {
         match self {
             UniformData::Float(data) => Some(data),
@@ -92,6 +106,12 @@ impl From<Mat4> for UniformData {
     }
 }
 
+impl From<Sampler2D> for UniformData {
+    fn from(data: Sampler2D) -> Self {
+        UniformData::Sampler2D(data)
+    }
+}
+
 impl From<Vec2> for UniformData {
     fn from(data: Vec2) -> Self {
         UniformData::Vec2(data)
@@ -105,7 +125,7 @@ pub struct Uniform {
 }
 
 impl Uniform {
-    pub fn new_with_data(
+    pub fn initialize(
         context: &WebGl2RenderingContext,
         data: UniformData,
         program: &WebGlProgram,
@@ -117,6 +137,22 @@ impl Uniform {
             location,
         };
         Ok(uniform)
+    }
+
+    pub fn try_initialize<T>(
+        context: &WebGl2RenderingContext,
+        program: &WebGlProgram,
+        name: &str,
+    ) -> Option<Self>
+    where
+        T: Into<UniformData> + Default,
+    {
+        let location = context.get_uniform_location(program, name)?;
+        let uniform = Uniform {
+            data: RefCell::new(T::default().into()),
+            location,
+        };
+        Some(uniform)
     }
 
     pub fn upload_data(&self, context: &WebGl2RenderingContext) {
@@ -131,9 +167,7 @@ impl Uniform {
             UniformData::Mat4(data) => {
                 context.uniform_matrix4fv_with_f32_array(location, false, data.into())
             }
-            UniformData::Sampler2D { texture, unit } => {
-                unit.upload_data(context, location, texture.texture())
-            }
+            UniformData::Sampler2D(sampler) => sampler.upload_data(context, location),
             UniformData::Vec2(data) => context.uniform2f(location, data.x, data.y),
         }
     }

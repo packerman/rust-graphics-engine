@@ -33,14 +33,14 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         gl::set_clear_color(context, &Color::black());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = context
             .create_vertex_array()
             .ok_or_else(|| anyhow!("Cannot create vertex array object"))?;
         context.bind_vertex_array(Some(&vao));
-        Ok(Example { program })
+        Ok(Box::new(Example { program }))
     }
 }
 

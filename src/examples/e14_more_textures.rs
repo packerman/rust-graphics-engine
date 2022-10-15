@@ -4,21 +4,21 @@ use anyhow::Result;
 use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    application::{self, Application, AsyncCreator},
-    camera::Camera,
-    convert::FromWithContext,
-    geometry::{
-        parametric::{Cone, Cylinder, Sphere},
-        Geometry,
+use crate::{
+    core::{
+        application::{self, Application, AsyncCreator},
+        camera::Camera,
+        convert::FromWithContext,
+        geometry::Geometry,
+        input::KeyState,
+        math::{angle::Angle, matrix},
+        mesh::Mesh,
+        node::Node,
+        renderer::Renderer,
+        texture::{Texture, TextureData, TextureUnit},
     },
-    input::KeyState,
+    geometry::parametric::{Cone, Cylinder, Sphere},
     material,
-    matrix::{self, Angle},
-    mesh::Mesh,
-    node::Node,
-    renderer::Renderer,
-    texture::{Texture, TextureData, TextureUnit},
 };
 
 struct Example {
@@ -29,11 +29,11 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::new(context, Default::default());
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera = Camera::new_perspective(Default::default());
         {
             let camera = Node::new_camera(Rc::clone(&camera));
             camera.rotate_x(-Angle::from_degrees(20.0), Default::default());
@@ -43,64 +43,52 @@ impl AsyncCreator for Example {
 
         let material = Rc::new(material::texture::create(
             context,
-            Rc::new(Texture::new(
+            Texture::initialize(
                 context,
                 TextureData::load_from_source("images/grid.png").await?,
                 Default::default(),
-            )?),
+            )?,
             TextureUnit::from(0),
             Default::default(),
         )?);
         {
-            let geometry = Geometry::from_with_context(context, Sphere::default())?;
-            let mesh = Node::new_mesh(Box::new(Mesh::new(
-                context,
-                geometry,
-                Rc::clone(&material),
-            )?));
+            let geometry = Rc::new(Geometry::from_with_context(context, Sphere::default())?);
+            let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::clone(&material))?);
             mesh.apply_matrix(&matrix::translation(-3.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
         {
-            let geometry = Geometry::from_with_context(
+            let geometry = Rc::new(Geometry::from_with_context(
                 context,
                 Cone {
                     radius: 1.0,
                     height: 2.0,
                     ..Default::default()
                 },
-            )?;
-            let mesh = Node::new_mesh(Box::new(Mesh::new(
-                context,
-                geometry,
-                Rc::clone(&material),
-            )?));
+            )?);
+            let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::clone(&material))?);
             mesh.apply_matrix(&matrix::translation(0.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
         {
-            let geometry = Geometry::from_with_context(
+            let geometry = Rc::new(Geometry::from_with_context(
                 context,
                 Cylinder {
                     radius: 0.8,
                     height: 2.0,
                     ..Default::default()
                 },
-            )?;
-            let mesh = Node::new_mesh(Box::new(Mesh::new(
-                context,
-                geometry,
-                Rc::clone(&material),
-            )?));
+            )?);
+            let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::clone(&material))?);
             mesh.apply_matrix(&matrix::translation(3.0, -0.5, 0.0), Default::default());
             scene.add_child(&mesh);
         }
 
-        Ok(Example {
+        Ok(Box::new(Example {
             renderer,
             scene,
             camera,
-        })
+        }))
     }
 }
 

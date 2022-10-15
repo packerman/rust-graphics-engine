@@ -4,17 +4,19 @@ use anyhow::Result;
 use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    application::{self, Application, AsyncCreator},
-    camera::Camera,
-    color::Color,
-    convert::FromWithContext,
-    extras::{AxesHelper, GridHelper},
-    input::KeyState,
-    matrix::Angle,
-    mesh::Mesh,
-    node::{Node, Transform},
-    renderer::{Renderer, RendererOptions},
+use crate::{
+    core::{
+        application::{self, Application, AsyncCreator},
+        camera::Camera,
+        color::Color,
+        convert::FromWithContext,
+        input::KeyState,
+        math::angle::Angle,
+        mesh::Mesh,
+        node::{Node, Transform},
+        renderer::{Renderer, RendererOptions},
+    },
+    extras::{axes_helper::AxesHelper, grid_helper::GridHelper},
 };
 
 struct Example {
@@ -25,26 +27,26 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::new(context, RendererOptions::default());
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera = Camera::new_perspective(Default::default());
         let camera_node = Node::new_camera(Rc::clone(&camera));
         camera_node.set_position(&glm::vec3(0.5, 1.0, 5.0));
         scene.add_child(&camera_node);
 
-        let axes = Box::new(Mesh::from_with_context(
+        let axes = Mesh::from_with_context(
             context,
             AxesHelper {
                 axis_length: 2.0,
                 ..Default::default()
             },
-        )?);
+        )?;
         let axes = Node::new_mesh(axes);
         scene.add_child(&axes);
 
-        let grid = Box::new(Mesh::from_with_context(
+        let grid = Mesh::from_with_context(
             context,
             GridHelper {
                 size: 20.0,
@@ -52,16 +54,16 @@ impl AsyncCreator for Example {
                 center_color: Color::yellow(),
                 ..Default::default()
             },
-        )?);
+        )?;
         let grid = Node::new_mesh(grid);
         grid.rotate_x(-Angle::RIGHT, Transform::default());
         scene.add_child(&grid);
 
-        Ok(Example {
+        Ok(Box::new(Example {
             renderer,
             scene,
             camera,
-        })
+        }))
     }
 }
 

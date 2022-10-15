@@ -41,7 +41,7 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         gl::set_clear_color(context, &Color::gray());
         let program = gl::build_program(context, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)?;
         let vao = gl::create_vertex_array(context)?;
@@ -51,39 +51,39 @@ impl AsyncCreator for Example {
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
         position_attribute.associate_variable(context, &program, "position");
 
-        let translation1 = Uniform::new_with_data(
+        let translation1 = Uniform::initialize(
             context,
             UniformData::from(glm::vec3(-0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
         )?;
-        let translation2 = Uniform::new_with_data(
+        let translation2 = Uniform::initialize(
             context,
             UniformData::from(glm::vec3(0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
         )?;
-        let base_color1 = Uniform::new_with_data(
+        let base_color1 = Uniform::initialize(
             context,
             UniformData::from(Color::red()),
             &program,
             "baseColor",
         )?;
-        let base_color2 = Uniform::new_with_data(
+        let base_color2 = Uniform::initialize(
             context,
             UniformData::from(Color::blue()),
             &program,
             "baseColor",
         )?;
 
-        Ok(Example {
+        Ok(Box::new(Example {
             program,
             position: position_attribute,
             translation1,
             translation2,
             base_color1,
             base_color2,
-        })
+        }))
     }
 }
 

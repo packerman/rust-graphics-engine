@@ -4,21 +4,23 @@ use anyhow::Result;
 use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    application::{self, Application, AsyncCreator},
-    camera::Camera,
-    color::Color,
-    convert::FromWithContext,
-    extras::GridHelper,
-    geometry::{Geometry, Rectangle},
-    input::KeyState,
+use crate::{
+    core::{
+        application::{self, Application, AsyncCreator},
+        camera::Camera,
+        color::Color,
+        convert::FromWithContext,
+        geometry::{Geometry, Rectangle},
+        input::KeyState,
+        math::angle::Angle,
+        mesh::Mesh,
+        node::Node,
+        renderer::{Renderer, RendererOptions},
+        texture::{Texture, TextureData, TextureUnit},
+        web,
+    },
+    extras::grid_helper::GridHelper,
     material::{self, sprite::SpriteMaterial},
-    matrix::Angle,
-    mesh::Mesh,
-    node::Node,
-    renderer::{Renderer, RendererOptions},
-    texture::{Texture, TextureData, TextureUnit},
-    web,
 };
 
 struct Example {
@@ -32,7 +34,7 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::new(
             context,
             RendererOptions {
@@ -42,7 +44,7 @@ impl AsyncCreator for Example {
         );
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera = Camera::new_perspective(Default::default());
         let rig = Node::new_movement_rig(Default::default());
         {
             rig.set_position(&glm::vec3(0.0, 0.5, 3.0));
@@ -55,21 +57,18 @@ impl AsyncCreator for Example {
             scene.add_child(&sprite);
         }
         {
-            let grid = Node::new_mesh(Box::new(Mesh::from_with_context(
-                context,
-                GridHelper::default(),
-            )?));
+            let grid = Node::new_mesh(Mesh::from_with_context(context, GridHelper::default())?);
             grid.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grid);
         }
-        Ok(Example {
+        Ok(Box::new(Example {
             renderer,
             scene,
             camera,
             rig,
             sprite,
             tiles_per_second: 8.0,
-        })
+        }))
     }
 }
 
@@ -96,13 +95,13 @@ pub fn example() -> Box<dyn Fn()> {
 }
 
 async fn create_sprite(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
-    let geometry = Geometry::from_with_context(context, Rectangle::default())?;
-    let tile_set = Rc::new(Texture::new(
+    let geometry = Rc::new(Geometry::from_with_context(context, Rectangle::default())?);
+    let tile_set = Texture::initialize(
         context,
         TextureData::load_from_source("images/rolling-ball.png").await?,
         Default::default(),
-    )?);
-    let material = Rc::new(material::sprite::create(
+    )?;
+    let material = material::sprite::create(
         context,
         tile_set,
         TextureUnit::from(0),
@@ -112,7 +111,7 @@ async fn create_sprite(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
             tile_number: 0.0,
             ..Default::default()
         },
-    )?);
-    let sprite = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
+    )?;
+    let sprite = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
     Ok(sprite)
 }

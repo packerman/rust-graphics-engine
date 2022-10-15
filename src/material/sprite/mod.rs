@@ -7,11 +7,10 @@ use web_sys::WebGl2RenderingContext;
 use crate::core::{
     color::Color,
     convert::FromWithContext,
+    material::{Material, MaterialSettings, RenderSetting},
     texture::{Texture, TextureUnit},
-    uniform::UniformData,
+    uniform::{Sampler2D, UniformData},
 };
-
-use super::{Material, MaterialSettings, RenderSetting};
 
 pub struct SpriteMaterial {
     pub base_color: Color,
@@ -38,7 +37,7 @@ pub fn create(
     texture: Rc<Texture>,
     unit: TextureUnit,
     sprite_material: SpriteMaterial,
-) -> Result<Material> {
+) -> Result<Rc<Material>> {
     Material::from_with_context(
         context,
         MaterialSettings {
@@ -46,7 +45,7 @@ pub fn create(
             fragment_shader: include_str!("fragment.glsl"),
             uniforms: vec![
                 ("baseColor", UniformData::from(sprite_material.base_color)),
-                ("texture0", UniformData::sampler2d(texture, unit)),
+                ("texture0", UniformData::from(Sampler2D::new(texture, unit))),
                 ("billboard", UniformData::from(sprite_material.billboard)),
                 ("tileNumber", UniformData::from(sprite_material.tile_number)),
                 ("tileCount", UniformData::from(sprite_material.tile_count)),
@@ -55,4 +54,5 @@ pub fn create(
             draw_style: WebGl2RenderingContext::TRIANGLES,
         },
     )
+    .map(Rc::new)
 }

@@ -15,7 +15,7 @@ use crate::core::{
     node::Node,
     renderer::{Renderer, RendererOptions},
     texture::{Texture, TextureData, TextureUnit},
-    uniform::UniformData,
+    uniform::{Sampler2D, UniformData},
     web,
 };
 
@@ -28,11 +28,11 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::new(context, RendererOptions::default());
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera = Camera::new_perspective(Default::default());
         {
             let camera = Node::new_camera(Rc::clone(&camera));
             camera.set_position(&glm::vec3(0.0, 0.0, 1.5));
@@ -46,14 +46,14 @@ impl AsyncCreator for Example {
                 uniforms: vec![
                     (
                         "textureSampler",
-                        UniformData::sampler2d(
-                            Rc::new(Texture::new(
+                        UniformData::from(Sampler2D::new(
+                            Texture::initialize(
                                 context,
                                 TextureData::load_from_source("images/grid.png").await?,
                                 Default::default(),
-                            )?),
+                            )?,
                             TextureUnit::from(0),
-                        ),
+                        )),
                     ),
                     ("time", UniformData::from(0.0)),
                 ],
@@ -62,29 +62,29 @@ impl AsyncCreator for Example {
             },
         )?);
         {
-            let geometry = Geometry::from_with_context(
+            let geometry = Rc::new(Geometry::from_with_context(
                 context,
                 Rectangle {
                     width: 1.5,
                     height: 1.5,
                     ..Default::default()
                 },
-            )?;
+            )?);
 
-            let mesh = Node::new_mesh(Box::new(Mesh::new(
+            let mesh = Node::new_mesh(Mesh::initialize(
                 context,
                 geometry,
                 Rc::clone(&wave_material),
-            )?));
+            )?);
             scene.add_child(&mesh);
         }
 
-        Ok(Example {
+        Ok(Box::new(Example {
             renderer,
             scene,
             camera,
             wave_material,
-        })
+        }))
     }
 }
 

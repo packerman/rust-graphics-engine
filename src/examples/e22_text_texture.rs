@@ -4,20 +4,22 @@ use anyhow::Result;
 use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    application::{self, Application, AsyncCreator},
-    camera::Camera,
-    color::Color,
-    convert::FromWithContext,
-    extras::{text_texture::TextTexture, GridHelper},
-    geometry::{BoxGeometry, Geometry},
-    input::KeyState,
+use crate::{
+    core::{
+        application::{self, Application, AsyncCreator},
+        camera::Camera,
+        color::Color,
+        convert::FromWithContext,
+        geometry::{BoxGeometry, Geometry},
+        input::KeyState,
+        math::angle::Angle,
+        mesh::Mesh,
+        node::Node,
+        renderer::{Renderer, RendererOptions},
+        texture::{Texture, TextureData, TextureUnit},
+    },
+    extras::{grid_helper::GridHelper, text_texture::TextTexture},
     material,
-    matrix::Angle,
-    mesh::Mesh,
-    node::Node,
-    renderer::{Renderer, RendererOptions},
-    texture::{Texture, TextureData, TextureUnit},
 };
 
 struct Example {
@@ -28,7 +30,7 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::new(
             context,
             RendererOptions {
@@ -38,7 +40,7 @@ impl AsyncCreator for Example {
         );
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera = Camera::new_perspective(Default::default());
         {
             let camera = Node::new_camera(Rc::clone(&camera));
             camera.rotate_y(Angle::from_degrees(-45.0), Default::default());
@@ -55,22 +57,22 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 },
             )?;
-            let grid = Node::new_mesh(Box::new(grid));
+            let grid = Node::new_mesh(grid);
             grid.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grid);
         }
 
-        let geometry = Geometry::from_with_context(
+        let geometry = Rc::new(Geometry::from_with_context(
             context,
             BoxGeometry {
                 width: 1.25,
                 height: 1.25,
                 depth: 1.25,
             },
-        )?;
+        )?);
         let material = material::texture::create(
             context,
-            Rc::new(Texture::new(
+            Texture::initialize(
                 context,
                 TextureData::try_from(TextTexture {
                     text: "Hello, World!",
@@ -79,18 +81,18 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 })?,
                 Default::default(),
-            )?),
+            )?,
             TextureUnit::from(0),
             Default::default(),
         )?;
-        let mesh = Node::new_mesh(Box::new(Mesh::new(context, geometry, Rc::new(material))?));
+        let mesh = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
         mesh.set_position(&glm::vec3(0.0, 0.5, 0.0));
         scene.add_child(&mesh);
-        Ok(Example {
+        Ok(Box::new(Example {
             renderer,
             scene,
             camera,
-        })
+        }))
     }
 }
 

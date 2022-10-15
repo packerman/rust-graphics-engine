@@ -4,18 +4,20 @@ use anyhow::Result;
 use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    application::{self, Application, AsyncCreator},
-    camera::Camera,
-    convert::FromWithContext,
-    geometry::{BoxGeometry, Geometry},
-    input::KeyState,
+use crate::{
+    core::{
+        application::{self, Application, AsyncCreator},
+        camera::Camera,
+        convert::FromWithContext,
+        geometry::{BoxGeometry, Geometry},
+        input::KeyState,
+        math::angle::Angle,
+        mesh::Mesh,
+        node::{Node, Transform},
+        renderer::{Renderer, RendererOptions},
+        texture::{Texture, TextureData, TextureUnit},
+    },
     material,
-    matrix::Angle,
-    mesh::Mesh,
-    node::{Node, Transform},
-    renderer::{Renderer, RendererOptions},
-    texture::{Texture, TextureData, TextureUnit},
 };
 
 struct Example {
@@ -27,36 +29,39 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::new(context, RendererOptions::default());
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera = Camera::new_perspective(Default::default());
         let camera_node = Node::new_camera(Rc::clone(&camera));
         camera_node.set_position(&glm::vec3(0.0, 0.0, 1.8));
         scene.add_child(&camera_node);
 
-        let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
+        let geometry = Rc::new(Geometry::from_with_context(
+            context,
+            BoxGeometry::default(),
+        )?);
         let material = material::texture::create(
             context,
-            Rc::new(Texture::new(
+            Texture::initialize(
                 context,
                 TextureData::load_from_source("images/crate.png").await?,
                 Default::default(),
-            )?),
+            )?,
             TextureUnit::from(0),
             Default::default(),
         )?;
-        let mesh = Box::new(Mesh::new(context, geometry, Rc::new(material))?);
+        let mesh = Mesh::initialize(context, geometry, material)?;
         let mesh = Node::new_mesh(mesh);
         scene.add_child(&mesh);
 
-        Ok(Example {
+        Ok(Box::new(Example {
             renderer,
             mesh,
             scene,
             camera,
-        })
+        }))
     }
 }
 

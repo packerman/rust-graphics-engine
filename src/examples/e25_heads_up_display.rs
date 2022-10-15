@@ -4,20 +4,22 @@ use anyhow::Result;
 use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    application::{self, Application, AsyncCreator},
-    camera::Camera,
-    color::Color,
-    convert::FromWithContext,
-    extras::GridHelper,
-    geometry::{BoxGeometry, Geometry, Rectangle},
-    input::KeyState,
+use crate::{
+    core::{
+        application::{self, Application, AsyncCreator},
+        camera::Camera,
+        color::Color,
+        convert::FromWithContext,
+        geometry::{BoxGeometry, Geometry, Rectangle},
+        input::KeyState,
+        math::{angle::Angle, matrix::Ortographic},
+        mesh::Mesh,
+        node::Node,
+        renderer::{Renderer, RendererOptions},
+        texture::{Texture, TextureData, TextureUnit},
+    },
+    extras::grid_helper::GridHelper,
     material,
-    matrix::{Angle, Ortographic},
-    mesh::Mesh,
-    node::Node,
-    renderer::{Renderer, RendererOptions},
-    texture::{Texture, TextureData, TextureUnit},
 };
 
 struct Example {
@@ -31,7 +33,7 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::new(
             context,
             RendererOptions {
@@ -41,7 +43,7 @@ impl AsyncCreator for Example {
         );
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera = Camera::new_perspective(Default::default());
         let rig = Node::new_movement_rig(Default::default());
         {
             rig.set_position(&glm::vec3(0.0, 0.5, 3.0));
@@ -50,42 +52,45 @@ impl AsyncCreator for Example {
             scene.add_child(&rig);
         }
         {
-            let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
-            let material = Rc::new(material::texture::create(
+            let geometry = Rc::new(Geometry::from_with_context(
                 context,
-                Rc::new(Texture::new(
+                BoxGeometry::default(),
+            )?);
+            let material = material::texture::create(
+                context,
+                Texture::initialize(
                     context,
                     TextureData::load_from_source("images/crate.png").await?,
                     Default::default(),
-                )?),
+                )?,
                 TextureUnit::from(0),
                 Default::default(),
-            )?);
-            let crate_mesh = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
+            )?;
+            let crate_mesh = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
             crate_mesh.set_position(&glm::vec3(0.0, 0.5, 0.0));
             scene.add_child(&crate_mesh);
         }
         {
-            let grid = Node::new_mesh(Box::new(Mesh::from_with_context(
+            let grid = Node::new_mesh(Mesh::from_with_context(
                 context,
                 GridHelper {
                     grid_color: Color::white(),
                     center_color: Color::yellow(),
                     ..Default::default()
                 },
-            )?));
+            )?);
             grid.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grid);
         }
         let (hud_scene, hud_camera) = create_hud(context).await?;
-        Ok(Example {
+        Ok(Box::new(Example {
             renderer,
             scene,
             hud_scene,
             camera,
             hud_camera,
             rig,
-        })
+        }))
     }
 }
 
@@ -111,22 +116,22 @@ pub fn example() -> Box<dyn Fn()> {
 
 async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<RefCell<Camera>>)> {
     let scene = Node::new_group();
-    let camera = Rc::new(RefCell::new(Camera::new_ortographic(Ortographic {
+    let camera = Camera::new_ortographic(Ortographic {
         left: 0.0,
         right: 800.0,
         bottom: 0.0,
         top: 600.0,
         near: 1.0,
         far: -1.0,
-    })));
+    });
     {
         let camera = Node::new_camera(Rc::clone(&camera));
         scene.add_child(&camera);
     }
     {
-        let label1 = Node::new_mesh(Box::new(Mesh::new(
+        let label1 = Node::new_mesh(Mesh::initialize(
             context,
-            Geometry::from_with_context(
+            Rc::new(Geometry::from_with_context(
                 context,
                 Rectangle {
                     width: 600.0,
@@ -134,24 +139,24 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
                     position: glm::vec2(0.0, 600.0),
                     alignment: glm::vec2(0.0, 1.0),
                 },
-            )?,
-            Rc::new(material::texture::create(
+            )?),
+            material::texture::create(
                 context,
-                Rc::new(Texture::new(
+                Texture::initialize(
                     context,
                     TextureData::load_from_source("images/crate-sim.png").await?,
                     Default::default(),
-                )?),
+                )?,
                 TextureUnit::from(0),
                 Default::default(),
-            )?),
-        )?));
+            )?,
+        )?);
         scene.add_child(&label1);
     }
     {
-        let label2 = Node::new_mesh(Box::new(Mesh::new(
+        let label2 = Node::new_mesh(Mesh::initialize(
             context,
-            Geometry::from_with_context(
+            Rc::new(Geometry::from_with_context(
                 context,
                 Rectangle {
                     width: 400.0,
@@ -159,18 +164,18 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
                     position: glm::vec2(800.0, 0.0),
                     alignment: glm::vec2(1.0, 0.0),
                 },
-            )?,
-            Rc::new(material::texture::create(
+            )?),
+            material::texture::create(
                 context,
-                Rc::new(Texture::new(
+                Texture::initialize(
                     context,
                     TextureData::load_from_source("images/version-1.png").await?,
                     Default::default(),
-                )?),
+                )?,
                 TextureUnit::from(1),
                 Default::default(),
-            )?),
-        )?));
+            )?,
+        )?);
         scene.add_child(&label2);
     }
     Ok((scene, camera))

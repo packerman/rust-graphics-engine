@@ -1,4 +1,3 @@
-pub mod parametric;
 mod util;
 
 use std::{
@@ -14,7 +13,7 @@ use super::{
     attribute::{Attribute, AttributeData},
     color::Color,
     convert::FromWithContext,
-    matrix::Angle,
+    math::angle::Angle,
 };
 
 #[derive(Debug, Clone)]
@@ -53,7 +52,7 @@ impl Geometry {
         Ok(())
     }
 
-    pub fn merge_mut(&mut self, context: &WebGl2RenderingContext, other: Geometry) -> Result<()> {
+    pub fn merge_mut(&mut self, context: &WebGl2RenderingContext, other: &Geometry) -> Result<()> {
         for (name, attribute) in self.attributes.iter_mut() {
             attribute.concat_mut(
                 context,
@@ -125,7 +124,7 @@ impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
         let colors = [Color::white(), Color::red(), Color::lime(), Color::blue()];
         let uvs = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]];
         let indices = [0, 1, 3, 0, 3, 2];
-        Geometry::from_with_context(
+        Self::from_with_context(
             context,
             [
                 (
@@ -182,7 +181,7 @@ impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
             Color::navy(),
         ];
         let uvs = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]];
-        Geometry::from_with_context(
+        Self::from_with_context(
             context,
             [
                 (
@@ -214,13 +213,13 @@ impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
     }
 }
 
-struct Polygon {
-    sides: u16,
-    radius: f32,
+pub struct Polygon {
+    pub sides: u16,
+    pub radius: f32,
 }
 
 impl Polygon {
-    fn new(sides: u16, radius: f32) -> Self {
+    pub fn new(sides: u16, radius: f32) -> Self {
         Self { sides, radius }
     }
 }
@@ -269,7 +268,7 @@ impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
             ));
         }
 
-        Geometry::from_with_context(
+        Self::from_with_context(
             context,
             [
                 ("vertexPosition", AttributeData::from(&position_data)),

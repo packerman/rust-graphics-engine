@@ -4,18 +4,21 @@ use anyhow::Result;
 use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    application::{self, Application, AsyncCreator},
-    camera::Camera,
-    convert::FromWithContext,
-    geometry::{parametric::Sphere, Geometry, Rectangle},
-    input::KeyState,
+use crate::{
+    core::{
+        application::{self, Application, AsyncCreator},
+        camera::Camera,
+        convert::FromWithContext,
+        geometry::{Geometry, Rectangle},
+        input::KeyState,
+        math::angle::Angle,
+        mesh::Mesh,
+        node::Node,
+        renderer::{Renderer, RendererOptions},
+        texture::{Texture, TextureData, TextureUnit},
+    },
+    geometry::parametric::Sphere,
     material::{self, texture::TextureMaterial},
-    matrix::Angle,
-    mesh::Mesh,
-    node::Node,
-    renderer::{Renderer, RendererOptions},
-    texture::{Texture, TextureData, TextureUnit},
 };
 
 struct Example {
@@ -27,11 +30,11 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::new(context, RendererOptions::default());
         let scene = Node::new_group();
 
-        let camera = Rc::new(RefCell::new(Camera::default()));
+        let camera = Camera::new_perspective(Default::default());
         let rig = Node::new_movement_rig(Default::default());
         {
             let camera = Node::new_camera(Rc::clone(&camera));
@@ -40,59 +43,59 @@ impl AsyncCreator for Example {
             rig.set_position(&glm::vec3(0.0, 1.0, 4.0));
         }
         {
-            let geometry = Geometry::from_with_context(
+            let geometry = Rc::new(Geometry::from_with_context(
                 context,
                 Sphere {
                     radius: 50.0,
                     ..Default::default()
                 },
-            )?;
-            let material = Rc::new(material::texture::create(
+            )?);
+            let material = material::texture::create(
                 context,
-                Rc::new(Texture::new(
+                Texture::initialize(
                     context,
                     TextureData::load_from_source("images/sky-earth.jpg").await?,
                     Default::default(),
-                )?),
+                )?,
                 TextureUnit::from(0),
                 Default::default(),
-            )?);
-            let sky = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
+            )?;
+            let sky = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
             scene.add_child(&sky);
         }
         {
-            let geometry = Geometry::from_with_context(
+            let geometry = Rc::new(Geometry::from_with_context(
                 context,
                 Rectangle {
                     width: 100.0,
                     height: 100.0,
                     ..Default::default()
                 },
-            )?;
-            let material = Rc::new(material::texture::create(
+            )?);
+            let material = material::texture::create(
                 context,
-                Rc::new(Texture::new(
+                Texture::initialize(
                     context,
                     TextureData::load_from_source("images/grass.jpg").await?,
                     Default::default(),
-                )?),
+                )?,
                 TextureUnit::from(1),
                 TextureMaterial {
                     repeat_uv: glm::vec2(50.0, 50.0),
                     ..Default::default()
                 },
-            )?);
-            let grass = Node::new_mesh(Box::new(Mesh::new(context, geometry, material)?));
+            )?;
+            let grass = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
             grass.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grass);
         }
 
-        Ok(Example {
+        Ok(Box::new(Example {
             renderer,
             rig,
             scene,
             camera,
-        })
+        }))
     }
 }
 

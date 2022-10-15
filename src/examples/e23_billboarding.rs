@@ -1,23 +1,25 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::Result;
 use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    application::{self, Application, AsyncCreator},
-    camera::Camera,
-    color::Color,
-    convert::FromWithContext,
+use crate::{
+    core::{
+        application::{self, Application, AsyncCreator},
+        camera::Camera,
+        color::Color,
+        convert::FromWithContext,
+        geometry::{BoxGeometry, Geometry, Rectangle},
+        input::KeyState,
+        math::{angle::Angle, matrix},
+        mesh::Mesh,
+        node::Node,
+        renderer::{Renderer, RendererOptions},
+        texture::{Texture, TextureData, TextureUnit},
+    },
     extras::text_texture::TextTexture,
-    geometry::{BoxGeometry, Geometry, Rectangle},
-    input::KeyState,
     material,
-    matrix::{self, Angle},
-    mesh::Mesh,
-    node::Node,
-    renderer::{Renderer, RendererOptions},
-    texture::{Texture, TextureData, TextureUnit},
 };
 
 struct Example {
@@ -30,7 +32,7 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Self> {
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::new(
             context,
             RendererOptions {
@@ -41,7 +43,7 @@ impl AsyncCreator for Example {
         let scene = Node::new_group();
 
         let rig = Node::new_movement_rig(Default::default());
-        let camera = Node::new_camera(Rc::new(RefCell::new(Camera::default())));
+        let camera = Node::new_camera(Camera::new_perspective(Default::default()));
         {
             rig.set_position(&glm::vec3(0.0, 1.0, 5.0));
             rig.add_child(&camera);
@@ -56,18 +58,18 @@ impl AsyncCreator for Example {
             let crate_mesh = create_crate_mesh(context).await?;
             scene.add_child(&crate_mesh);
         }
-        Ok(Example {
+        Ok(Box::new(Example {
             renderer,
             scene,
             rig,
             camera,
             label,
-        })
+        }))
     }
 }
 
 fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
-    let texture = Rc::new(Texture::new(
+    let texture = Texture::initialize(
         context,
         TextureData::try_from(TextTexture {
             text: "This is a Crate.",
@@ -79,13 +81,9 @@ fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
             ..Default::default()
         })?,
         Default::default(),
-    )?);
-    let material = Rc::new(material::texture::create(
-        context,
-        texture,
-        TextureUnit::from(0),
-        Default::default(),
-    )?);
+    )?;
+    let material =
+        material::texture::create(context, texture, TextureUnit::from(0), Default::default())?;
     let mut geometry = Geometry::from_with_context(
         context,
         Rectangle {
@@ -99,23 +97,26 @@ fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
         &matrix::rotation_y(Angle::STRAIGHT),
         "vertexPosition",
     )?;
-    let label = Box::new(Mesh::new(context, geometry, material)?);
+    let label = Mesh::initialize(context, Rc::new(geometry), material)?;
     Ok(Node::new_mesh(label))
 }
 
 async fn create_crate_mesh(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
-    let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
-    let material = Rc::new(material::texture::create(
+    let geometry = Rc::new(Geometry::from_with_context(
         context,
-        Rc::new(Texture::new(
+        BoxGeometry::default(),
+    )?);
+    let material = material::texture::create(
+        context,
+        Texture::initialize(
             context,
             TextureData::load_from_source("images/crate.png").await?,
             Default::default(),
-        )?),
+        )?,
         TextureUnit::from(1),
         Default::default(),
-    )?);
-    let mesh = Box::new(Mesh::new(context, geometry, material)?);
+    )?;
+    let mesh = Mesh::initialize(context, geometry, material)?;
     Ok(Node::new_mesh(mesh))
 }
 
