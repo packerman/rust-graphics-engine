@@ -37,7 +37,7 @@ pub fn create(
     texture: Rc<Texture>,
     unit: TextureUnit,
     sprite_material: SpriteMaterial,
-) -> Result<Material> {
+) -> Result<Rc<Material>> {
     Material::from_with_context(
         context,
         MaterialSettings {
@@ -54,4 +54,5 @@ pub fn create(
             draw_style: WebGl2RenderingContext::TRIANGLES,
         },
     )
+    .map(Rc::new)
 }

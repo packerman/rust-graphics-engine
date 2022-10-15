@@ -101,7 +101,7 @@ async fn create_sprite(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
         TextureData::load_from_source("images/rolling-ball.png").await?,
         Default::default(),
     )?;
-    let material = Rc::new(material::sprite::create(
+    let material = material::sprite::create(
         context,
         tile_set,
         TextureUnit::from(0),
@@ -111,7 +111,7 @@ async fn create_sprite(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
             tile_number: 0.0,
             ..Default::default()
         },
-    )?);
+    )?;
     let sprite = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
     Ok(sprite)
 }
