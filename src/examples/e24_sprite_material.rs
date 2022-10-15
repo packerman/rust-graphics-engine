@@ -4,21 +4,23 @@ use anyhow::Result;
 use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    application::{self, Application, AsyncCreator},
-    camera::Camera,
-    color::Color,
-    convert::FromWithContext,
-    extras::GridHelper,
-    geometry::{Geometry, Rectangle},
-    input::KeyState,
-    material::{self, sprite::SpriteMaterial},
-    math::angle::Angle,
-    mesh::Mesh,
-    node::Node,
-    renderer::{Renderer, RendererOptions},
-    texture::{Texture, TextureData, TextureUnit},
-    web,
+use crate::{
+    core::{
+        application::{self, Application, AsyncCreator},
+        camera::Camera,
+        color::Color,
+        convert::FromWithContext,
+        geometry::{Geometry, Rectangle},
+        input::KeyState,
+        material::{self, sprite::SpriteMaterial},
+        math::angle::Angle,
+        mesh::Mesh,
+        node::Node,
+        renderer::{Renderer, RendererOptions},
+        texture::{Texture, TextureData, TextureUnit},
+        web,
+    },
+    extras::grid_helper::GridHelper,
 };
 
 struct Example {

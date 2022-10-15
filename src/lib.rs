@@ -4,6 +4,7 @@ extern crate nalgebra_glm as glm;
 #[macro_use]
 mod core;
 mod examples;
+mod extras;
 mod run_example;
 
 use wasm_bindgen::prelude::*;

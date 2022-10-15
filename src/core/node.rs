@@ -1,3 +1,5 @@
+pub mod movement_rig;
+
 use std::{
     cell::RefCell,
     collections::VecDeque,
@@ -7,9 +9,10 @@ use std::{
 
 use glm::{Mat4, Vec3};
 
+use self::movement_rig::MovementRig;
+
 use super::{
     camera::Camera,
-    extras::movement_rig::{self, MovementRig},
     input::KeyState,
     math::{angle::Angle, matrix},
     mesh::Mesh,
