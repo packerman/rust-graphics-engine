@@ -26,7 +26,7 @@ struct Example {
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
+    async fn create<'a>(context: &'a WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::new(context, RendererOptions::default());
         let scene = Node::new_group();
 
@@ -113,11 +113,9 @@ impl AsyncCreator for Example {
             camera,
             None,
             vec![
-                Box::new(|context, sampler| effects::tint(context, sampler, Color::lime())),
-                Box::new(|context, sampler| effects::color_reduce(context, sampler, 5)),
-                Box::new(|context, sampler| {
-                    effects::pixelate(context, sampler, 4, glm::vec2(800.0, 600.0))
-                }),
+                &|sampler| effects::tint(context, sampler, Color::lime()),
+                &|sampler| effects::color_reduce(context, sampler, 5),
+                &|sampler| effects::pixelate(context, sampler, 4, glm::vec2(800.0, 600.0)),
             ],
             TextureUnit::from(3),
         )?;

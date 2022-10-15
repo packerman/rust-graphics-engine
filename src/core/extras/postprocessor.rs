@@ -27,13 +27,13 @@ pub struct Postprocessor {
 }
 
 impl Postprocessor {
-    pub fn initialize(
-        context: &WebGl2RenderingContext,
+    pub fn initialize<'a>(
+        context: &'a WebGl2RenderingContext,
         renderer: Renderer,
         scene: Rc<Node>,
         camera: Rc<RefCell<Camera>>,
         render_target: Option<RenderTarget>,
-        effects: Vec<Box<dyn Fn(&WebGl2RenderingContext, Sampler2D) -> Result<Effect>>>,
+        effects: Vec<&'a (dyn Fn(Sampler2D) -> Result<Effect>)>,
         texture_unit: TextureUnit,
     ) -> Result<Self> {
         let geometry = Rc::new(self::create_geometry(context)?);
@@ -47,10 +47,7 @@ impl Postprocessor {
             scenes.push(self::create_scene(
                 context,
                 Rc::clone(&geometry),
-                effect(
-                    context,
-                    Sampler2D::new(Rc::clone(target.texture()), texture_unit),
-                )?,
+                effect(Sampler2D::new(Rc::clone(target.texture()), texture_unit))?,
                 Rc::clone(&default_camera),
             )?);
             cameras.push(Rc::clone(&default_camera));
