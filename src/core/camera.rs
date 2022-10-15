@@ -50,9 +50,9 @@ impl Camera {
         }
     }
 
-    pub fn set_aspect_ratio(&mut self, resolution: (i32, i32)) {
+    pub fn set_aspect_ratio(&mut self, aspect_ratio: f32) {
         if let Projection::Perspective(perspective) = &mut self.projection {
-            perspective.aspect_ratio = resolution.0 as f32 / resolution.1 as f32;
+            perspective.aspect_ratio = aspect_ratio;
         }
     }
 
@@ -81,7 +81,7 @@ mod tests {
     fn set_aspect_ratio_works() {
         let camera = Camera::new_perspective(Default::default());
         assert_eq!(aspect_ratio(&camera).unwrap(), 1.0);
-        camera.borrow_mut().set_aspect_ratio((800, 600));
+        camera.borrow_mut().set_aspect_ratio(1.3333334);
         assert_eq!(aspect_ratio(&camera).unwrap(), 1.3333334);
     }
 }

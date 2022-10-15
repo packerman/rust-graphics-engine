@@ -6,6 +6,7 @@ use crate::core::{
     color::Color,
     convert::FromWithContext,
     material::{Material, MaterialSettings},
+    math::resolution::Resolution,
     uniform::{Sampler2D, UniformData},
 };
 
@@ -47,7 +48,7 @@ pub fn pixelate(
     context: &WebGl2RenderingContext,
     sampler_2d: Sampler2D,
     pixel_size: u16,
-    resolution: Vec2,
+    resolution: Resolution,
 ) -> Result<Effect> {
     let mut effect = create_basic(context, include_str!("pixelate.frag"), sampler_2d)?;
     effect.add_uniform(
@@ -55,7 +56,11 @@ pub fn pixelate(
         "pixelSize",
         UniformData::from(f32::from(pixel_size)),
     )?;
-    effect.add_uniform(context, "resolution", UniformData::from(resolution))?;
+    effect.add_uniform(
+        context,
+        "resolution",
+        UniformData::from(Vec2::from(resolution)),
+    )?;
     Ok(effect)
 }
 

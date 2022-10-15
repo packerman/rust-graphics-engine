@@ -5,13 +5,13 @@ use web_sys::{WebGl2RenderingContext, WebGlFramebuffer};
 
 use super::{
     gl,
+    math::resolution::Resolution,
     texture::{Texture, TextureData, TextureProperties},
 };
 
 #[derive(Debug, Clone)]
 pub struct RenderTarget {
-    width: i32,
-    height: i32,
+    resolution: Resolution,
     framebuffer: WebGlFramebuffer,
     texture: Rc<Texture>,
 }
@@ -21,8 +21,8 @@ impl RenderTarget {
         context.bind_framebuffer(WebGl2RenderingContext::FRAMEBUFFER, Some(&self.framebuffer));
     }
 
-    pub fn size(&self) -> (i32, i32) {
-        (self.width, self.height)
+    pub fn resolution(&self) -> Resolution {
+        self.resolution
     }
 
     pub fn texture(&self) -> &Rc<Texture> {
@@ -31,21 +31,17 @@ impl RenderTarget {
 }
 
 impl RenderTarget {
-    pub fn initialize(context: &WebGl2RenderingContext, resolution: (i32, i32)) -> Result<Self> {
-        let width = resolution.0;
-        let height = resolution.1;
+    pub fn initialize(context: &WebGl2RenderingContext, resolution: Resolution) -> Result<Self> {
         Self::initialize_with_texture(
             context,
-            width,
-            height,
-            Self::create_texture(context, width, height)?,
+            resolution,
+            Self::create_texture(context, resolution)?,
         )
     }
 
     pub fn initialize_with_texture(
         context: &WebGl2RenderingContext,
-        width: i32,
-        height: i32,
+        resolution: Resolution,
         texture: Rc<Texture>,
     ) -> Result<Self> {
         texture.bind(context);
@@ -63,8 +59,8 @@ impl RenderTarget {
         context.renderbuffer_storage(
             WebGl2RenderingContext::RENDERBUFFER,
             WebGl2RenderingContext::DEPTH_COMPONENT16,
-            width,
-            height,
+            resolution.width,
+            resolution.height,
         );
         context.framebuffer_renderbuffer(
             WebGl2RenderingContext::FRAMEBUFFER,
@@ -74,8 +70,7 @@ impl RenderTarget {
         );
         gl::check_framebuffer_status(context, WebGl2RenderingContext::FRAMEBUFFER)?;
         Ok(RenderTarget {
-            width,
-            height,
+            resolution,
             framebuffer,
             texture,
         })
@@ -83,12 +78,11 @@ impl RenderTarget {
 
     fn create_texture(
         context: &WebGl2RenderingContext,
-        width: i32,
-        height: i32,
+        resolution: Resolution,
     ) -> Result<Rc<Texture>> {
         Texture::initialize(
             context,
-            TextureData::new_buffer(width, height),
+            TextureData::new_buffer(resolution),
             TextureProperties {
                 mag_filter: WebGl2RenderingContext::LINEAR as i32,
                 min_filter: WebGl2RenderingContext::LINEAR as i32,

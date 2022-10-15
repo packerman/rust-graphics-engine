@@ -13,7 +13,7 @@ use crate::{
         geometry::{BoxGeometry, Geometry, Rectangle},
         input::KeyState,
         material::Material,
-        math::angle::Angle,
+        math::{angle::Angle, resolution::Resolution},
         mesh::Mesh,
         node::Node,
         render_target::RenderTarget,
@@ -146,7 +146,7 @@ impl AsyncCreator for Example {
             box_mesh.set_position(&glm::vec3(1.2, 1.0, 0.0));
             scene.add_child(&box_mesh);
         }
-        let render_target = RenderTarget::initialize(context, (512, 512))?;
+        let render_target = RenderTarget::initialize(context, Resolution::new(512, 512))?;
         let screen = Node::new_mesh(Mesh::initialize(
             context,
             Rc::new(Geometry::from_with_context(

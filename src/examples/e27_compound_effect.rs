@@ -12,7 +12,7 @@ use crate::{
         convert::FromWithContext,
         geometry::{Geometry, Rectangle},
         input::KeyState,
-        math::angle::Angle,
+        math::{angle::Angle, resolution::Resolution},
         mesh::Mesh,
         node::Node,
         renderer::{Renderer, RendererOptions},
@@ -118,7 +118,7 @@ impl AsyncCreator for Example {
             vec![
                 &|sampler| effects::tint(context, sampler, Color::lime()),
                 &|sampler| effects::color_reduce(context, sampler, 5),
-                &|sampler| effects::pixelate(context, sampler, 4, glm::vec2(800.0, 600.0)),
+                &|sampler| effects::pixelate(context, sampler, 4, Resolution::new(800, 600)),
             ],
             TextureUnit::from(3),
         )?;

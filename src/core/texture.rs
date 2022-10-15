@@ -7,7 +7,7 @@ use web_sys::{
     HtmlCanvasElement, HtmlImageElement, WebGl2RenderingContext, WebGlTexture, WebGlUniformLocation,
 };
 
-use super::{gl, web};
+use super::{gl, math::resolution::Resolution, web};
 
 #[derive(Debug, Clone)]
 pub struct TextureProperties {
@@ -88,7 +88,7 @@ impl From<i32> for TextureUnit {
 pub enum TextureData {
     Image(HtmlImageElement),
     Canvas(HtmlCanvasElement),
-    Buffer { width: i32, height: i32 },
+    Buffer(Resolution),
 }
 
 impl From<HtmlImageElement> for TextureData {
@@ -110,8 +110,8 @@ impl TextureData {
         self::load_image(source).await.map(Self::from)
     }
 
-    pub fn new_buffer(width: i32, height: i32) -> Self {
-        Self::Buffer { width, height }
+    pub fn new_buffer(resolution: Resolution) -> Self {
+        Self::Buffer(resolution)
     }
 
     pub fn tex_image_2d(
@@ -140,13 +140,13 @@ impl TextureData {
                     Self::TYPE,
                     canvas,
                 ),
-            TextureData::Buffer {  width, height } => context
+            TextureData::Buffer(resolution) => context
                 .tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_array_buffer_view(
                     target,
                     0,
                     internal_format,
-                    *width,
-                    *height,
+                    resolution.width,
+                    resolution.height,
                     0,
                     format,
                     Self::TYPE,
