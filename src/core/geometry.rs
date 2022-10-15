@@ -1,4 +1,3 @@
-pub mod parametric;
 mod util;
 
 use std::{
@@ -214,13 +213,13 @@ impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
     }
 }
 
-struct Polygon {
-    sides: u16,
-    radius: f32,
+pub struct Polygon {
+    pub sides: u16,
+    pub radius: f32,
 }
 
 impl Polygon {
-    fn new(sides: u16, radius: f32) -> Self {
+    pub fn new(sides: u16, radius: f32) -> Self {
         Self { sides, radius }
     }
 }
