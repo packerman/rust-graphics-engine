@@ -119,9 +119,9 @@ impl From<Vec2> for UniformData {
 }
 
 #[derive(Debug, Clone)]
-pub struct Uniform {
-    data: RefCell<UniformData>,
-    location: WebGlUniformLocation,
+pub enum Uniform {
+    Basic(BasicUniform),
+    Struct(StructUniform),
 }
 
 impl Uniform {
@@ -131,8 +131,66 @@ impl Uniform {
         program: &WebGlProgram,
         name: &str,
     ) -> Result<Self> {
+        BasicUniform::initialize(context, data, program, name).map(Self::Basic)
+    }
+
+    pub fn try_initialize<T>(
+        context: &WebGl2RenderingContext,
+        program: &WebGlProgram,
+        name: &str,
+    ) -> Option<Self>
+    where
+        T: Into<UniformData> + Default,
+    {
+        BasicUniform::try_initialize::<T>(context, program, name).map(Self::Basic)
+    }
+
+    pub fn upload_data(&self, context: &WebGl2RenderingContext) {
+        match self {
+            Self::Basic(basic) => basic.upload_data(context),
+            _ => todo!(),
+        }
+    }
+
+    pub fn float_mut(&self) -> Option<RefMut<f32>> {
+        self.get_basic().and_then(|basic| basic.float_mut())
+    }
+
+    pub fn vec3_mut(&self) -> Option<RefMut<Vec3>> {
+        self.get_basic().and_then(|basic| basic.vec3_mut())
+    }
+
+    pub fn color_mut(&self) -> Option<RefMut<Color>> {
+        self.get_basic().and_then(|basic| basic.color_mut())
+    }
+
+    pub fn mat4_mut(&self) -> Option<RefMut<Mat4>> {
+        self.get_basic().and_then(|basic| basic.mat4_mut())
+    }
+
+    fn get_basic(&self) -> Option<&BasicUniform> {
+        match self {
+            Self::Basic(basic) => Some(basic),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BasicUniform {
+    data: RefCell<UniformData>,
+    location: WebGlUniformLocation,
+}
+
+impl BasicUniform {
+    pub fn initialize(
+        context: &WebGl2RenderingContext,
+        data: UniformData,
+        program: &WebGlProgram,
+        name: &str,
+    ) -> Result<Self> {
         let location = gl::get_uniform_location(context, program, name)?;
-        let uniform = Uniform {
+        let uniform = Self {
             data: RefCell::new(data),
             location,
         };
@@ -148,7 +206,7 @@ impl Uniform {
         T: Into<UniformData> + Default,
     {
         let location = context.get_uniform_location(program, name)?;
-        let uniform = Uniform {
+        let uniform = Self {
             data: RefCell::new(T::default().into()),
             location,
         };
@@ -172,19 +230,24 @@ impl Uniform {
         }
     }
 
-    pub fn float_mut(&self) -> Result<RefMut<f32>, RefMut<UniformData>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.float_mut())
+    pub fn float_mut(&self) -> Option<RefMut<f32>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.float_mut()).ok()
     }
 
-    pub fn vec3_mut(&self) -> Result<RefMut<Vec3>, RefMut<UniformData>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.vec3_mut())
+    pub fn vec3_mut(&self) -> Option<RefMut<Vec3>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.vec3_mut()).ok()
     }
 
-    pub fn color_mut(&self) -> Result<RefMut<Color>, RefMut<UniformData>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.color_mut())
+    pub fn color_mut(&self) -> Option<RefMut<Color>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.color_mut()).ok()
     }
 
-    pub fn mat4_mut(&self) -> Result<RefMut<Mat4>, RefMut<UniformData>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.mat4_mut())
+    pub fn mat4_mut(&self) -> Option<RefMut<Mat4>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.mat4_mut()).ok()
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct StructUniform {}
+
+impl StructUniform {}

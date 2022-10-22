@@ -102,7 +102,7 @@ impl AsyncCreator for Example {
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
         if let Some(uniform) = self.distort_material.uniform("time") {
-            if let Ok(mut time) = uniform.float_mut() {
+            if let Some(mut time) = uniform.float_mut() {
                 *time = (web::now().unwrap() / 1000.0) as f32;
             }
         }

@@ -77,7 +77,7 @@ impl Application for Example {
         let tile_number = ((web::now().unwrap() as f32) * self.tiles_per_second / 1000.0).floor();
         if let Some(mesh) = self.sprite.mesh() {
             if let Some(uniform) = mesh.material().uniform("tileNumber") {
-                if let Ok(mut data) = uniform.float_mut() {
+                if let Some(mut data) = uniform.float_mut() {
                     *data = tile_number;
                 }
             }
