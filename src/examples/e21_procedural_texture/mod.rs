@@ -5,16 +5,19 @@ use async_trait::async_trait;
 use glm::Vec3;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    application::{self, Application, AsyncCreator},
-    camera::Camera,
-    convert::FromWithContext,
-    geometry::{Geometry, Rectangle},
-    input::KeyState,
-    material::{Material, MaterialSettings},
-    mesh::Mesh,
-    node::Node,
-    renderer::{Renderer, RendererOptions},
+use crate::{
+    core::{
+        application::{self, Application, AsyncCreator},
+        camera::Camera,
+        convert::FromWithContext,
+        geometry::Geometry,
+        input::KeyState,
+        material::{Material, MaterialSettings},
+        mesh::Mesh,
+        node::Node,
+        renderer::{Renderer, RendererOptions},
+    },
+    geometry::Rectangle,
 };
 
 struct Example {

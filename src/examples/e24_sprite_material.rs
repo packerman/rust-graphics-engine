@@ -10,7 +10,7 @@ use crate::{
         camera::Camera,
         color::Color,
         convert::FromWithContext,
-        geometry::{Geometry, Rectangle},
+        geometry::Geometry,
         input::KeyState,
         math::angle::Angle,
         mesh::Mesh,
@@ -20,6 +20,7 @@ use crate::{
         web,
     },
     extras::grid_helper::GridHelper,
+    geometry::Rectangle,
     material::{self, sprite::SpriteMaterial},
 };
 

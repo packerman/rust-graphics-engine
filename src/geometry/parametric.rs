@@ -11,9 +11,11 @@ use crate::core::{
     attribute::AttributeData,
     color::Color,
     convert::FromWithContext,
-    geometry::{Geometry, Polygon},
+    geometry::Geometry,
     math::{angle::Angle, matrix},
 };
+
+use super::Polygon;
 
 struct ParametricSurface {
     u_range: RangeInclusive<f32>,

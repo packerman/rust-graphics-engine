@@ -9,7 +9,7 @@ use crate::{
         application::{self, Application, AsyncCreator},
         camera::Camera,
         convert::FromWithContext,
-        geometry::{BoxGeometry, Geometry},
+        geometry::Geometry,
         input::KeyState,
         material::Material,
         math::angle::Angle,
@@ -17,6 +17,7 @@ use crate::{
         node::{Node, Transform},
         renderer::{Renderer, RendererOptions},
     },
+    geometry::BoxGeometry,
     material::basic::{BasicMaterial, SurfaceMaterial},
 };
 

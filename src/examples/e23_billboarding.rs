@@ -10,7 +10,7 @@ use crate::{
         camera::Camera,
         color::Color,
         convert::FromWithContext,
-        geometry::{BoxGeometry, Geometry, Rectangle},
+        geometry::Geometry,
         input::KeyState,
         math::{angle::Angle, matrix},
         mesh::Mesh,
@@ -19,6 +19,7 @@ use crate::{
         texture::{Texture, TextureData, TextureUnit},
     },
     extras::text_texture::TextTexture,
+    geometry::{BoxGeometry, Rectangle},
     material,
 };
 
