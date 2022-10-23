@@ -1,4 +1,4 @@
-use glm::{Mat4, Vec3};
+use glm::{Mat3, Mat4, Vec3};
 
 use super::angle::Angle;
 
@@ -120,4 +120,8 @@ pub fn look_at(position: &Vec3, target: &Vec3) -> Mat4 {
         0.0,
         1.0,
     )
+}
+
+pub fn get_rotation_matrix(m: &Mat4) -> Mat3 {
+    glm::mat4_to_mat3(m)
 }

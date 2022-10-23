@@ -7,6 +7,7 @@ use web_sys::WebGl2RenderingContext;
 use super::{
     attribute::{Attribute, AttributeData},
     convert::FromWithContext,
+    math::matrix,
 };
 
 #[derive(Debug, Clone)]
@@ -23,6 +24,12 @@ impl Geometry {
         self.attributes.iter()
     }
 
+    pub fn attribute_mut(&mut self, name: &str) -> Result<&mut Attribute> {
+        self.attributes
+            .get_mut(name)
+            .ok_or_else(|| anyhow!("Cannot find attribute {}", name))
+    }
+
     pub fn count_vertices(&self) -> i32 {
         self.attributes
             .values()
@@ -31,18 +38,33 @@ impl Geometry {
             .count()
     }
 
-    pub fn apply_matrix_mut(
+    pub fn apply_matrix(
         &mut self,
         context: &WebGl2RenderingContext,
         matrix: &Mat4,
         name: &str,
+        rotate_attrs: &[&str],
     ) -> Result<()> {
-        let attribute = self
-            .attributes
-            .get_mut(name)
-            .ok_or_else(|| anyhow!("Cannot find attribute {}", name))?;
-        attribute.apply_matrix_mut(context, matrix);
+        self.attribute_mut(name)?.apply_matrix(context, matrix);
+        let rotation_matrix = matrix::get_rotation_matrix(matrix);
+        for rotate_attr in rotate_attrs {
+            self.attribute_mut(rotate_attr)?
+                .apply_matrix3(context, &rotation_matrix)
+        }
         Ok(())
+    }
+
+    pub fn apply_matrix_default(
+        &mut self,
+        context: &WebGl2RenderingContext,
+        matrix: &Mat4,
+    ) -> Result<()> {
+        self.apply_matrix(
+            context,
+            matrix,
+            "vertexPosition",
+            &["vertexNormal", "faceNormal"],
+        )
     }
 
     pub fn merge_mut(&mut self, context: &WebGl2RenderingContext, other: &Geometry) -> Result<()> {

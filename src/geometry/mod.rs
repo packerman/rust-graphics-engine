@@ -55,7 +55,7 @@ impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
         let colors = [Color::white(), Color::red(), Color::lime(), Color::blue()];
         let uvs = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]];
         let indices = [0, 1, 3, 0, 3, 2];
-        let normal_data = util::replicate(6, glm::vec3(0_f32, 0.0, 0.0)).collect::<Vec<_>>();
+        let normal_data = util::replicate(6, [0.0, 0.0, 1.0]).collect::<Vec<_>>();
         Self::from_with_context(
             context,
             [
@@ -115,6 +115,15 @@ impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
             Color::navy(),
         ];
         let uvs = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]];
+        let normals = [
+            [1.0, 0.0, 0.0],
+            [-1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, -1.0, 0.0],
+            [0.0, 0.0, 1.0],
+            [0.0, 0.0, -1.0],
+        ];
+        let normal_data = util::select_by_indices(&normals, util::replicate_each(6, 0..6));
         Self::from_with_context(
             context,
             [
@@ -142,6 +151,8 @@ impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
                         util::cycle_n([0, 1, 3, 0, 3, 2], 6),
                     )),
                 ),
+                ("vertexNormal", AttributeData::from(&normal_data)),
+                ("faceNormal", AttributeData::from(&normal_data)),
             ],
         )
     }
@@ -172,6 +183,8 @@ impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
         let mut position_data = Vec::with_capacity((3 * polygon.sides).into());
         let mut color_data = Vec::with_capacity((3 * polygon.sides).into());
         let mut texture_data = Vec::with_capacity((3 * polygon.sides).into());
+        let mut normal_data = Vec::with_capacity((3 * polygon.sides).into());
+        let normal_vector = glm::vec3(0.0, 0.0, 1.0);
 
         let angle = Angle::from_radians(TAU) / polygon.sides.into();
         for n in 0..polygon.sides {
@@ -200,6 +213,10 @@ impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
                 (angle * (n + 1).into()).cos() * 0.5 + 0.5,
                 (angle * (n + 1).into()).sin() * 0.5 + 0.5,
             ));
+
+            normal_data.push(normal_vector);
+            normal_data.push(normal_vector);
+            normal_data.push(normal_vector);
         }
 
         Self::from_with_context(
@@ -208,6 +225,8 @@ impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
                 ("vertexPosition", AttributeData::from(&position_data)),
                 ("vertexColor", AttributeData::from(&color_data)),
                 ("vertexUV", AttributeData::from(&texture_data)),
+                ("vertexNormal", AttributeData::from(&normal_data)),
+                ("faceNormal", AttributeData::from(&normal_data)),
             ],
         )
     }

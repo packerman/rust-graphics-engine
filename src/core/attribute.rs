@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use glm::Mat4;
+use glm::{Mat3, Mat4};
 use js_sys::Float32Array;
 use na::SVector;
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
@@ -68,7 +68,7 @@ impl AttributeData {
         );
     }
 
-    pub fn apply_matrix_mut(&mut self, matrix: &Mat4) {
+    pub fn apply_matrix(&mut self, matrix: &Mat4) {
         let default_vec4 = glm::vec4(0.0, 0.0, 0.0, 1.0);
         let size = self.data_type.size.try_into().unwrap();
         let get_elem = |base: usize, offset: usize| {
@@ -80,16 +80,26 @@ impl AttributeData {
         };
         let mut new_data = Vec::with_capacity(self.data.len());
         for i in (0..self.data.len()).step_by(size) {
-            let new_vec4 = glm::vec4(
-                get_elem(i, 0),
-                get_elem(i, 1),
-                get_elem(i, 2),
-                get_elem(i, 3),
-            );
-            let new_vec4 = matrix * new_vec4;
+            let new_vec4 = matrix
+                * glm::vec4(
+                    get_elem(i, 0),
+                    get_elem(i, 1),
+                    get_elem(i, 2),
+                    get_elem(i, 3),
+                );
             for j in 0..size {
                 new_data.push(new_vec4[j]);
             }
+        }
+        self.data = new_data;
+    }
+
+    pub fn apply_matrix3(&mut self, matrix: &Mat3) {
+        assert_eq!(self.data_type.size, 3);
+        let mut new_data = Vec::with_capacity(self.data.len());
+        for i in (0..self.data.len()).step_by(3) {
+            let new_vec3 = matrix * glm::vec3(self.data[i], self.data[i + 1], self.data[i + 2]);
+            new_data.extend(&new_vec3);
         }
         self.data = new_data;
     }
@@ -196,8 +206,13 @@ impl Attribute {
         }
     }
 
-    pub fn apply_matrix_mut(&mut self, context: &WebGl2RenderingContext, matrix: &Mat4) {
-        self.data.apply_matrix_mut(matrix);
+    pub fn apply_matrix(&mut self, context: &WebGl2RenderingContext, matrix: &Mat4) {
+        self.data.apply_matrix(matrix);
+        self.upload_data(context);
+    }
+
+    pub fn apply_matrix3(&mut self, context: &WebGl2RenderingContext, matrix: &Mat3) {
+        self.data.apply_matrix3(matrix);
         self.upload_data(context);
     }
 
@@ -209,5 +224,17 @@ impl Attribute {
         self.data.concat_mut(&other.data)?;
         self.upload_data(context);
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn extend_by_vec3_works() {
+        let mut vector = vec![1.0, 2.0];
+        let vec3 = glm::vec3(3.0, 4.0, 5.0);
+        vector.extend(&vec3);
+        assert_eq!(vector, vec![1.0, 2.0, 3.0, 4.0, 5.0]);
     }
 }

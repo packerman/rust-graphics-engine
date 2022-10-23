@@ -198,7 +198,7 @@ impl Node {
     }
 
     pub fn rotation_matrix(&self) -> Mat3 {
-        glm::mat4_to_mat3(&self.transform.borrow())
+        matrix::get_rotation_matrix(&self.transform.borrow())
     }
 
     pub fn direction(&self) -> Vec3 {
