@@ -7,7 +7,7 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use glm::{Mat4, Vec3};
+use glm::{Mat3, Mat4, Vec3};
 
 use self::movement_rig::MovementRig;
 
@@ -31,7 +31,7 @@ impl Default for Transform {
 }
 
 #[derive(Debug, Clone)]
-pub enum NodeKind {
+pub enum NodeType {
     Group,
     Mesh(Mesh),
     Camera(Rc<RefCell<Camera>>),
@@ -44,25 +44,25 @@ pub struct Node {
     transform: RefCell<Mat4>,
     parent: RefCell<Weak<Node>>,
     children: RefCell<Vec<Rc<Node>>>,
-    kind: NodeKind,
+    node_type: NodeType,
 }
 
 impl Node {
     pub fn new_group() -> Rc<Self> {
-        Self::new(NodeKind::Group)
+        Self::new(NodeType::Group)
     }
 
     pub fn new_mesh(mesh: Mesh) -> Rc<Self> {
-        Self::new(NodeKind::Mesh(mesh))
+        Self::new(NodeType::Mesh(mesh))
     }
 
     pub fn new_camera(camera: Rc<RefCell<Camera>>) -> Rc<Self> {
-        Self::new(NodeKind::Camera(camera))
+        Self::new(NodeType::Camera(camera))
     }
 
     pub fn new_movement_rig(properties: movement_rig::Properties) -> Rc<Self> {
         let look_attachment = Self::new_group();
-        let node = Self::new(NodeKind::MovementRig(Box::new(MovementRig::new(
+        let node = Self::new(NodeType::MovementRig(Box::new(MovementRig::new(
             properties,
             Rc::clone(&look_attachment),
         ))));
@@ -70,41 +70,41 @@ impl Node {
         node
     }
 
-    pub fn new(node_type: NodeKind) -> Rc<Self> {
+    pub fn new(node_type: NodeType) -> Rc<Self> {
         Rc::new_cyclic(|me| Node {
             me: me.clone(),
             transform: RefCell::new(matrix::identity()),
             parent: RefCell::new(Weak::new()),
             children: RefCell::new(vec![]),
-            kind: node_type,
+            node_type,
         })
     }
 
     pub fn mesh(&self) -> Option<&Mesh> {
-        match &self.kind {
-            NodeKind::Mesh(mesh) => Some(mesh),
+        match &self.node_type {
+            NodeType::Mesh(mesh) => Some(mesh),
             _ => None,
         }
     }
 
     pub fn camera(&self) -> Option<&RefCell<Camera>> {
-        match &self.kind {
-            NodeKind::Camera(camera) => Some(camera),
+        match &self.node_type {
+            NodeType::Camera(camera) => Some(camera),
             _ => None,
         }
     }
 
     pub fn add_child(&self, child: &Rc<Node>) {
-        match &self.kind {
-            NodeKind::MovementRig(movement_rig) => movement_rig.add_child(child),
+        match &self.node_type {
+            NodeType::MovementRig(movement_rig) => movement_rig.add_child(child),
             _ => self.create_parent_child_relation(child),
         }
     }
 
     #[allow(dead_code)]
     pub fn remove_child(&self, child: &Node) {
-        match &self.kind {
-            NodeKind::MovementRig(movement_rig) => movement_rig.remove_child(child),
+        match &self.node_type {
+            NodeType::MovementRig(movement_rig) => movement_rig.remove_child(child),
             _ => self.remove_parent_child_relation(child),
         }
     }
@@ -143,7 +143,7 @@ impl Node {
     }
 
     pub fn update(&self, key_state: &KeyState) {
-        if let NodeKind::MovementRig(movement_rig) = &self.kind {
+        if let NodeType::MovementRig(movement_rig) = &self.node_type {
             movement_rig.update(key_state, self)
         }
     }
@@ -195,6 +195,21 @@ impl Node {
 
     pub fn look_at(&self, target: &Vec3) {
         *self.transform.borrow_mut() = matrix::look_at(&self.world_position(), target);
+    }
+
+    pub fn rotation_matrix(&self) -> Mat3 {
+        glm::mat4_to_mat3(&self.transform.borrow())
+    }
+
+    pub fn direction(&self) -> Vec3 {
+        let forward = glm::vec3(0.0, 0.0, -1.0);
+        self.rotation_matrix() * forward
+    }
+
+    pub fn set_direction(&self, direction: &Vec3) {
+        let position = self.position();
+        let target_position = position + direction;
+        self.look_at(&target_position);
     }
 
     fn create_parent_child_relation(&self, child: &Rc<Node>) {

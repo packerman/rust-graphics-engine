@@ -7,33 +7,37 @@ use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
 use super::{color::Color, gl};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DataKind {
+pub struct DataType {
     size: i32,
     gl_type: u32,
 }
 
-impl DataKind {
-    const fn new(size: i32, gl_type: u32) -> DataKind {
-        DataKind { size, gl_type }
+impl DataType {
+    const fn new(size: i32, gl_type: u32) -> DataType {
+        DataType { size, gl_type }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct AttributeData {
     data: Vec<f32>,
-    kind: DataKind,
+    data_type: DataType,
     count: i32,
 }
 
 impl AttributeData {
-    pub fn new(data: Vec<f32>, kind: DataKind, count: i32) -> Self {
-        Self { data, kind, count }
+    pub fn new(data: Vec<f32>, data_type: DataType, count: i32) -> Self {
+        Self {
+            data,
+            data_type,
+            count,
+        }
     }
 
     fn new_with_flat_array(data: Vec<f32>, size: usize, length: usize) -> Self {
         Self::new(
             data,
-            DataKind::new(size.try_into().unwrap(), WebGl2RenderingContext::FLOAT),
+            DataType::new(size.try_into().unwrap(), WebGl2RenderingContext::FLOAT),
             length.try_into().unwrap(),
         )
     }
@@ -56,8 +60,8 @@ impl AttributeData {
     fn vertex_attrib_pointer(&self, context: &WebGl2RenderingContext, location: u32) {
         context.vertex_attrib_pointer_with_i32(
             location,
-            self.kind.size,
-            self.kind.gl_type,
+            self.data_type.size,
+            self.data_type.gl_type,
             false,
             0,
             0,
@@ -66,7 +70,7 @@ impl AttributeData {
 
     pub fn apply_matrix_mut(&mut self, matrix: &Mat4) {
         let default_vec4 = glm::vec4(0.0, 0.0, 0.0, 1.0);
-        let size = self.kind.size.try_into().unwrap();
+        let size = self.data_type.size.try_into().unwrap();
         let get_elem = |base: usize, offset: usize| {
             if offset < size {
                 self.data[base + offset]
@@ -91,15 +95,15 @@ impl AttributeData {
     }
 
     pub fn concat_mut(&mut self, other: &AttributeData) -> Result<()> {
-        if self.kind == other.kind {
+        if self.data_type == other.data_type {
             self.data.extend(other.data.iter());
             self.count += other.count;
             Ok(())
         } else {
             Err(anyhow!(
                 "Cannot concat attribute {:?} and {:?}",
-                self.kind,
-                other.kind
+                self.data_type,
+                other.data_type
             ))
         }
     }

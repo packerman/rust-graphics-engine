@@ -6,6 +6,7 @@ mod core;
 mod examples;
 mod extras;
 mod geometry;
+mod light;
 mod material;
 mod run_example;
 
