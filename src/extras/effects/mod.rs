@@ -7,7 +7,7 @@ use crate::core::{
     convert::FromWithContext,
     material::{Material, MaterialSettings},
     math::resolution::Resolution,
-    uniform::{Sampler2D, UniformData},
+    uniform::{data::Sampler2D, UniformData},
 };
 
 use super::postprocessor::Effect;

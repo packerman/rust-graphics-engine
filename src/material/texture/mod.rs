@@ -9,7 +9,7 @@ use crate::core::{
     convert::FromWithContext,
     material::{Material, MaterialSettings, RenderSetting},
     texture::{Texture, TextureUnit},
-    uniform::{Sampler2D, UniformData},
+    uniform::{data::Sampler2D, UniformData},
 };
 
 pub struct TextureMaterial {

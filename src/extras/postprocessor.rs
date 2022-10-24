@@ -14,7 +14,7 @@ use crate::core::{
     render_target::RenderTarget,
     renderer::{self, Renderer},
     texture::TextureUnit,
-    uniform::Sampler2D,
+    uniform::data::Sampler2D,
 };
 
 pub type Effect = Material;

@@ -16,7 +16,7 @@ use crate::{
         node::Node,
         renderer::{Renderer, RendererOptions},
         texture::{Texture, TextureData, TextureUnit},
-        uniform::{Sampler2D, UniformData},
+        uniform::{data::Sampler2D, UniformData},
         web,
     },
     geometry::Rectangle,

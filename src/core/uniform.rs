@@ -1,39 +1,18 @@
+pub mod data;
+
 use std::{
     cell::{RefCell, RefMut},
+    collections::HashMap,
     ops::Deref,
-    rc::Rc,
 };
 
 use anyhow::Result;
 use glm::{Mat4, Vec2, Vec3};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
-use super::{
-    color::Color,
-    gl,
-    texture::{Texture, TextureUnit},
-};
+use self::data::Sampler2D;
 
-#[derive(Debug, Clone)]
-pub struct Sampler2D {
-    pub texture: Rc<Texture>,
-    unit: TextureUnit,
-}
-
-impl Sampler2D {
-    pub fn new(texture: Rc<Texture>, unit: TextureUnit) -> Self {
-        Self { texture, unit }
-    }
-
-    pub fn upload_data(
-        &self,
-        context: &WebGl2RenderingContext,
-        location: Option<&WebGlUniformLocation>,
-    ) {
-        self.unit
-            .upload_data(context, location, self.texture.texture());
-    }
-}
+use super::{color::Color, gl};
 
 #[derive(Debug, Clone)]
 pub enum UniformData {
@@ -248,6 +227,8 @@ impl BasicUniform {
 }
 
 #[derive(Debug, Clone)]
-pub struct StructUniform {}
+pub struct StructUniform {
+    members: HashMap<String, Uniform>,
+}
 
 impl StructUniform {}
