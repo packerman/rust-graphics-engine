@@ -1,6 +1,6 @@
 use glm::Vec3;
 
-use crate::core::color::Color;
+use crate::core::{color::Color, uniform::data::Data};
 
 pub enum LightType {
     Directional { direction: Vec3 },
@@ -34,6 +34,12 @@ impl Default for Light {
             color: Color::white(),
             attenuation: Default::default(),
         }
+    }
+}
+
+impl From<Light> for Data {
+    fn from(light: Light) -> Self {
+        todo!()
     }
 }
 

@@ -17,6 +17,7 @@ use super::color::Color;
 #[derive(Debug, Clone)]
 enum UniformCall {
     Boolean(bool),
+    Int(i32),
     Float(f32),
     Vec3(Vec3),
     Color(Color),
@@ -58,6 +59,12 @@ impl UniformCall {
 impl From<bool> for UniformCall {
     fn from(data: bool) -> Self {
         UniformCall::Boolean(data)
+    }
+}
+
+impl From<i32> for UniformCall {
+    fn from(data: i32) -> Self {
+        UniformCall::Int(data)
     }
 }
 
@@ -123,6 +130,7 @@ impl Uniform {
             Data::Boolean(value) => {
                 Self::initialize(context, UniformCall::from(value), program, name)
             }
+            Data::Int(value) => Self::initialize(context, UniformCall::from(value), program, name),
             Data::Float(value) => {
                 Self::initialize(context, UniformCall::from(value), program, name)
             }
@@ -209,13 +217,13 @@ pub struct BasicUniform {
 impl BasicUniform {
     fn initialize(
         context: &WebGl2RenderingContext,
-        data: UniformCall,
+        call: UniformCall,
         program: &WebGlProgram,
         name: &str,
     ) -> Option<Self> {
         let location = context.get_uniform_location(program, name)?;
         let uniform = Self {
-            data: RefCell::new(data),
+            data: RefCell::new(call),
             location,
         };
         Some(uniform)
@@ -225,6 +233,7 @@ impl BasicUniform {
         let location = Some(&self.location);
         match self.data.borrow().deref() {
             UniformCall::Boolean(data) => context.uniform1i(location, i32::from(*data)),
+            UniformCall::Int(data) => context.uniform1i(location, *data),
             UniformCall::Float(data) => context.uniform1f(location, *data),
             UniformCall::Vec3(data) => context.uniform3f(location, data.x, data.y, data.z),
             UniformCall::Color(data) => {

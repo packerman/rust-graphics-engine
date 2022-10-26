@@ -95,7 +95,7 @@ impl FromWithContext<WebGl2RenderingContext, MaterialSettings<'_>> for Material 
         settings: MaterialSettings<'_>,
     ) -> Result<Self> {
         let program = gl::build_program(context, settings.vertex_shader, settings.fragment_shader)?;
-        let uniforms: Vec<_> = settings
+        let uniforms: HashMap<_, _> = settings
             .uniforms
             .into_iter()
             .filter_map(|(name, data)| {
@@ -111,7 +111,7 @@ impl FromWithContext<WebGl2RenderingContext, MaterialSettings<'_>> for Material 
             Uniform::from_default::<Mat4>(context, &program, "projectionMatrix");
         Ok(Material {
             program,
-            uniforms: uniforms.into_iter().collect(),
+            uniforms,
             render_settings: settings.render_settings,
             draw_style: settings.draw_style,
             model_matrix,

@@ -31,6 +31,7 @@ impl Sampler2D {
 
 pub enum Data {
     Boolean(bool),
+    Int(i32),
     Float(f32),
     Vec2(Vec2),
     Vec3(Vec3),
@@ -40,9 +41,25 @@ pub enum Data {
     Struct { members: HashMap<String, Data> },
 }
 
+impl Data {
+    pub fn default<T>() -> Self
+    where
+        T: Default,
+        Self: From<T>,
+    {
+        Self::from(T::default())
+    }
+}
+
 impl From<bool> for Data {
     fn from(data: bool) -> Self {
         Self::Boolean(data)
+    }
+}
+
+impl From<i32> for Data {
+    fn from(data: i32) -> Self {
+        Self::Int(data)
     }
 }
 
