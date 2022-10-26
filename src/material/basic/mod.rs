@@ -5,7 +5,7 @@ use crate::core::{
     color::Color,
     convert::FromWithContext,
     material::{Material, MaterialSettings, RenderSetting},
-    uniform::UniformData,
+    uniform::data::Data,
 };
 
 pub struct BasicMaterial {
@@ -33,10 +33,10 @@ fn basic_material(
             vertex_shader: include_str!("vertex.glsl"),
             fragment_shader: include_str!("fragment.glsl"),
             uniforms: vec![
-                ("baseColor", UniformData::from(basic_material.base_color)),
+                ("baseColor", Data::from(basic_material.base_color)),
                 (
                     "useVertexColors",
-                    UniformData::from(basic_material.use_vertex_colors),
+                    Data::from(basic_material.use_vertex_colors),
                 ),
             ],
             render_settings: vec![],
@@ -71,11 +71,7 @@ impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material {
             WebGl2RenderingContext::POINTS,
             point_material.basic,
         )?;
-        material.add_uniform(
-            context,
-            "pointSize",
-            UniformData::from(point_material.point_size),
-        )?;
+        material.add_uniform(context, "pointSize", Data::from(point_material.point_size));
         Ok(material)
     }
 }

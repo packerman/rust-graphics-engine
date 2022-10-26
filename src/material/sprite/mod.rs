@@ -9,7 +9,7 @@ use crate::core::{
     convert::FromWithContext,
     material::{Material, MaterialSettings, RenderSetting},
     texture::{Texture, TextureUnit},
-    uniform::{data::Sampler2D, UniformData},
+    uniform::data::{Data, Sampler2D},
 };
 
 pub struct SpriteMaterial {
@@ -44,11 +44,11 @@ pub fn create(
             vertex_shader: include_str!("vertex.glsl"),
             fragment_shader: include_str!("fragment.glsl"),
             uniforms: vec![
-                ("baseColor", UniformData::from(sprite_material.base_color)),
-                ("texture0", UniformData::from(Sampler2D::new(texture, unit))),
-                ("billboard", UniformData::from(sprite_material.billboard)),
-                ("tileNumber", UniformData::from(sprite_material.tile_number)),
-                ("tileCount", UniformData::from(sprite_material.tile_count)),
+                ("baseColor", Data::from(sprite_material.base_color)),
+                ("texture0", Data::from(Sampler2D::new(texture, unit))),
+                ("billboard", Data::from(sprite_material.billboard)),
+                ("tileNumber", Data::from(sprite_material.tile_number)),
+                ("tileCount", Data::from(sprite_material.tile_count)),
             ],
             render_settings: vec![RenderSetting::CullFace(!sprite_material.double_side)],
             draw_style: WebGl2RenderingContext::TRIANGLES,

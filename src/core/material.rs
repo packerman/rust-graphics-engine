@@ -7,7 +7,7 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram};
 use super::{
     convert::FromWithContext,
     gl,
-    uniform::{Uniform, UniformData},
+    uniform::{data::Data, Uniform},
 };
 
 #[derive(Debug, Clone)]
@@ -22,17 +22,10 @@ pub struct Material {
 }
 
 impl Material {
-    pub fn add_uniform(
-        &mut self,
-        context: &WebGl2RenderingContext,
-        name: &str,
-        data: UniformData,
-    ) -> Result<()> {
-        self.uniforms.insert(
-            String::from(name),
-            Uniform::initialize(context, data, &self.program, name)?,
-        );
-        Ok(())
+    pub fn add_uniform(&mut self, context: &WebGl2RenderingContext, name: &str, data: Data) {
+        if let Some(uniform) = Uniform::from_data(context, &self.program, name, data) {
+            self.uniforms.insert(String::from(name), uniform);
+        }
     }
 
     pub fn add_render_setting(&mut self, settings: RenderSetting) {
@@ -91,7 +84,7 @@ impl Material {
 pub struct MaterialSettings<'a> {
     pub vertex_shader: &'a str,
     pub fragment_shader: &'a str,
-    pub uniforms: Vec<(&'a str, UniformData)>,
+    pub uniforms: Vec<(&'a str, Data)>,
     pub render_settings: Vec<RenderSetting>,
     pub draw_style: u32,
 }
@@ -102,23 +95,23 @@ impl FromWithContext<WebGl2RenderingContext, MaterialSettings<'_>> for Material 
         settings: MaterialSettings<'_>,
     ) -> Result<Self> {
         let program = gl::build_program(context, settings.vertex_shader, settings.fragment_shader)?;
-        let uniforms: Result<Vec<_>> = settings
+        let uniforms: Vec<_> = settings
             .uniforms
             .into_iter()
-            .map(|(name, data)| {
-                Ok((
+            .filter_map(|(name, data)| {
+                Some((
                     String::from(name),
-                    Uniform::initialize(context, data, &program, name)?,
+                    Uniform::from_data(context, &program, name, data)?,
                 ))
             })
             .collect();
-        let model_matrix = Uniform::try_initialize::<Mat4>(context, &program, "modelMatrix");
-        let view_matrix = Uniform::try_initialize::<Mat4>(context, &program, "viewMatrix");
+        let model_matrix = Uniform::from_default::<Mat4>(context, &program, "modelMatrix");
+        let view_matrix = Uniform::from_default::<Mat4>(context, &program, "viewMatrix");
         let projection_matrix =
-            Uniform::try_initialize::<Mat4>(context, &program, "projectionMatrix");
+            Uniform::from_default::<Mat4>(context, &program, "projectionMatrix");
         Ok(Material {
             program,
-            uniforms: uniforms?.into_iter().collect(),
+            uniforms: uniforms.into_iter().collect(),
             render_settings: settings.render_settings,
             draw_style: settings.draw_style,
             model_matrix,

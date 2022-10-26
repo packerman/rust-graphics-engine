@@ -16,7 +16,7 @@ use crate::{
         node::Node,
         renderer::{Renderer, RendererOptions},
         texture::{Texture, TextureData, TextureUnit},
-        uniform::{data::Sampler2D, UniformData},
+        uniform::data::{Data, Sampler2D},
         web,
     },
     geometry::Rectangle,
@@ -49,7 +49,7 @@ impl AsyncCreator for Example {
                 uniforms: vec![
                     (
                         "noise",
-                        UniformData::from(Sampler2D::new(
+                        Data::from(Sampler2D::new(
                             Texture::initialize(
                                 context,
                                 TextureData::load_from_source("images/noise.png").await?,
@@ -60,7 +60,7 @@ impl AsyncCreator for Example {
                     ),
                     (
                         "image",
-                        UniformData::from(Sampler2D::new(
+                        Data::from(Sampler2D::new(
                             Texture::initialize(
                                 context,
                                 TextureData::load_from_source("images/grid.png").await?,
@@ -69,7 +69,7 @@ impl AsyncCreator for Example {
                             TextureUnit::from(1),
                         )),
                     ),
-                    ("time", UniformData::from(0.0)),
+                    ("time", Data::from(0.0)),
                 ],
                 render_settings: vec![],
                 draw_style: WebGl2RenderingContext::TRIANGLES,

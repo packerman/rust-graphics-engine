@@ -1,11 +1,11 @@
 use std::convert::TryInto;
 
-use anyhow::{anyhow, Ok, Result};
+use anyhow::{anyhow, Result};
 
 use wasm_bindgen::JsValue;
 use web_sys::{
     WebGl2RenderingContext, WebGlBuffer, WebGlFramebuffer, WebGlProgram, WebGlRenderbuffer,
-    WebGlShader, WebGlTexture, WebGlUniformLocation, WebGlVertexArrayObject,
+    WebGlShader, WebGlTexture, WebGlVertexArrayObject,
 };
 
 use super::color::Color;
@@ -124,16 +124,6 @@ pub fn get_attrib_location(
     } else {
         location.try_into().ok()
     }
-}
-
-pub fn get_uniform_location(
-    context: &WebGl2RenderingContext,
-    program: &WebGlProgram,
-    name: &str,
-) -> Result<WebGlUniformLocation> {
-    context
-        .get_uniform_location(program, name)
-        .ok_or_else(|| anyhow!("Cannot find uniform location {:#?}", name))
 }
 
 pub fn create_texture(context: &WebGl2RenderingContext) -> Result<WebGlTexture> {

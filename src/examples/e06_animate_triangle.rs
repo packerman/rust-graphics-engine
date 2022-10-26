@@ -8,7 +8,7 @@ use crate::core::{
     color::Color,
     gl,
     input::KeyState,
-    uniform::{Uniform, UniformData},
+    uniform::{data::Data, Uniform},
 };
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -49,18 +49,14 @@ impl AsyncCreator for Example {
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
         position_attribute.associate_variable(context, &program, "position");
 
-        let translation = Uniform::initialize(
+        let translation = Uniform::try_from_data(
             context,
-            UniformData::from(glm::vec3(-0.5_f32, 0.0, 0.0)),
             &program,
             "translation",
+            Data::from(glm::vec3(-0.5_f32, 0.0, 0.0)),
         )?;
-        let base_color = Uniform::initialize(
-            context,
-            UniformData::from(Color::red()),
-            &program,
-            "baseColor",
-        )?;
+        let base_color =
+            Uniform::try_from_data(context, &program, "baseColor", Data::from(Color::red()))?;
 
         Ok(Box::new(Example {
             program,
