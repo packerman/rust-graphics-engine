@@ -29,6 +29,7 @@ impl Sampler2D {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum Data {
     Boolean(bool),
     Int(i32),
@@ -96,5 +97,27 @@ impl From<Color> for Data {
 impl From<Sampler2D> for Data {
     fn from(data: Sampler2D) -> Self {
         Self::Sampler2D(data)
+    }
+}
+
+impl<const N: usize> From<[(&str, Data); N]> for Data {
+    fn from(members: [(&str, Data); N]) -> Self {
+        Self::Struct {
+            members: members
+                .into_iter()
+                .map(|(member, data)| (String::from(member), data))
+                .collect(),
+        }
+    }
+}
+
+impl From<HashMap<&str, Data>> for Data {
+    fn from(members: HashMap<&str, Data>) -> Self {
+        Data::Struct {
+            members: members
+                .into_iter()
+                .map(|(member, data)| (String::from(member), data))
+                .collect(),
+        }
     }
 }

@@ -200,16 +200,28 @@ impl Uniform {
         self.get_basic().and_then(|basic| basic.mat4_mut())
     }
 
+    pub fn members_mut(&self) -> Option<RefMut<HashMap<String, Uniform>>> {
+        self.get_struct()
+            .map(|struct_uniform| struct_uniform.members_mut())
+    }
+
     fn get_basic(&self) -> Option<&BasicUniform> {
         match self {
             Self::Basic(basic) => Some(basic),
             _ => None,
         }
     }
+
+    fn get_struct(&self) -> Option<&StructUniform> {
+        match self {
+            Self::Struct(struct_uniform) => Some(struct_uniform),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
-pub struct BasicUniform {
+struct BasicUniform {
     data: RefCell<UniformCall>,
     location: WebGlUniformLocation,
 }
@@ -265,13 +277,19 @@ impl BasicUniform {
 }
 
 #[derive(Debug, Clone)]
-pub struct StructUniform {
-    members: HashMap<String, Uniform>,
+struct StructUniform {
+    members: RefCell<HashMap<String, Uniform>>,
 }
 
 impl StructUniform {
     pub fn new(members: HashMap<String, Uniform>) -> Self {
-        Self { members }
+        Self {
+            members: RefCell::new(members),
+        }
+    }
+
+    pub fn members_mut(&self) -> RefMut<HashMap<String, Uniform>> {
+        self.members.borrow_mut()
     }
 
     pub fn from_members(
