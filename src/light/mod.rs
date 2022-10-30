@@ -1,8 +1,9 @@
-use std::collections::HashMap;
-
 use glm::Vec3;
 
-use crate::core::{color::Color, uniform::data::Data};
+use crate::core::{
+    color::Color,
+    uniform::{data::Data, Uniform, UpdateUniform},
+};
 
 #[derive(Debug, Clone, Copy)]
 pub enum LightType {
@@ -18,6 +19,15 @@ pub struct Light {
 }
 
 impl Light {
+    pub const DIRECTIONAL_TYPE: i32 = 1;
+    pub const POINT_TYPE: i32 = 2;
+
+    pub const LIGHT_TYPE_MEMBER: &str = "lightType";
+    pub const COLOR_MEMBER: &str = "color";
+    pub const DIRECTION_MEMBER: &str = "direction";
+    pub const POSITION_MEMBER: &str = "position";
+    pub const ATTENUATION_MEMBER: &str = "attenuation";
+
     pub fn point() -> Self {
         Self {
             light_type: LightType::Point {
@@ -41,24 +51,32 @@ impl Default for Light {
     }
 }
 
-impl From<Light> for Data {
-    fn from(light: Light) -> Self {
-        let mut members = HashMap::<&str, Data>::new();
-        let light_type: i32;
-        match light.light_type {
-            LightType::Directional { direction } => {
-                light_type = 1;
-                members.insert("direction", Data::from(direction));
+impl UpdateUniform for Light {
+    fn data() -> Data {
+        Data::from([
+            (Self::LIGHT_TYPE_MEMBER, Data::default::<i32>()),
+            (Self::COLOR_MEMBER, Data::from(Color::white())),
+            (Self::DIRECTION_MEMBER, Data::default::<Vec3>()),
+            (Self::POSITION_MEMBER, Data::default::<Vec3>()),
+            (Self::ATTENUATION_MEMBER, Data::default::<Vec3>()),
+        ])
+    }
+
+    fn update(&self, uniform: &Uniform) {
+        if let Some(uniform) = uniform.get_struct() {
+            match self.light_type {
+                LightType::Directional { direction } => {
+                    uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::DIRECTIONAL_TYPE);
+                    uniform.set_vec3_member(Self::DIRECTION_MEMBER, direction);
+                }
+                LightType::Point { position } => {
+                    uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::POINT_TYPE);
+                    uniform.set_vec3_member(Self::POSITION_MEMBER, position);
+                }
             }
-            LightType::Point { position } => {
-                light_type = 2;
-                members.insert("position", Data::from(position));
-            }
+            uniform.set_color_member(Self::COLOR_MEMBER, self.color);
+            uniform.set_vec3_member(Self::ATTENUATION_MEMBER, self.attenuation.into());
         }
-        members.insert("lightType", Data::from(light_type));
-        members.insert("color", Data::from(light.color));
-        members.insert("attenuation", Data::from(light.attenuation));
-        Self::from(members)
     }
 }
 
@@ -71,8 +89,8 @@ impl Default for Attenuation {
     }
 }
 
-impl From<Attenuation> for Data {
+impl From<Attenuation> for Vec3 {
     fn from(attenuation: Attenuation) -> Self {
-        Data::from(glm::vec3(attenuation.0, attenuation.1, attenuation.2))
+        glm::vec3(attenuation.0, attenuation.1, attenuation.2)
     }
 }

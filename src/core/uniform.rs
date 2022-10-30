@@ -27,6 +27,13 @@ enum UniformCall {
 }
 
 impl UniformCall {
+    pub fn int_mut(&mut self) -> Option<&mut i32> {
+        match self {
+            UniformCall::Int(data) => Some(data),
+            _ => None,
+        }
+    }
+
     pub fn float_mut(&mut self) -> Option<&mut f32> {
         match self {
             UniformCall::Float(data) => Some(data),
@@ -184,6 +191,10 @@ impl Uniform {
         }
     }
 
+    pub fn int_mut(&self) -> Option<RefMut<i32>> {
+        self.get_basic().and_then(|basic| basic.int_mut())
+    }
+
     pub fn float_mut(&self) -> Option<RefMut<f32>> {
         self.get_basic().and_then(|basic| basic.float_mut())
     }
@@ -200,9 +211,11 @@ impl Uniform {
         self.get_basic().and_then(|basic| basic.mat4_mut())
     }
 
-    pub fn members_mut(&self) -> Option<RefMut<HashMap<String, Uniform>>> {
-        self.get_struct()
-            .map(|struct_uniform| struct_uniform.members_mut())
+    pub fn get_struct(&self) -> Option<&StructUniform> {
+        match self {
+            Self::Struct(struct_uniform) => Some(struct_uniform),
+            _ => None,
+        }
     }
 
     fn get_basic(&self) -> Option<&BasicUniform> {
@@ -211,13 +224,12 @@ impl Uniform {
             _ => None,
         }
     }
+}
 
-    fn get_struct(&self) -> Option<&StructUniform> {
-        match self {
-            Self::Struct(struct_uniform) => Some(struct_uniform),
-            _ => None,
-        }
-    }
+pub trait UpdateUniform {
+    fn data() -> Data;
+
+    fn update(&self, uniform: &Uniform);
 }
 
 #[derive(Debug, Clone)]
@@ -259,6 +271,10 @@ impl BasicUniform {
         }
     }
 
+    pub fn int_mut(&self) -> Option<RefMut<i32>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.int_mut()).ok()
+    }
+
     pub fn float_mut(&self) -> Option<RefMut<f32>> {
         RefMut::filter_map(self.data.borrow_mut(), |data| data.float_mut()).ok()
     }
@@ -277,19 +293,13 @@ impl BasicUniform {
 }
 
 #[derive(Debug, Clone)]
-struct StructUniform {
-    members: RefCell<HashMap<String, Uniform>>,
+pub struct StructUniform {
+    members: HashMap<String, Uniform>,
 }
 
 impl StructUniform {
     pub fn new(members: HashMap<String, Uniform>) -> Self {
-        Self {
-            members: RefCell::new(members),
-        }
-    }
-
-    pub fn members_mut(&self) -> RefMut<HashMap<String, Uniform>> {
-        self.members.borrow_mut()
+        Self { members }
     }
 
     pub fn from_members(
@@ -304,5 +314,35 @@ impl StructUniform {
             result.insert(key, Uniform::from_data(context, program, &full_name, data)?);
         }
         Some(StructUniform::new(result))
+    }
+
+    pub fn upload_data(&self, context: &WebGl2RenderingContext) {
+        self.members
+            .values()
+            .for_each(|uniform| uniform.upload_data(context));
+    }
+
+    pub fn set_int_member(&self, name: &str, value: i32) {
+        if let Some(member) = self.members.get(name) {
+            if let Some(mut data) = member.int_mut() {
+                *data = value;
+            }
+        }
+    }
+
+    pub fn set_vec3_member(&self, name: &str, value: Vec3) {
+        if let Some(member) = self.members.get(name) {
+            if let Some(mut data) = member.vec3_mut() {
+                *data = value;
+            }
+        }
+    }
+
+    pub fn set_color_member(&self, name: &str, value: Color) {
+        if let Some(member) = self.members.get(name) {
+            if let Some(mut data) = member.color_mut() {
+                *data = value;
+            }
+        }
     }
 }
