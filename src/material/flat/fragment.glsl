@@ -22,5 +22,5 @@ void main() {
         color *= texture(material.texture0, UV);
     }
     color *= vec4(light, 1.0);
-    fragColor = ambient + color;
+    fragColor = material.ambient + color;
 }
