@@ -233,7 +233,7 @@ pub trait UpdateUniform {
 }
 
 #[derive(Debug, Clone)]
-struct BasicUniform {
+pub struct BasicUniform {
     data: RefCell<UniformCall>,
     location: WebGlUniformLocation,
 }

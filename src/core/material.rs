@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
@@ -94,6 +94,7 @@ impl FromWithContext<WebGl2RenderingContext, MaterialSettings<'_>> for Material 
         context: &WebGl2RenderingContext,
         settings: MaterialSettings<'_>,
     ) -> Result<Self> {
+        self::check_draw_style_is_correct(settings.draw_style)?;
         let program = gl::build_program(context, settings.vertex_shader, settings.fragment_shader)?;
         let uniforms: HashMap<_, _> = settings
             .uniforms
@@ -118,6 +119,24 @@ impl FromWithContext<WebGl2RenderingContext, MaterialSettings<'_>> for Material 
             view_matrix,
             projection_matrix,
         })
+    }
+}
+
+const DRAW_STYLES: [u32; 7] = [
+    WebGl2RenderingContext::POINTS,
+    WebGl2RenderingContext::LINES,
+    WebGl2RenderingContext::LINE_LOOP,
+    WebGl2RenderingContext::LINE_STRIP,
+    WebGl2RenderingContext::TRIANGLES,
+    WebGl2RenderingContext::TRIANGLE_STRIP,
+    WebGl2RenderingContext::TRIANGLE_FAN,
+];
+
+fn check_draw_style_is_correct(draw_style: u32) -> Result<()> {
+    if DRAW_STYLES.contains(&draw_style) {
+        Ok(())
+    } else {
+        Err(anyhow!("Unkown draw style: {:#?}", draw_style))
     }
 }
 
