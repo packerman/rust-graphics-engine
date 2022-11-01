@@ -18,7 +18,7 @@ use crate::{
         texture::{Texture, TextureData, TextureUnit},
         uniform::data::Sampler2D,
     },
-    geometry::{parametric::Sphere, Rectangle},
+    geometry::parametric::Sphere,
     light::{Light, LightType},
     material::{self, flat::FlatMaterial, lambert::LambertMaterial, phong::PhongMaterial},
 };

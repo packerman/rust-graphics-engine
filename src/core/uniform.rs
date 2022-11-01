@@ -187,7 +187,7 @@ impl Uniform {
     pub fn upload_data(&self, context: &WebGl2RenderingContext) {
         match self {
             Self::Basic(basic) => basic.upload_data(context),
-            _ => todo!(),
+            Self::Struct(struct_uniform) => struct_uniform.upload_data(context),
         }
     }
 

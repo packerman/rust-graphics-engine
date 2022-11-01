@@ -210,15 +210,18 @@ impl Node {
         *self.transform.borrow_mut() = matrix::look_at(&self.world_position(), target);
     }
 
+    #[allow(dead_code)]
     pub fn rotation_matrix(&self) -> Mat3 {
         matrix::get_rotation_matrix(&self.transform.borrow())
     }
 
+    #[allow(dead_code)]
     pub fn direction(&self) -> Vec3 {
         let forward = glm::vec3(0.0, 0.0, -1.0);
         self.rotation_matrix() * forward
     }
 
+    #[allow(dead_code)]
     pub fn set_direction(&self, direction: &Vec3) {
         let position = self.position();
         let target_position = position + direction;
