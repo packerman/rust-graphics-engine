@@ -13,12 +13,13 @@ pub enum LightType {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Light {
-    light_type: LightType,
+    light_type: Option<LightType>,
     color: Color,
     attenuation: Attenuation,
 }
 
 impl Light {
+    pub const NONE_TYPE: i32 = 0;
     pub const DIRECTIONAL_TYPE: i32 = 1;
     pub const POINT_TYPE: i32 = 2;
 
@@ -28,11 +29,21 @@ impl Light {
     pub const POSITION_MEMBER: &str = "position";
     pub const ATTENUATION_MEMBER: &str = "attenuation";
 
+    pub fn directional() -> Self {
+        Self {
+            light_type: Some(LightType::Directional {
+                direction: glm::vec3(0.0, -1.0, 0.0),
+            }),
+            color: Color::white(),
+            attenuation: Default::default(),
+        }
+    }
+
     pub fn point() -> Self {
         Self {
-            light_type: LightType::Point {
+            light_type: Some(LightType::Point {
                 position: glm::vec3(0.0, 0.0, 0.0),
-            },
+            }),
             color: Color::white(),
             attenuation: Attenuation(1.0, 0.0, 0.1),
         }
@@ -42,9 +53,7 @@ impl Light {
 impl Default for Light {
     fn default() -> Self {
         Self {
-            light_type: LightType::Directional {
-                direction: glm::vec3(0.0, -1.0, 0.0),
-            },
+            light_type: None,
             color: Color::white(),
             attenuation: Default::default(),
         }
@@ -65,13 +74,16 @@ impl UpdateUniform for Light {
     fn update_uniform(&self, uniform: &Uniform) {
         if let Some(uniform) = uniform.get_struct() {
             match self.light_type {
-                LightType::Directional { direction } => {
+                Some(LightType::Directional { direction }) => {
                     uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::DIRECTIONAL_TYPE);
                     uniform.set_vec3_member(Self::DIRECTION_MEMBER, direction);
                 }
-                LightType::Point { position } => {
+                Some(LightType::Point { position }) => {
                     uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::POINT_TYPE);
                     uniform.set_vec3_member(Self::POSITION_MEMBER, position);
+                }
+                _ => {
+                    uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::NONE_TYPE);
                 }
             }
             uniform.set_color_member(Self::COLOR_MEMBER, self.color);

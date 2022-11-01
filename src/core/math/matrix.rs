@@ -122,6 +122,10 @@ pub fn look_at(position: &Vec3, target: &Vec3) -> Mat4 {
     )
 }
 
+pub fn get_position(m: &Mat4) -> Vec3 {
+    glm::vec3(m[(0, 3)], m[(1, 3)], m[(2, 3)])
+}
+
 pub fn get_rotation_matrix(m: &Mat4) -> Mat3 {
     glm::mat4_to_mat3(m)
 }

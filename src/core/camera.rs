@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use glm::Mat4;
+use glm::{Mat4, Vec3};
 
 use super::math::matrix::{self, Ortographic, Perspective};
 
@@ -22,6 +22,7 @@ impl From<Projection> for Mat4 {
 #[derive(Debug, Clone)]
 pub struct Camera {
     projection: Projection,
+    world_matrix: Mat4,
     view_matrix: Mat4,
 }
 
@@ -29,6 +30,7 @@ impl Camera {
     fn new(projection: Projection) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Self {
             projection,
+            world_matrix: matrix::identity(),
             view_matrix: matrix::identity(),
         }))
     }
@@ -41,8 +43,9 @@ impl Camera {
         Self::new(Projection::Ortographic(projection))
     }
 
-    pub fn update_view_matrix(&mut self, world_matrix: &Mat4) -> bool {
+    pub fn update_world_matrix(&mut self, world_matrix: Mat4) -> bool {
         if let Some(inverse) = world_matrix.try_inverse() {
+            self.world_matrix = world_matrix;
             self.view_matrix = inverse;
             true
         } else {
@@ -62,6 +65,10 @@ impl Camera {
 
     pub fn projection_matrix(&self) -> Mat4 {
         self.projection.into()
+    }
+
+    pub fn world_position(&self) -> Vec3 {
+        matrix::get_position(&self.world_matrix)
     }
 }
 

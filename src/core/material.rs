@@ -1,7 +1,7 @@
-use std::collections::HashMap;
+use std::{cell::RefMut, collections::HashMap};
 
 use anyhow::{anyhow, Result};
-use glm::Mat4;
+use glm::{Mat4, Vec3};
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use super::{
@@ -71,6 +71,16 @@ impl Material {
 
     pub fn uniform(&self, name: &str) -> Option<&Uniform> {
         self.uniforms.get(name)
+    }
+
+    pub fn has_uniform(&self, name: &str) -> bool {
+        self.uniforms.contains_key(name)
+    }
+
+    pub fn vec3_mut(&self, name: &str) -> Option<RefMut<Vec3>> {
+        self.uniforms
+            .get(name)
+            .and_then(|uniform| uniform.vec3_mut())
     }
 
     fn set_matrix_uniform(uniform: Option<&Uniform>, matrix: Mat4) {

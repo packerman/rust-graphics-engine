@@ -9,6 +9,8 @@ use std::{
 
 use glm::{Mat3, Mat4, Vec3};
 
+use crate::light::Light;
+
 use self::movement_rig::MovementRig;
 
 use super::{
@@ -36,6 +38,7 @@ pub enum NodeType {
     Mesh(Mesh),
     Camera(Rc<RefCell<Camera>>),
     MovementRig(Box<MovementRig>),
+    Light(Light),
 }
 
 #[derive(Debug, Clone)]
@@ -70,6 +73,10 @@ impl Node {
         node
     }
 
+    pub fn new_light(light: Light) -> Rc<Self> {
+        Self::new(NodeType::Light(light))
+    }
+
     pub fn new(node_type: NodeType) -> Rc<Self> {
         Rc::new_cyclic(|me| Node {
             me: me.clone(),
@@ -90,6 +97,13 @@ impl Node {
     pub fn camera(&self) -> Option<&RefCell<Camera>> {
         match &self.node_type {
             NodeType::Camera(camera) => Some(camera),
+            _ => None,
+        }
+    }
+
+    pub fn light(&self) -> Option<&Light> {
+        match &self.node_type {
+            NodeType::Light(light) => Some(light),
             _ => None,
         }
     }
@@ -182,8 +196,7 @@ impl Node {
     }
 
     pub fn world_position(&self) -> Vec3 {
-        let transform = self.world_matrix();
-        glm::vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])
+        matrix::get_position(&self.world_matrix())
     }
 
     pub fn set_position(&self, position: &Vec3) {

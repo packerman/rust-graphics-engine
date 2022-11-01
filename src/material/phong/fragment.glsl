@@ -53,7 +53,7 @@ vec3 lightCalc(Light light, vec3 pointPosition, vec3 pointNormal) {
         vec3 viewDirection = normalize(viewPosition - pointPosition);
         vec3 reflectDirection = reflect(lightDirection, pointNormal);
         specular = max(dot(viewDirection, reflectDirection), 0.0);
-        specular = specularStrength * pow(specular, shininess);
+        specular = material.specularStrength * pow(specular, material.shininess);
     }
     diffuse *= attenuation;
     return light.color * (diffuse + specular);

@@ -1,16 +1,19 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, rc::Rc};
 
 use web_sys::WebGl2RenderingContext;
 
+use crate::light::Light;
+
 use super::{
-    camera::Camera, color::Color, gl, math::resolution::Resolution, node::Node,
-    render_target::RenderTarget, web,
+    camera::Camera, color::Color, gl, math::resolution::Resolution, mesh::Mesh, node::Node,
+    render_target::RenderTarget, uniform::UpdateUniform, web,
 };
 
 pub struct RendererOptions {
     pub clear_color: Color,
     pub blending: bool,
     pub flip_y: bool,
+    pub light_count: usize,
 }
 
 impl Default for RendererOptions {
@@ -19,11 +22,16 @@ impl Default for RendererOptions {
             clear_color: Color::black(),
             blending: true,
             flip_y: true,
+            light_count: 4,
         }
     }
 }
 
-pub struct Renderer;
+pub struct Renderer {
+    default_node: Rc<Node>,
+    default_light: Light,
+    light_count: usize,
+}
 
 impl Renderer {
     pub const CLEAR_ALL: u32 =
@@ -46,7 +54,14 @@ impl Renderer {
             context.pixel_storei(WebGl2RenderingContext::UNPACK_FLIP_Y_WEBGL, 1);
         }
 
-        Self
+        let default_light = Light::default();
+        let default_node = Node::new_group();
+
+        Self {
+            default_node,
+            default_light,
+            light_count: options.light_count,
+        }
     }
 
     pub fn render(&self, context: &WebGl2RenderingContext, scene: &Node, camera: &RefCell<Camera>) {
@@ -104,19 +119,38 @@ impl Renderer {
 
         let nodes = scene.descendants();
 
-        for node in nodes.iter() {
-            if let Some(camera) = node.camera() {
-                camera.borrow_mut().set_aspect_ratio(resolution.ratio());
-                camera.borrow_mut().update_view_matrix(&node.world_matrix());
-            }
-        }
+        filter_cameras(&nodes).for_each(|(camera, node)| {
+            camera.borrow_mut().set_aspect_ratio(resolution.ratio());
+            camera.borrow_mut().update_world_matrix(node.world_matrix());
+        });
+
+        let lights = self.filter_lights(&nodes);
 
         let camera = &camera.borrow();
-        for node in nodes.iter() {
-            if let Some(mesh) = node.mesh() {
-                mesh.render(context, camera, node.world_matrix())
+        filter_meshes(&nodes).for_each(|(mesh, node)| {
+            if mesh.material().has_uniform("light0") {
+                lights.iter().enumerate().for_each(|(i, (light, _))| {
+                    if let Some(uniform) = mesh.material().uniform(&format!("light{}", i)) {
+                        light.update_uniform(uniform);
+                    }
+                });
             }
-        }
+            if let Some(mut view_position) = mesh.material().vec3_mut("viewPosition") {
+                *view_position = camera.world_position();
+            }
+            mesh.render(context, camera, node.world_matrix());
+        });
+    }
+
+    fn filter_lights<'a>(&'a self, nodes: &'a [Rc<Node>]) -> Vec<(&Light, &Rc<Node>)> {
+        let mut lights: Vec<_> = nodes
+            .iter()
+            .filter_map(|node| node.light().map(|light| (light, node)))
+            .collect();
+        lights.resize_with(self.light_count, || {
+            (&self.default_light, &self.default_node)
+        });
+        lights
     }
 }
 
@@ -128,4 +162,16 @@ pub fn get_canvas_size(context: &WebGl2RenderingContext) -> Resolution {
 
 fn viewport(context: &WebGl2RenderingContext, resolution: Resolution) {
     context.viewport(0, 0, resolution.width, resolution.height)
+}
+
+fn filter_cameras(nodes: &[Rc<Node>]) -> impl Iterator<Item = (&RefCell<Camera>, &Rc<Node>)> {
+    nodes
+        .iter()
+        .filter_map(|node| node.camera().map(|camera| (camera, node)))
+}
+
+fn filter_meshes(nodes: &[Rc<Node>]) -> impl Iterator<Item = (&Mesh, &Rc<Node>)> {
+    nodes
+        .iter()
+        .filter_map(|node| node.mesh().map(|mesh| (mesh, node)))
 }
