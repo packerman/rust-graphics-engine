@@ -3,11 +3,17 @@ use std::{collections::HashMap, rc::Rc};
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    color::Color,
-    convert::FromWithContext,
-    material::{Material, MaterialSettings, RenderSetting},
-    uniform::data::{Data, Sampler2D},
+use crate::{
+    core::{
+        color::Color,
+        convert::FromWithContext,
+        material::{Material, MaterialSettings, RenderSetting},
+        uniform::{
+            data::{Data, Sampler2D},
+            UpdateUniform,
+        },
+    },
+    light::Light,
 };
 
 pub struct LambertMaterial {
@@ -38,7 +44,13 @@ pub fn create(
         MaterialSettings {
             vertex_shader: include_str!("vertex.glsl"),
             fragment_shader: include_str!("fragment.glsl"),
-            uniforms: vec![("material", self::create_material_struct(flat_material))],
+            uniforms: vec![
+                ("material", self::create_material_struct(flat_material)),
+                ("light0", Light::create_data()),
+                ("light1", Light::create_data()),
+                ("light2", Light::create_data()),
+                ("light3", Light::create_data()),
+            ],
             render_settings,
             draw_style: WebGl2RenderingContext::TRIANGLES,
         },

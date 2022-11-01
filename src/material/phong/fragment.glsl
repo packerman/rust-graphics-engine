@@ -18,9 +18,18 @@ uniform Light light1;
 uniform Light light2;
 uniform Light light3;
 
+struct Material {
+    vec4 ambient;
+    vec4 diffuse;
+    bool useTexture;
+    sampler2D texture0;
+    float specularStrength;
+    float shininess;
+}
+
+uniform Material material;
+
 uniform vec3 viewPosition;
-uniform float specularStrength;
-uniform float shininess;
 
 float lightAttenuation(vec3 attenuation, float distance) {
     return 1.0 / (attenuation[0] + attenuation[1] * distance + attenuation[2] * distance * distance);
@@ -49,15 +58,6 @@ vec3 lightCalc(Light light, vec3 pointPosition, vec3 pointNormal) {
     diffuse *= attenuation;
     return light.color * (diffuse + specular);
 }
-
-struct Material {
-    vec4 ambient;
-    vec4 diffuse;
-    bool useTexture;
-    sampler2D texture0;
-}
-
-uniform Material material;
 
 in vec3 position;
 in vec2 UV;

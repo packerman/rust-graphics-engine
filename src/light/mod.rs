@@ -52,7 +52,7 @@ impl Default for Light {
 }
 
 impl UpdateUniform for Light {
-    fn data() -> Data {
+    fn create_data() -> Data {
         Data::from([
             (Self::LIGHT_TYPE_MEMBER, Data::default::<i32>()),
             (Self::COLOR_MEMBER, Data::from(Color::white())),
@@ -62,7 +62,7 @@ impl UpdateUniform for Light {
         ])
     }
 
-    fn update(&self, uniform: &Uniform) {
+    fn update_uniform(&self, uniform: &Uniform) {
         if let Some(uniform) = uniform.get_struct() {
             match self.light_type {
                 LightType::Directional { direction } => {

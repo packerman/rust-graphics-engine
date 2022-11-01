@@ -227,9 +227,9 @@ impl Uniform {
 }
 
 pub trait UpdateUniform {
-    fn data() -> Data;
+    fn create_data() -> Data;
 
-    fn update(&self, uniform: &Uniform);
+    fn update_uniform(&self, uniform: &Uniform);
 }
 
 #[derive(Debug, Clone)]
