@@ -47,15 +47,17 @@ vec4 lightCalc(Light light, vec3 pointPosition, vec3 pointNormal) {
         float distance = length(light.position - pointPosition);
         attenuation = lightAttenuation(light.attenuation, distance);
     }
-    pointNormal = normalize(pointNormal);
-    diffuse = max(dot(pointNormal, - lightDirection), 0.0);
-    if (diffuse > 0.0) {
-        vec3 viewDirection = normalize(viewPosition - pointPosition);
-        vec3 reflectDirection = reflect(lightDirection, pointNormal);
-        specular = max(dot(viewDirection, reflectDirection), 0.0);
-        specular = material.specularStrength * pow(specular, material.shininess);
+    if (light.lightType > 0) {
+        pointNormal = normalize(pointNormal);
+        diffuse = max(dot(pointNormal, - lightDirection), 0.0);
+        diffuse *= attenuation;
+        if (diffuse > 0.0) {
+            vec3 viewDirection = normalize(viewPosition - pointPosition);
+            vec3 reflectDirection = reflect(lightDirection, pointNormal);
+            specular = max(dot(viewDirection, reflectDirection), 0.0);
+            specular = material.specularStrength * pow(specular, material.shininess);
+        }
     }
-    diffuse *= attenuation;
     return light.color * (diffuse + specular);
 }
 

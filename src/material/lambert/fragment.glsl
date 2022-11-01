@@ -42,9 +42,11 @@ vec4 lightCalc(Light light, vec3 pointPosition, vec3 pointNormal) {
         float distance = length(light.position - pointPosition);
         attenuation = lightAttenuation(light.attenuation, distance);
     }
-    pointNormal = normalize(pointNormal);
-    diffuse = max(dot(pointNormal, - lightDirection), 0.0);
-    diffuse *= attenuation;
+    if (light.lightType > 0) {
+        pointNormal = normalize(pointNormal);
+        diffuse = max(dot(pointNormal, - lightDirection), 0.0);
+        diffuse *= attenuation;
+    }
     return light.color * diffuse;
 }
 
