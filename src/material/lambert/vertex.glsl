@@ -16,5 +16,5 @@ void main() {
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
     vec3 position = vec3(modelMatrix * vec4(vertexPosition, 1.0));
     UV = vertexUV;
-    vec3 normal = normalize(mat3(modelMatrix) * vertexNormal);
+    normal = normalize(mat3(modelMatrix) * vertexNormal);
 }
