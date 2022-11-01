@@ -39,22 +39,18 @@ impl Light {
     pub const POSITION_MEMBER: &str = "position";
     pub const ATTENUATION_MEMBER: &str = "attenuation";
 
-    pub fn directional() -> Self {
+    pub fn directional(color: Color, direction: Vec3) -> Self {
         Self {
-            light_type: Some(LightType::Directional {
-                direction: glm::vec3(0.0, -1.0, 0.0),
-            }),
-            color: Color::white(),
-            attenuation: Default::default(),
+            light_type: LightType::directional(direction).into(),
+            color,
+            ..Default::default()
         }
     }
 
-    pub fn point() -> Self {
+    pub fn point(color: Color, position: Vec3) -> Self {
         Self {
-            light_type: Some(LightType::Point {
-                position: glm::vec3(0.0, 0.0, 0.0),
-            }),
-            color: Color::white(),
+            light_type: LightType::point(position).into(),
+            color,
             attenuation: Attenuation(1.0, 0.0, 0.1),
         }
     }

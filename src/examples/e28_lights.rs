@@ -19,7 +19,7 @@ use crate::{
         uniform::data::Sampler2D,
     },
     geometry::parametric::Sphere,
-    light::{Light, LightType},
+    light::Light,
     material::{self, flat::FlatMaterial, lambert::LambertMaterial, phong::PhongMaterial},
 };
 
@@ -41,17 +41,15 @@ impl AsyncCreator for Example {
             camera.set_position(&glm::vec3(0.0, 0.0, 6.0));
             scene.add_child(&camera);
         }
-        // let directional = Node::new_light(Light {
-        //     light_type: LightType::directional(glm::vec3(-1.0, -1.0, -2.0)).into(),
-        //     color: Color::new_rgb(0.8, 0.8, 0.8),
-        //     ..Default::default()
-        // });
-        // scene.add_child(&directional);
-        let point = Node::new_light(Light {
-            light_type: LightType::point(glm::vec3(1.0, 1.0, 0.8)).into(),
-            color: Color::new_rgb(0.9, 0.0, 0.0),
-            ..Default::default()
-        });
+        let directional = Node::new_light(Light::directional(
+            Color::new_rgb(0.8, 0.8, 0.8),
+            glm::vec3(-1.0, -1.0, -2.0),
+        ));
+        scene.add_child(&directional);
+        let point = Node::new_light(Light::point(
+            Color::new_rgb(0.9, 0.0, 0.0),
+            glm::vec3(1.0, 1.0, 0.8),
+        ));
         scene.add_child(&point);
 
         {
