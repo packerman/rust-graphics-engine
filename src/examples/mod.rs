@@ -26,3 +26,4 @@ pub mod e24_sprite_material;
 pub mod e25_heads_up_display;
 pub mod e26_render_to_texture;
 pub mod e27_compound_effect;
+pub mod e28_lights;

@@ -6,99 +6,103 @@ use glm::{Vec3, Vec4};
 pub struct Color(Vec4);
 
 impl Color {
-    fn new(r: f32, g: f32, b: f32, a: f32) -> Self {
+    pub fn new(r: f32, g: f32, b: f32, a: f32) -> Self {
         Color(glm::vec4(r, g, b, a))
     }
 
+    pub fn new_rgb(r: f32, g: f32, b: f32) -> Self {
+        Self::new(r, g, b, 1.0)
+    }
+
     pub fn white() -> Color {
-        Self::from_rgb(255, 255, 255)
+        Self::from_rgb_u8(255, 255, 255)
     }
 
     pub fn silver() -> Color {
-        Self::from_rgb(192, 192, 192)
+        Self::from_rgb_u8(192, 192, 192)
     }
 
     pub fn gray() -> Color {
-        Self::from_rgb(128, 128, 128)
+        Self::from_rgb_u8(128, 128, 128)
     }
 
     pub fn dark_slate_gray() -> Color {
-        Self::from_rgb(47, 79, 79)
+        Self::from_rgb_u8(47, 79, 79)
     }
 
     pub fn black() -> Color {
-        Self::from_rgb(0, 0, 0)
+        Self::from_rgb_u8(0, 0, 0)
     }
 
     pub fn red() -> Color {
-        Self::from_rgb(255, 0, 0)
+        Self::from_rgb_u8(255, 0, 0)
     }
 
     pub fn maroon() -> Color {
-        Self::from_rgb(128, 0, 0)
+        Self::from_rgb_u8(128, 0, 0)
     }
 
     pub fn yellow() -> Color {
-        Self::from_rgb(255, 255, 0)
+        Self::from_rgb_u8(255, 255, 0)
     }
 
     pub fn olive() -> Color {
-        Self::from_rgb(128, 128, 0)
+        Self::from_rgb_u8(128, 128, 0)
     }
 
     pub fn lime() -> Color {
-        Self::from_rgb(0, 255, 0)
+        Self::from_rgb_u8(0, 255, 0)
     }
 
     pub fn green() -> Color {
-        Self::from_rgb(0, 128, 0)
+        Self::from_rgb_u8(0, 128, 0)
     }
 
     pub fn aqua() -> Color {
-        Self::from_rgb(0, 255, 255)
+        Self::from_rgb_u8(0, 255, 255)
     }
 
     pub fn teal() -> Color {
-        Self::from_rgb(0, 128, 128)
+        Self::from_rgb_u8(0, 128, 128)
     }
 
     pub fn blue() -> Color {
-        Self::from_rgb(0, 0, 255)
+        Self::from_rgb_u8(0, 0, 255)
     }
 
     pub fn navy() -> Color {
-        Self::from_rgb(0, 0, 128)
+        Self::from_rgb_u8(0, 0, 128)
     }
 
     pub fn fuchsia() -> Color {
-        Self::from_rgb(255, 0, 255)
+        Self::from_rgb_u8(255, 0, 255)
     }
 
     pub fn purple() -> Color {
-        Self::from_rgb(128, 0, 128)
+        Self::from_rgb_u8(128, 0, 128)
     }
 
     pub fn dark_orange() -> Color {
-        Self::from_rgb(255, 140, 0)
+        Self::from_rgb_u8(255, 140, 0)
     }
 
     pub fn blue_violet() -> Color {
-        Self::from_rgb(138, 43, 226)
+        Self::from_rgb_u8(138, 43, 226)
     }
 
     pub fn light_coral() -> Color {
-        Self::from_rgb(240, 128, 128)
+        Self::from_rgb_u8(240, 128, 128)
     }
 
     pub fn light_green() -> Color {
-        Self::from_rgb(144, 238, 144)
+        Self::from_rgb_u8(144, 238, 144)
     }
 
     pub fn medium_slate_blue() -> Color {
-        Self::from_rgb(123, 104, 238)
+        Self::from_rgb_u8(123, 104, 238)
     }
 
-    fn from_rgb(red: u8, green: u8, blue: u8) -> Color {
+    fn from_rgb_u8(red: u8, green: u8, blue: u8) -> Color {
         Self::new(
             f32::from(red) / 255.0,
             f32::from(green) / 255.0,

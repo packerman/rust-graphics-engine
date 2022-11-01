@@ -17,12 +17,12 @@ use crate::{
 };
 
 pub struct PhongMaterial {
-    double_side: bool,
-    texture: Option<Sampler2D>,
-    ambient: Color,
-    diffuse: Color,
-    specular_strength: f32,
-    shininess: f32,
+    pub double_side: bool,
+    pub texture: Option<Sampler2D>,
+    pub ambient: Color,
+    pub diffuse: Color,
+    pub specular_strength: f32,
+    pub shininess: f32,
 }
 
 impl Default for PhongMaterial {

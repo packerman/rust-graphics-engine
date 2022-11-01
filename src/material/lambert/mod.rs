@@ -17,10 +17,10 @@ use crate::{
 };
 
 pub struct LambertMaterial {
-    double_side: bool,
-    texture: Option<Sampler2D>,
-    ambient: Color,
-    diffuse: Color,
+    pub double_side: bool,
+    pub texture: Option<Sampler2D>,
+    pub ambient: Color,
+    pub diffuse: Color,
 }
 
 impl Default for LambertMaterial {

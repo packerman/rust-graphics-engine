@@ -11,11 +11,21 @@ pub enum LightType {
     Point { position: Vec3 },
 }
 
+impl LightType {
+    pub fn directional(direction: Vec3) -> Self {
+        Self::Directional { direction }
+    }
+
+    pub fn point(position: Vec3) -> Self {
+        Self::Point { position }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Light {
-    light_type: Option<LightType>,
-    color: Color,
-    attenuation: Attenuation,
+    pub light_type: Option<LightType>,
+    pub color: Color,
+    pub attenuation: Attenuation,
 }
 
 impl Light {
