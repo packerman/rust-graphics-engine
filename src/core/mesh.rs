@@ -48,6 +48,10 @@ impl Mesh {
         }
     }
 
+    pub fn geometry_mut(&mut self) -> Option<&mut Geometry> {
+        Rc::get_mut(&mut self.geometry)
+    }
+
     pub fn material(&self) -> &Material {
         &self.material
     }

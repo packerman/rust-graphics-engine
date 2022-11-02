@@ -221,7 +221,15 @@ impl Attribute {
         context: &WebGl2RenderingContext,
         other: &Attribute,
     ) -> Result<()> {
-        self.data.concat_mut(&other.data)?;
+        self.concat_data_mut(context, &other.data)
+    }
+
+    pub fn concat_data_mut(
+        &mut self,
+        context: &WebGl2RenderingContext,
+        data: &AttributeData,
+    ) -> Result<()> {
+        self.data.concat_mut(data)?;
         self.upload_data(context);
         Ok(())
     }
