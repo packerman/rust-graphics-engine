@@ -1,6 +1,6 @@
 use glm::Vec3;
 
-use crate::core::{
+use super::{
     color::Color,
     uniform::{data::Data, Uniform, UpdateUniform},
 };

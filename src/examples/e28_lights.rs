@@ -12,6 +12,7 @@ use crate::{
         convert::FromWithContext,
         geometry::Geometry,
         input::KeyState,
+        light::Light,
         mesh::Mesh,
         node::Node,
         renderer::Renderer,
@@ -19,7 +20,6 @@ use crate::{
         uniform::data::Sampler2D,
     },
     geometry::parametric::Sphere,
-    light::Light,
     material::{self, flat::FlatMaterial, lambert::LambertMaterial, phong::PhongMaterial},
 };
 

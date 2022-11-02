@@ -9,13 +9,12 @@ use std::{
 
 use glm::{Mat3, Mat4, Vec3};
 
-use crate::light::Light;
-
 use self::movement_rig::MovementRig;
 
 use super::{
     camera::Camera,
     input::KeyState,
+    light::Light,
     math::{angle::Angle, matrix},
     mesh::Mesh,
 };

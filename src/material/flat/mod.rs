@@ -3,17 +3,15 @@ use std::{collections::HashMap, rc::Rc};
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::{
-    core::{
-        color::Color,
-        convert::FromWithContext,
-        material::{Material, MaterialSettings, RenderSetting},
-        uniform::{
-            data::{Data, Sampler2D},
-            UpdateUniform,
-        },
-    },
+use crate::core::{
+    color::Color,
+    convert::FromWithContext,
     light::Light,
+    material::{Material, MaterialSettings, RenderSetting},
+    uniform::{
+        data::{Data, Sampler2D},
+        UpdateUniform,
+    },
 };
 
 pub struct FlatMaterial {
