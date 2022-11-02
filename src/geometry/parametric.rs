@@ -11,9 +11,11 @@ use crate::core::{
     attribute::AttributeData,
     color::Color,
     convert::FromWithContext,
-    geometry::{Geometry, Polygon},
+    geometry::Geometry,
     math::{angle::Angle, matrix},
 };
+
+use super::Polygon;
 
 struct ParametricSurface {
     u_range: RangeInclusive<f32>,
@@ -39,6 +41,7 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             (surface.u_range.end() - surface.u_range.start()) / f32::from(surface.u_resolution);
         let v_delta =
             (surface.v_range.end() - surface.v_range.start()) / f32::from(surface.v_resolution);
+
         let mut positions = Vec::with_capacity((surface.u_resolution + 1).into());
         for u_index in 0..=surface.u_resolution {
             let mut vector = Vec::with_capacity((surface.v_resolution + 1).into());
@@ -61,6 +64,22 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             uvs.push(vector);
         }
 
+        let mut normals = Vec::with_capacity((surface.u_resolution + 1).into());
+        for u_index in 0..=surface.u_resolution {
+            let mut vector = Vec::with_capacity((surface.v_resolution + 1).into());
+            for v_index in 0..=surface.v_resolution {
+                let u = surface.u_range.start() + f32::from(u_index) * u_delta;
+                let v = surface.v_range.start() + f32::from(v_index) * v_delta;
+                let h = 0.0001;
+                let p0 = (surface.function)(u, v);
+                let p1 = (surface.function)(u + h, v);
+                let p2 = (surface.function)(u, v + h);
+                let normal_vector = calc_normal(&p0, &p1, &p2);
+                vector.push(normal_vector);
+            }
+            normals.push(vector);
+        }
+
         let colors = [
             Color::red(),
             Color::lime(),
@@ -70,6 +89,11 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             Color::yellow(),
         ];
 
+        let mut vertex_normal_data =
+            Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
+        let mut face_normal_data =
+            Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
+
         for x_index in 0..usize::from(surface.u_resolution) {
             for y_index in 0..usize::from(surface.v_resolution) {
                 let p_a = positions[x_index][y_index];
@@ -77,12 +101,24 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
                 let p_d = positions[x_index][y_index + 1];
                 let p_c = positions[x_index + 1][y_index + 1];
                 position_data.extend([p_a, p_b, p_c, p_a, p_c, p_d]);
+
                 color_data.extend(colors);
+
                 let uv_a = uvs[x_index][y_index];
                 let uv_b = uvs[x_index + 1][y_index];
                 let uv_d = uvs[x_index][y_index + 1];
                 let uv_c = uvs[x_index + 1][y_index + 1];
                 texture_data.extend([uv_a, uv_b, uv_c, uv_a, uv_c, uv_d]);
+
+                let n_a = normals[x_index][y_index];
+                let n_b = normals[x_index + 1][y_index];
+                let n_d = normals[x_index][y_index + 1];
+                let n_c = normals[x_index + 1][y_index + 1];
+                vertex_normal_data.extend([n_a, n_b, n_c, n_a, n_c, n_d]);
+
+                let fn_0 = calc_normal(&p_a, &p_b, &p_c);
+                let fn_1 = calc_normal(&p_a, &p_c, &p_d);
+                face_normal_data.extend([fn_0, fn_0, fn_0, fn_1, fn_1, fn_1]);
             }
         }
 
@@ -92,6 +128,8 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
                 ("vertexPosition", AttributeData::from(&position_data)),
                 ("vertexColor", AttributeData::from(&color_data)),
                 ("vertexUV", AttributeData::from(&texture_data)),
+                ("vertexNormal", AttributeData::from(&vertex_normal_data)),
+                ("faceNormal", AttributeData::from(&face_normal_data)),
             ],
         )
     }
@@ -270,7 +308,7 @@ impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
             let transform = matrix::translation(0.0, cylinder.height / 2.0, 0.0)
                 * matrix::rotation_y(-Angle::RIGHT)
                 * matrix::rotation_x(-Angle::RIGHT);
-            top_geometry.apply_matrix_mut(context, &transform, "vertexPosition")?;
+            top_geometry.apply_matrix_default(context, &transform)?;
             geometry.merge_mut(context, &top_geometry)?;
         }
         if cylinder.closed_bottom {
@@ -281,7 +319,7 @@ impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
             let transform = matrix::translation(0.0, -cylinder.height / 2.0, 0.0)
                 * matrix::rotation_y(-Angle::RIGHT)
                 * matrix::rotation_x(Angle::RIGHT);
-            bottom_geometry.apply_matrix_mut(context, &transform, "vertexPosition")?;
+            bottom_geometry.apply_matrix_default(context, &transform)?;
             geometry.merge_mut(context, &bottom_geometry)?;
         }
         Ok(geometry)
@@ -446,4 +484,11 @@ impl FromWithContext<WebGl2RenderingContext, Pyramid> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, pyramid: Pyramid) -> Result<Self> {
         Self::from_with_context(context, Cylindrical::from(pyramid))
     }
+}
+
+fn calc_normal(p0: &Vec3, p1: &Vec3, p2: &Vec3) -> Vec3 {
+    let v1 = p1 - p0;
+    let v2 = p2 - p0;
+    let normal = glm::cross(&v1, &v2);
+    glm::normalize(&normal)
 }

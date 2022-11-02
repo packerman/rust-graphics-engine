@@ -10,7 +10,7 @@ use crate::{
         camera::Camera,
         color::Color,
         convert::FromWithContext,
-        geometry::{BoxGeometry, Geometry, Rectangle},
+        geometry::Geometry,
         input::KeyState,
         math::{angle::Angle, matrix},
         mesh::Mesh,
@@ -19,6 +19,7 @@ use crate::{
         texture::{Texture, TextureData, TextureUnit},
     },
     extras::text_texture::TextTexture,
+    geometry::{BoxGeometry, Rectangle},
     material,
 };
 
@@ -92,11 +93,7 @@ fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
             ..Default::default()
         },
     )?;
-    geometry.apply_matrix_mut(
-        context,
-        &matrix::rotation_y(Angle::STRAIGHT),
-        "vertexPosition",
-    )?;
+    geometry.apply_matrix_default(context, &matrix::rotation_y(Angle::STRAIGHT))?;
     let label = Mesh::initialize(context, Rc::new(geometry), material)?;
     Ok(Node::new_mesh(label))
 }

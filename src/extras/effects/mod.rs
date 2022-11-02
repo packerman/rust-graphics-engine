@@ -7,7 +7,7 @@ use crate::core::{
     convert::FromWithContext,
     material::{Material, MaterialSettings},
     math::resolution::Resolution,
-    uniform::{Sampler2D, UniformData},
+    uniform::data::{Data, Sampler2D},
 };
 
 use super::postprocessor::Effect;
@@ -22,7 +22,7 @@ fn create_basic(
         MaterialSettings {
             vertex_shader: include_str!("effect.vert"),
             fragment_shader,
-            uniforms: vec![("texture0", UniformData::from(sampler_2d))],
+            uniforms: vec![("texture0", Data::from(sampler_2d))],
             render_settings: vec![],
             draw_style: WebGl2RenderingContext::TRIANGLES,
         },
@@ -35,7 +35,7 @@ pub fn tint(
     tint_color: Color,
 ) -> Result<Effect> {
     let mut effect = create_basic(context, include_str!("tint.frag"), sampler_2d)?;
-    effect.add_uniform(context, "tintColor", UniformData::from(tint_color))?;
+    effect.add_uniform(context, "tintColor", Data::from(tint_color));
     Ok(effect)
 }
 
@@ -51,16 +51,8 @@ pub fn pixelate(
     resolution: Resolution,
 ) -> Result<Effect> {
     let mut effect = create_basic(context, include_str!("pixelate.frag"), sampler_2d)?;
-    effect.add_uniform(
-        context,
-        "pixelSize",
-        UniformData::from(f32::from(pixel_size)),
-    )?;
-    effect.add_uniform(
-        context,
-        "resolution",
-        UniformData::from(Vec2::from(resolution)),
-    )?;
+    effect.add_uniform(context, "pixelSize", Data::from(f32::from(pixel_size)));
+    effect.add_uniform(context, "resolution", Data::from(Vec2::from(resolution)));
     Ok(effect)
 }
 
@@ -73,9 +65,9 @@ pub fn vignette(
     dim_color: Color,
 ) -> Result<Effect> {
     let mut effect = create_basic(context, include_str!("vignette.frag"), sampler_2d)?;
-    effect.add_uniform(context, "dimStart", UniformData::from(dim_start))?;
-    effect.add_uniform(context, "dimEnd", UniformData::from(dim_end))?;
-    effect.add_uniform(context, "dimColor", UniformData::from(dim_color))?;
+    effect.add_uniform(context, "dimStart", Data::from(dim_start));
+    effect.add_uniform(context, "dimEnd", Data::from(dim_end));
+    effect.add_uniform(context, "dimColor", Data::from(dim_color));
     Ok(effect)
 }
 
@@ -85,6 +77,6 @@ pub fn color_reduce(
     levels: u16,
 ) -> Result<Effect> {
     let mut effect = create_basic(context, include_str!("color_reduce.frag"), sampler_2d)?;
-    effect.add_uniform(context, "levels", UniformData::from(f32::from(levels)))?;
+    effect.add_uniform(context, "levels", Data::from(f32::from(levels)));
     Ok(effect)
 }

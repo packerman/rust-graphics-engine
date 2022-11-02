@@ -1,13 +1,13 @@
-use std::collections::HashMap;
+use std::{cell::RefMut, collections::HashMap};
 
-use anyhow::Result;
-use glm::Mat4;
+use anyhow::{anyhow, Result};
+use glm::{Mat4, Vec3};
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
 use super::{
     convert::FromWithContext,
     gl,
-    uniform::{Uniform, UniformData},
+    uniform::{data::Data, Uniform},
 };
 
 #[derive(Debug, Clone)]
@@ -22,17 +22,10 @@ pub struct Material {
 }
 
 impl Material {
-    pub fn add_uniform(
-        &mut self,
-        context: &WebGl2RenderingContext,
-        name: &str,
-        data: UniformData,
-    ) -> Result<()> {
-        self.uniforms.insert(
-            String::from(name),
-            Uniform::initialize(context, data, &self.program, name)?,
-        );
-        Ok(())
+    pub fn add_uniform(&mut self, context: &WebGl2RenderingContext, name: &str, data: Data) {
+        if let Some(uniform) = Uniform::from_data(context, &self.program, name, data) {
+            self.uniforms.insert(String::from(name), uniform);
+        }
     }
 
     pub fn add_render_setting(&mut self, settings: RenderSetting) {
@@ -80,6 +73,16 @@ impl Material {
         self.uniforms.get(name)
     }
 
+    pub fn has_uniform(&self, name: &str) -> bool {
+        self.uniforms.contains_key(name)
+    }
+
+    pub fn vec3_mut(&self, name: &str) -> Option<RefMut<Vec3>> {
+        self.uniforms
+            .get(name)
+            .and_then(|uniform| uniform.vec3_mut())
+    }
+
     fn set_matrix_uniform(uniform: Option<&Uniform>, matrix: Mat4) {
         if let Some(uniform) = uniform {
             let mut m = uniform.mat4_mut().unwrap();
@@ -91,7 +94,7 @@ impl Material {
 pub struct MaterialSettings<'a> {
     pub vertex_shader: &'a str,
     pub fragment_shader: &'a str,
-    pub uniforms: Vec<(&'a str, UniformData)>,
+    pub uniforms: Vec<(&'a str, Data)>,
     pub render_settings: Vec<RenderSetting>,
     pub draw_style: u32,
 }
@@ -101,30 +104,49 @@ impl FromWithContext<WebGl2RenderingContext, MaterialSettings<'_>> for Material 
         context: &WebGl2RenderingContext,
         settings: MaterialSettings<'_>,
     ) -> Result<Self> {
+        self::check_draw_style_is_correct(settings.draw_style)?;
         let program = gl::build_program(context, settings.vertex_shader, settings.fragment_shader)?;
-        let uniforms: Result<Vec<_>> = settings
+        let uniforms: HashMap<_, _> = settings
             .uniforms
             .into_iter()
-            .map(|(name, data)| {
-                Ok((
+            .filter_map(|(name, data)| {
+                Some((
                     String::from(name),
-                    Uniform::initialize(context, data, &program, name)?,
+                    Uniform::from_data(context, &program, name, data)?,
                 ))
             })
             .collect();
-        let model_matrix = Uniform::try_initialize::<Mat4>(context, &program, "modelMatrix");
-        let view_matrix = Uniform::try_initialize::<Mat4>(context, &program, "viewMatrix");
+        let model_matrix = Uniform::from_default::<Mat4>(context, &program, "modelMatrix");
+        let view_matrix = Uniform::from_default::<Mat4>(context, &program, "viewMatrix");
         let projection_matrix =
-            Uniform::try_initialize::<Mat4>(context, &program, "projectionMatrix");
+            Uniform::from_default::<Mat4>(context, &program, "projectionMatrix");
         Ok(Material {
             program,
-            uniforms: uniforms?.into_iter().collect(),
+            uniforms,
             render_settings: settings.render_settings,
             draw_style: settings.draw_style,
             model_matrix,
             view_matrix,
             projection_matrix,
         })
+    }
+}
+
+const DRAW_STYLES: [u32; 7] = [
+    WebGl2RenderingContext::POINTS,
+    WebGl2RenderingContext::LINES,
+    WebGl2RenderingContext::LINE_LOOP,
+    WebGl2RenderingContext::LINE_STRIP,
+    WebGl2RenderingContext::TRIANGLES,
+    WebGl2RenderingContext::TRIANGLE_STRIP,
+    WebGl2RenderingContext::TRIANGLE_FAN,
+];
+
+fn check_draw_style_is_correct(draw_style: u32) -> Result<()> {
+    if DRAW_STYLES.contains(&draw_style) {
+        Ok(())
+    } else {
+        Err(anyhow!("Unkown draw style: {:#?}", draw_style))
     }
 }
 

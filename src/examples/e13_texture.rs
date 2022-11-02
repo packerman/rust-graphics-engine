@@ -9,13 +9,14 @@ use crate::{
         application::{self, Application, AsyncCreator},
         camera::Camera,
         convert::FromWithContext,
-        geometry::{Geometry, Rectangle},
+        geometry::Geometry,
         input::KeyState,
         mesh::Mesh,
         node::Node,
         renderer::Renderer,
         texture::{Texture, TextureData, TextureUnit},
     },
+    geometry::Rectangle,
     material,
 };
 

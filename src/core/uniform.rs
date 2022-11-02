@@ -1,43 +1,23 @@
+pub mod data;
+
 use std::{
     cell::{RefCell, RefMut},
+    collections::HashMap,
     ops::Deref,
-    rc::Rc,
 };
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use glm::{Mat4, Vec2, Vec3};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
-use super::{
-    color::Color,
-    gl,
-    texture::{Texture, TextureUnit},
-};
+use self::data::{Data, Sampler2D};
+
+use super::color::Color;
 
 #[derive(Debug, Clone)]
-pub struct Sampler2D {
-    pub texture: Rc<Texture>,
-    unit: TextureUnit,
-}
-
-impl Sampler2D {
-    pub fn new(texture: Rc<Texture>, unit: TextureUnit) -> Self {
-        Self { texture, unit }
-    }
-
-    pub fn upload_data(
-        &self,
-        context: &WebGl2RenderingContext,
-        location: Option<&WebGlUniformLocation>,
-    ) {
-        self.unit
-            .upload_data(context, location, self.texture.texture());
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum UniformData {
+enum UniformCall {
     Boolean(bool),
+    Int(i32),
     Float(f32),
     Vec3(Vec3),
     Color(Color),
@@ -46,110 +26,228 @@ pub enum UniformData {
     Vec2(Vec2),
 }
 
-impl UniformData {
+impl UniformCall {
+    pub fn int_mut(&mut self) -> Option<&mut i32> {
+        match self {
+            UniformCall::Int(data) => Some(data),
+            _ => None,
+        }
+    }
+
     pub fn float_mut(&mut self) -> Option<&mut f32> {
         match self {
-            UniformData::Float(data) => Some(data),
+            UniformCall::Float(data) => Some(data),
             _ => None,
         }
     }
 
     pub fn vec3_mut(&mut self) -> Option<&mut Vec3> {
         match self {
-            UniformData::Vec3(data) => Some(data),
+            UniformCall::Vec3(data) => Some(data),
             _ => None,
         }
     }
 
     pub fn color_mut(&mut self) -> Option<&mut Color> {
         match self {
-            UniformData::Color(data) => Some(data),
+            UniformCall::Color(data) => Some(data),
             _ => None,
         }
     }
 
     pub fn mat4_mut(&mut self) -> Option<&mut Mat4> {
         match self {
-            UniformData::Mat4(data) => Some(data),
+            UniformCall::Mat4(data) => Some(data),
             _ => None,
         }
     }
 }
 
-impl From<bool> for UniformData {
+impl From<bool> for UniformCall {
     fn from(data: bool) -> Self {
-        UniformData::Boolean(data)
+        UniformCall::Boolean(data)
     }
 }
 
-impl From<f32> for UniformData {
+impl From<i32> for UniformCall {
+    fn from(data: i32) -> Self {
+        UniformCall::Int(data)
+    }
+}
+
+impl From<f32> for UniformCall {
     fn from(data: f32) -> Self {
-        UniformData::Float(data)
+        UniformCall::Float(data)
     }
 }
 
-impl From<Vec3> for UniformData {
-    fn from(data: Vec3) -> Self {
-        UniformData::Vec3(data)
-    }
-}
-
-impl From<Color> for UniformData {
-    fn from(data: Color) -> Self {
-        UniformData::Color(data)
-    }
-}
-
-impl From<Mat4> for UniformData {
-    fn from(data: Mat4) -> Self {
-        UniformData::Mat4(data)
-    }
-}
-
-impl From<Sampler2D> for UniformData {
-    fn from(data: Sampler2D) -> Self {
-        UniformData::Sampler2D(data)
-    }
-}
-
-impl From<Vec2> for UniformData {
+impl From<Vec2> for UniformCall {
     fn from(data: Vec2) -> Self {
-        UniformData::Vec2(data)
+        UniformCall::Vec2(data)
+    }
+}
+
+impl From<Vec3> for UniformCall {
+    fn from(data: Vec3) -> Self {
+        UniformCall::Vec3(data)
+    }
+}
+
+impl From<Mat4> for UniformCall {
+    fn from(data: Mat4) -> Self {
+        UniformCall::Mat4(data)
+    }
+}
+
+impl From<Color> for UniformCall {
+    fn from(data: Color) -> Self {
+        UniformCall::Color(data)
+    }
+}
+
+impl From<Sampler2D> for UniformCall {
+    fn from(data: Sampler2D) -> Self {
+        UniformCall::Sampler2D(data)
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct Uniform {
-    data: RefCell<UniformData>,
-    location: WebGlUniformLocation,
+pub enum Uniform {
+    Basic(BasicUniform),
+    Struct(StructUniform),
 }
 
 impl Uniform {
-    pub fn initialize(
+    fn initialize(
         context: &WebGl2RenderingContext,
-        data: UniformData,
+        data: UniformCall,
         program: &WebGlProgram,
         name: &str,
-    ) -> Result<Self> {
-        let location = gl::get_uniform_location(context, program, name)?;
-        let uniform = Uniform {
-            data: RefCell::new(data),
-            location,
-        };
-        Ok(uniform)
+    ) -> Option<Self> {
+        BasicUniform::initialize(context, data, program, name).map(Self::Basic)
     }
 
-    pub fn try_initialize<T>(
+    pub fn from_data(
+        context: &WebGl2RenderingContext,
+        program: &WebGlProgram,
+        name: &str,
+        data: Data,
+    ) -> Option<Self> {
+        match data {
+            Data::Boolean(value) => {
+                Self::initialize(context, UniformCall::from(value), program, name)
+            }
+            Data::Int(value) => Self::initialize(context, UniformCall::from(value), program, name),
+            Data::Float(value) => {
+                Self::initialize(context, UniformCall::from(value), program, name)
+            }
+            Data::Vec2(value) => Self::initialize(context, UniformCall::from(value), program, name),
+            Data::Vec3(value) => Self::initialize(context, UniformCall::from(value), program, name),
+            Data::Mat4(value) => Self::initialize(context, UniformCall::from(value), program, name),
+            Data::Color(value) => {
+                Self::initialize(context, UniformCall::from(value), program, name)
+            }
+            Data::Sampler2D(value) => {
+                Self::initialize(context, UniformCall::from(value), program, name)
+            }
+            Data::Struct { members } => Self::from_members(context, program, name, members),
+        }
+    }
+
+    pub fn try_from_data(
+        context: &WebGl2RenderingContext,
+        program: &WebGlProgram,
+        name: &str,
+        data: Data,
+    ) -> Result<Self> {
+        Self::from_data(context, program, name, data)
+            .ok_or_else(|| anyhow!("Cannot find uniform {:#?}", name))
+    }
+
+    pub fn from_default<T>(
         context: &WebGl2RenderingContext,
         program: &WebGlProgram,
         name: &str,
     ) -> Option<Self>
     where
-        T: Into<UniformData> + Default,
+        T: Into<Data> + Default,
     {
+        Self::from_data(context, program, name, T::default().into())
+    }
+
+    pub fn from_members(
+        context: &WebGl2RenderingContext,
+        program: &WebGlProgram,
+        name: &str,
+        members: HashMap<String, Data>,
+    ) -> Option<Self> {
+        StructUniform::from_members(context, program, name, members).map(Self::Struct)
+    }
+
+    pub fn upload_data(&self, context: &WebGl2RenderingContext) {
+        match self {
+            Self::Basic(basic) => basic.upload_data(context),
+            Self::Struct(struct_uniform) => struct_uniform.upload_data(context),
+        }
+    }
+
+    pub fn int_mut(&self) -> Option<RefMut<i32>> {
+        self.get_basic().and_then(|basic| basic.int_mut())
+    }
+
+    pub fn float_mut(&self) -> Option<RefMut<f32>> {
+        self.get_basic().and_then(|basic| basic.float_mut())
+    }
+
+    pub fn vec3_mut(&self) -> Option<RefMut<Vec3>> {
+        self.get_basic().and_then(|basic| basic.vec3_mut())
+    }
+
+    pub fn color_mut(&self) -> Option<RefMut<Color>> {
+        self.get_basic().and_then(|basic| basic.color_mut())
+    }
+
+    pub fn mat4_mut(&self) -> Option<RefMut<Mat4>> {
+        self.get_basic().and_then(|basic| basic.mat4_mut())
+    }
+
+    pub fn get_struct(&self) -> Option<&StructUniform> {
+        match self {
+            Self::Struct(struct_uniform) => Some(struct_uniform),
+            _ => None,
+        }
+    }
+
+    fn get_basic(&self) -> Option<&BasicUniform> {
+        match self {
+            Self::Basic(basic) => Some(basic),
+            _ => None,
+        }
+    }
+}
+
+pub trait UpdateUniform {
+    fn create_data() -> Data;
+
+    fn update_uniform(&self, uniform: &Uniform);
+}
+
+#[derive(Debug, Clone)]
+pub struct BasicUniform {
+    data: RefCell<UniformCall>,
+    location: WebGlUniformLocation,
+}
+
+impl BasicUniform {
+    fn initialize(
+        context: &WebGl2RenderingContext,
+        call: UniformCall,
+        program: &WebGlProgram,
+        name: &str,
+    ) -> Option<Self> {
         let location = context.get_uniform_location(program, name)?;
-        let uniform = Uniform {
-            data: RefCell::new(T::default().into()),
+        let uniform = Self {
+            data: RefCell::new(call),
             location,
         };
         Some(uniform)
@@ -158,33 +256,93 @@ impl Uniform {
     pub fn upload_data(&self, context: &WebGl2RenderingContext) {
         let location = Some(&self.location);
         match self.data.borrow().deref() {
-            UniformData::Boolean(data) => context.uniform1i(location, i32::from(*data)),
-            UniformData::Float(data) => context.uniform1f(location, *data),
-            UniformData::Vec3(data) => context.uniform3f(location, data.x, data.y, data.z),
-            UniformData::Color(data) => {
+            UniformCall::Boolean(data) => context.uniform1i(location, i32::from(*data)),
+            UniformCall::Int(data) => context.uniform1i(location, *data),
+            UniformCall::Float(data) => context.uniform1f(location, *data),
+            UniformCall::Vec3(data) => context.uniform3f(location, data.x, data.y, data.z),
+            UniformCall::Color(data) => {
                 context.uniform4f(location, data[0], data[1], data[2], data[3])
             }
-            UniformData::Mat4(data) => {
+            UniformCall::Mat4(data) => {
                 context.uniform_matrix4fv_with_f32_array(location, false, data.into())
             }
-            UniformData::Sampler2D(sampler) => sampler.upload_data(context, location),
-            UniformData::Vec2(data) => context.uniform2f(location, data.x, data.y),
+            UniformCall::Sampler2D(sampler) => sampler.upload_data(context, location),
+            UniformCall::Vec2(data) => context.uniform2f(location, data.x, data.y),
         }
     }
 
-    pub fn float_mut(&self) -> Result<RefMut<f32>, RefMut<UniformData>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.float_mut())
+    pub fn int_mut(&self) -> Option<RefMut<i32>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.int_mut()).ok()
     }
 
-    pub fn vec3_mut(&self) -> Result<RefMut<Vec3>, RefMut<UniformData>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.vec3_mut())
+    pub fn float_mut(&self) -> Option<RefMut<f32>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.float_mut()).ok()
     }
 
-    pub fn color_mut(&self) -> Result<RefMut<Color>, RefMut<UniformData>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.color_mut())
+    pub fn vec3_mut(&self) -> Option<RefMut<Vec3>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.vec3_mut()).ok()
     }
 
-    pub fn mat4_mut(&self) -> Result<RefMut<Mat4>, RefMut<UniformData>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.mat4_mut())
+    pub fn color_mut(&self) -> Option<RefMut<Color>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.color_mut()).ok()
+    }
+
+    pub fn mat4_mut(&self) -> Option<RefMut<Mat4>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.mat4_mut()).ok()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct StructUniform {
+    members: HashMap<String, Uniform>,
+}
+
+impl StructUniform {
+    pub fn new(members: HashMap<String, Uniform>) -> Self {
+        Self { members }
+    }
+
+    pub fn from_members(
+        context: &WebGl2RenderingContext,
+        program: &WebGlProgram,
+        name: &str,
+        members: HashMap<String, Data>,
+    ) -> Option<Self> {
+        let mut result = HashMap::new();
+        for (key, data) in members.into_iter() {
+            let full_name = format!("{}.{}", name, &key);
+            result.insert(key, Uniform::from_data(context, program, &full_name, data)?);
+        }
+        Some(StructUniform::new(result))
+    }
+
+    pub fn upload_data(&self, context: &WebGl2RenderingContext) {
+        self.members
+            .values()
+            .for_each(|uniform| uniform.upload_data(context));
+    }
+
+    pub fn set_int_member(&self, name: &str, value: i32) {
+        if let Some(member) = self.members.get(name) {
+            if let Some(mut data) = member.int_mut() {
+                *data = value;
+            }
+        }
+    }
+
+    pub fn set_vec3_member(&self, name: &str, value: Vec3) {
+        if let Some(member) = self.members.get(name) {
+            if let Some(mut data) = member.vec3_mut() {
+                *data = value;
+            }
+        }
+    }
+
+    pub fn set_color_member(&self, name: &str, value: Color) {
+        if let Some(member) = self.members.get(name) {
+            if let Some(mut data) = member.color_mut() {
+                *data = value;
+            }
+        }
     }
 }

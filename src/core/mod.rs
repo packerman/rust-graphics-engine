@@ -8,6 +8,7 @@ pub mod convert;
 pub mod geometry;
 pub mod gl;
 pub mod input;
+pub mod light;
 pub mod material;
 pub mod math;
 pub mod mesh;

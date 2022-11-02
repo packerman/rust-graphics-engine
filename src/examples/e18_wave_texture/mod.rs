@@ -4,19 +4,22 @@ use anyhow::Result;
 use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    application::{self, Application, AsyncCreator},
-    camera::Camera,
-    convert::FromWithContext,
-    geometry::{Geometry, Rectangle},
-    input::KeyState,
-    material::{Material, MaterialSettings},
-    mesh::Mesh,
-    node::Node,
-    renderer::{Renderer, RendererOptions},
-    texture::{Texture, TextureData, TextureUnit},
-    uniform::{Sampler2D, UniformData},
-    web,
+use crate::{
+    core::{
+        application::{self, Application, AsyncCreator},
+        camera::Camera,
+        convert::FromWithContext,
+        geometry::Geometry,
+        input::KeyState,
+        material::{Material, MaterialSettings},
+        mesh::Mesh,
+        node::Node,
+        renderer::{Renderer, RendererOptions},
+        texture::{Texture, TextureData, TextureUnit},
+        uniform::data::{Data, Sampler2D},
+        web,
+    },
+    geometry::Rectangle,
 };
 
 struct Example {
@@ -46,7 +49,7 @@ impl AsyncCreator for Example {
                 uniforms: vec![
                     (
                         "textureSampler",
-                        UniformData::from(Sampler2D::new(
+                        Data::from(Sampler2D::new(
                             Texture::initialize(
                                 context,
                                 TextureData::load_from_source("images/grid.png").await?,
@@ -55,7 +58,7 @@ impl AsyncCreator for Example {
                             TextureUnit::from(0),
                         )),
                     ),
-                    ("time", UniformData::from(0.0)),
+                    ("time", Data::from(0.0)),
                 ],
                 render_settings: vec![],
                 draw_style: WebGl2RenderingContext::TRIANGLES,
@@ -91,7 +94,7 @@ impl AsyncCreator for Example {
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
         if let Some(uniform) = self.wave_material.uniform("time") {
-            if let Ok(mut time) = uniform.float_mut() {
+            if let Some(mut time) = uniform.float_mut() {
                 *time = (web::now().unwrap() / 1000.0) as f32;
             }
         }

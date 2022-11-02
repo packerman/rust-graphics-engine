@@ -13,7 +13,7 @@ use crate::core::{
         angle::Angle,
         matrix::{self, Perspective},
     },
-    uniform::{Uniform, UniformData},
+    uniform::{data::Data, Uniform},
 };
 
 const VERTEX_SHADER_SOURCE: &str = r##"#version 300 es
@@ -59,18 +59,18 @@ impl AsyncCreator for Example {
             Attribute::new_with_data(context, AttributeData::from(&position_data))?;
         position_attribute.associate_variable(context, &program, "position");
 
-        let model_matrix = Uniform::initialize(
+        let model_matrix = Uniform::try_from_data(
             context,
-            UniformData::from(matrix::translation(0.0, 0.0, -1.0)),
             &program,
             "modelMatrix",
+            Data::from(matrix::translation(0.0, 0.0, -1.0)),
         )?;
 
-        let projection_matrix: Uniform = Uniform::initialize(
+        let projection_matrix: Uniform = Uniform::try_from_data(
             context,
-            UniformData::from(Mat4::from(Perspective::default())),
             &program,
             "projectionMatrix",
+            Data::from(Mat4::from(Perspective::default())),
         )?;
 
         Ok(Box::new(Example {
@@ -88,7 +88,7 @@ impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         let move_amount = self.move_speed * DELTA_TIME_SEC;
         let turn_mount = self.turn_speed * DELTA_TIME_SEC;
-        if let Ok(mut model_matrix) = self.model_matrix.mat4_mut() {
+        if let Some(mut model_matrix) = self.model_matrix.mat4_mut() {
             // global
             if key_state.is_pressed("KeyW") {
                 let m = matrix::translation(0.0, move_amount, 0.0);

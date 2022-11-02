@@ -16,11 +16,19 @@ where
     iter::repeat(t).take(n)
 }
 
-pub fn cycle_n<I, T>(into_iterator: I, n: usize) -> impl Iterator<Item = T>
+pub fn cycle_n<I, T>(iterable: I, n: usize) -> impl Iterator<Item = T>
 where
     I: IntoIterator<Item = T> + Clone,
 {
-    iter::repeat(into_iterator).take(n).flatten()
+    iter::repeat(iterable).take(n).flatten()
+}
+
+pub fn replicate_each<I, T>(n: usize, iterable: I) -> impl Iterator<Item = T>
+where
+    I: IntoIterator<Item = T>,
+    T: Clone,
+{
+    iterable.into_iter().flat_map(move |t| replicate(n, t))
 }
 
 #[cfg(test)]
@@ -33,6 +41,15 @@ mod tests {
         assert_eq!(
             cycle_n(v, 4).collect::<Vec<_>>(),
             vec![1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
+        )
+    }
+
+    #[test]
+    fn replicate_each_works() {
+        let v = vec![1, 2, 3];
+        assert_eq!(
+            replicate_each(2, v).collect::<Vec<_>>(),
+            vec![1, 1, 2, 2, 3, 3]
         )
     }
 }

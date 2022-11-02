@@ -10,7 +10,7 @@ use crate::{
         camera::Camera,
         color::Color,
         convert::FromWithContext,
-        geometry::{Geometry, Rectangle},
+        geometry::Geometry,
         input::KeyState,
         math::{angle::Angle, resolution::Resolution},
         mesh::Mesh,
@@ -19,7 +19,7 @@ use crate::{
         texture::{Texture, TextureData, TextureUnit},
     },
     extras::{effects, postprocessor::Postprocessor},
-    geometry::parametric::Sphere,
+    geometry::{parametric::Sphere, Rectangle},
     material::{self, texture::TextureMaterial},
 };
 
