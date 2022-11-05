@@ -46,7 +46,7 @@ impl DirectionalLightHelper {
         );
         geometry.attribute_mut("vertexPosition")?.concat_data_mut(
             context,
-            &AttributeData::from(&[[0.0, 0.0, 0.0], [0.0, 0.0, -10.0]]),
+            &AttributeData::from(&[[0.0, 0.0, 0.0, 1.0], [0.0, 0.0, -10.0, 1.0]]),
         )?;
         geometry
             .attribute_mut("vertexColor")?

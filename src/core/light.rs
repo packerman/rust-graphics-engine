@@ -1,7 +1,10 @@
+use std::cell::RefCell;
+
 use glm::Vec3;
 
 use super::{
     color::Color,
+    node::Node,
     uniform::{data::Data, Uniform, UpdateUniform},
 };
 
@@ -39,19 +42,32 @@ impl Light {
     pub const POSITION_MEMBER: &str = "position";
     pub const ATTENUATION_MEMBER: &str = "attenuation";
 
-    pub fn directional(color: Color, direction: Vec3) -> Self {
-        Self {
+    pub fn directional(color: Color, direction: Vec3) -> RefCell<Self> {
+        RefCell::new(Self {
             light_type: LightType::directional(direction).into(),
             color,
             ..Default::default()
-        }
+        })
     }
 
-    pub fn point(color: Color, position: Vec3) -> Self {
-        Self {
+    pub fn point(color: Color, position: Vec3) -> RefCell<Self> {
+        RefCell::new(Self {
             light_type: LightType::point(position).into(),
             color,
             attenuation: Attenuation(1.0, 0.0, 0.1),
+        })
+    }
+
+    pub fn update_from_node(&mut self, node: &Node) {
+        if let Some(light_type) = &mut self.light_type {
+            match light_type {
+                LightType::Directional { direction } => {
+                    *direction = node.direction();
+                }
+                LightType::Point { position } => {
+                    *position = node.position();
+                }
+            }
         }
     }
 }
@@ -79,21 +95,22 @@ impl UpdateUniform for Light {
 
     fn update_uniform(&self, uniform: &Uniform) {
         if let Some(uniform) = uniform.get_struct() {
-            match self.light_type {
-                Some(LightType::Directional { direction }) => {
-                    uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::DIRECTIONAL_TYPE);
-                    uniform.set_vec3_member(Self::DIRECTION_MEMBER, direction);
+            if let Some(light_type) = self.light_type {
+                match light_type {
+                    LightType::Directional { direction } => {
+                        uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::DIRECTIONAL_TYPE);
+                        uniform.set_vec3_member(Self::DIRECTION_MEMBER, direction);
+                    }
+                    LightType::Point { position } => {
+                        uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::POINT_TYPE);
+                        uniform.set_vec3_member(Self::POSITION_MEMBER, position);
+                    }
                 }
-                Some(LightType::Point { position }) => {
-                    uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::POINT_TYPE);
-                    uniform.set_vec3_member(Self::POSITION_MEMBER, position);
-                }
-                _ => {
-                    uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::NONE_TYPE);
-                }
+                uniform.set_color_member(Self::COLOR_MEMBER, self.color);
+                uniform.set_vec3_member(Self::ATTENUATION_MEMBER, self.attenuation.into());
+            } else {
+                uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::NONE_TYPE);
             }
-            uniform.set_color_member(Self::COLOR_MEMBER, self.color);
-            uniform.set_vec3_member(Self::ATTENUATION_MEMBER, self.attenuation.into());
         }
     }
 }

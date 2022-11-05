@@ -27,7 +27,7 @@ impl Default for RendererOptions {
 
 pub struct Renderer {
     default_node: Rc<Node>,
-    default_light: Light,
+    default_light: RefCell<Light>,
     light_count: usize,
 }
 
@@ -52,7 +52,7 @@ impl Renderer {
             context.pixel_storei(WebGl2RenderingContext::UNPACK_FLIP_Y_WEBGL, 1);
         }
 
-        let default_light = Light::default();
+        let default_light = RefCell::new(Light::default());
         let default_node = Node::new_group();
 
         Self {
@@ -124,12 +124,16 @@ impl Renderer {
 
         let lights = self.filter_lights(&nodes);
 
+        lights.iter().for_each(|(light, node)| {
+            light.borrow_mut().update_from_node(node);
+        });
+
         let camera = &camera.borrow();
         filter_meshes(&nodes).for_each(|(mesh, node)| {
             if mesh.material().has_uniform("light0") {
                 lights.iter().enumerate().for_each(|(i, (light, _))| {
                     if let Some(uniform) = mesh.material().uniform(&format!("light{}", i)) {
-                        light.update_uniform(uniform);
+                        light.borrow().update_uniform(uniform);
                     }
                 });
             }
@@ -140,7 +144,7 @@ impl Renderer {
         });
     }
 
-    fn filter_lights<'a>(&'a self, nodes: &'a [Rc<Node>]) -> Vec<(&Light, &Rc<Node>)> {
+    fn filter_lights<'a>(&'a self, nodes: &'a [Rc<Node>]) -> Vec<(&RefCell<Light>, &Rc<Node>)> {
         let mut lights: Vec<_> = nodes
             .iter()
             .filter_map(|node| node.light().map(|light| (light, node)))
