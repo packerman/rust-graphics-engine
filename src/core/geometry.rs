@@ -1,4 +1,4 @@
-use std::collections::{hash_map, HashMap};
+use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
 use glm::Mat4;
@@ -20,7 +20,7 @@ impl Geometry {
         Self { attributes }
     }
 
-    pub fn attributes(&self) -> hash_map::Iter<String, Attribute> {
+    pub fn attributes(&self) -> impl Iterator<Item = (&String, &Attribute)> {
         self.attributes.iter()
     }
 

@@ -37,7 +37,7 @@ pub enum NodeType {
     Mesh(Mesh),
     Camera(Rc<RefCell<Camera>>),
     MovementRig(Box<MovementRig>),
-    Light(Light),
+    Light(RefCell<Light>),
 }
 
 #[derive(Debug, Clone)]
@@ -72,7 +72,7 @@ impl Node {
         node
     }
 
-    pub fn new_light(light: Light) -> Rc<Self> {
+    pub fn new_light(light: RefCell<Light>) -> Rc<Self> {
         Self::new(NodeType::Light(light))
     }
 
@@ -100,7 +100,7 @@ impl Node {
         }
     }
 
-    pub fn light(&self) -> Option<&Light> {
+    pub fn light(&self) -> Option<&RefCell<Light>> {
         match &self.node_type {
             NodeType::Light(light) => Some(light),
             _ => None,
@@ -209,18 +209,15 @@ impl Node {
         *self.transform.borrow_mut() = matrix::look_at(&self.world_position(), target);
     }
 
-    #[allow(dead_code)]
     pub fn rotation_matrix(&self) -> Mat3 {
         matrix::get_rotation_matrix(&self.transform.borrow())
     }
 
-    #[allow(dead_code)]
     pub fn direction(&self) -> Vec3 {
         let forward = glm::vec3(0.0, 0.0, -1.0);
         self.rotation_matrix() * forward
     }
 
-    #[allow(dead_code)]
     pub fn set_direction(&self, direction: &Vec3) {
         let position = self.position();
         let target_position = position + direction;

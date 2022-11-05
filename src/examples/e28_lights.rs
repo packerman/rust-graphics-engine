@@ -18,7 +18,9 @@ use crate::{
         renderer::Renderer,
         texture::{Texture, TextureData, TextureUnit},
         uniform::data::Sampler2D,
+        web,
     },
+    extras::light_helpers::{DirectionalLightHelper, PointLightHelper},
     geometry::parametric::Sphere,
     material::{self, flat::FlatMaterial, lambert::LambertMaterial, phong::PhongMaterial},
 };
@@ -27,6 +29,8 @@ struct Example {
     renderer: Renderer,
     scene: Rc<Node>,
     camera: Rc<RefCell<Camera>>,
+    point: Rc<Node>,
+    directional: Rc<Node>,
 }
 
 #[async_trait(?Send)]
@@ -41,6 +45,7 @@ impl AsyncCreator for Example {
             camera.set_position(&glm::vec3(0.0, 0.0, 6.0));
             scene.add_child(&camera);
         }
+
         let directional = Node::new_light(Light::directional(
             Color::new_rgb(0.8, 0.8, 0.8),
             glm::vec3(-1.0, -1.0, -2.0),
@@ -53,65 +58,92 @@ impl AsyncCreator for Example {
         scene.add_child(&point);
 
         {
-            let geometry = Rc::new(Geometry::from_with_context(context, Sphere::default())?);
-            let material = material::flat::create(
+            let direct_helper = Node::new_mesh(
+                DirectionalLightHelper::default()
+                    .create_mesh(context, &directional.light().unwrap().borrow())?,
+            );
+            directional.set_position(&glm::vec3(3.0, 2.0, 0.0));
+            directional.add_child(&direct_helper);
+            let point_helper = Node::new_mesh(
+                PointLightHelper::default()
+                    .create_mesh(context, &point.light().unwrap().borrow())?,
+            );
+            point.add_child(&point_helper);
+        }
+
+        {
+            let sphere1 = Node::new_mesh(Mesh::initialize(
                 context,
-                FlatMaterial {
-                    ambient: Color::new_rgb(0.1, 0.1, 0.1),
-                    diffuse: Color::new_rgb(0.6, 0.2, 0.2),
-                    ..Default::default()
-                },
-            )?;
-            let mesh = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
-            mesh.set_position(&glm::vec3(-2.2, 0.0, 0.0));
-            scene.add_child(&mesh);
+                Rc::new(Geometry::from_with_context(context, Sphere::default())?),
+                material::flat::create(
+                    context,
+                    FlatMaterial {
+                        ambient: Color::new_rgb(0.1, 0.1, 0.1),
+                        diffuse: Color::new_rgb(0.6, 0.2, 0.2),
+                        ..Default::default()
+                    },
+                )?,
+            )?);
+            sphere1.set_position(&glm::vec3(-2.2, 0.0, 0.0));
+            scene.add_child(&sphere1);
         }
         {
-            let geometry = Rc::new(Geometry::from_with_context(context, Sphere::default())?);
-            let material = material::lambert::create(
+            let sphere2 = Node::new_mesh(Mesh::initialize(
                 context,
-                LambertMaterial {
-                    ambient: Color::new_rgb(0.1, 0.1, 0.1),
-                    texture: Sampler2D::new(
-                        Texture::initialize(
-                            context,
-                            TextureData::load_from_source("images/grid.png").await?,
-                            Default::default(),
-                        )?,
-                        TextureUnit::from(0),
-                    )
-                    .into(),
-                    ..Default::default()
-                },
-            )?;
-            let mesh = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
-            mesh.set_position(&glm::vec3(0.0, 0.0, 0.0));
-            scene.add_child(&mesh);
+                Rc::new(Geometry::from_with_context(context, Sphere::default())?),
+                material::lambert::create(
+                    context,
+                    LambertMaterial {
+                        ambient: Color::new_rgb(0.1, 0.1, 0.1),
+                        texture: Sampler2D::new(
+                            Texture::initialize(
+                                context,
+                                TextureData::load_from_source("images/grid.png").await?,
+                                Default::default(),
+                            )?,
+                            TextureUnit::from(0),
+                        )
+                        .into(),
+                        ..Default::default()
+                    },
+                )?,
+            )?);
+            sphere2.set_position(&glm::vec3(0.0, 0.0, 0.0));
+            scene.add_child(&sphere2);
         }
         {
-            let geometry = Rc::new(Geometry::from_with_context(context, Sphere::default())?);
-            let material = material::phong::create(
+            let sphere3 = Node::new_mesh(Mesh::initialize(
                 context,
-                PhongMaterial {
-                    ambient: Color::new_rgb(0.1, 0.1, 0.1),
-                    diffuse: Color::new_rgb(0.5, 0.5, 1.0),
-                    ..Default::default()
-                },
-            )?;
-            let mesh = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
-            mesh.set_position(&glm::vec3(2.2, 0.0, 0.0));
-            scene.add_child(&mesh);
+                Rc::new(Geometry::from_with_context(context, Sphere::default())?),
+                material::phong::create(
+                    context,
+                    PhongMaterial {
+                        ambient: Color::new_rgb(0.1, 0.1, 0.1),
+                        diffuse: Color::new_rgb(0.5, 0.5, 1.0),
+                        ..Default::default()
+                    },
+                )?,
+            )?);
+            sphere3.set_position(&glm::vec3(2.2, 0.0, 0.0));
+            scene.add_child(&sphere3);
         }
         Ok(Box::new(Example {
             renderer,
             scene,
             camera,
+            point,
+            directional,
         }))
     }
 }
 
 impl Application for Example {
-    fn update(&mut self, _key_state: &KeyState) {}
+    fn update(&mut self, _key_state: &KeyState) {
+        let time = (web::now().unwrap() / 1000.0) as f32;
+        self.directional
+            .set_direction(&glm::vec3(-1.0, (0.7 * time).sin(), -2.0));
+        self.point.set_position(&glm::vec3(1.0, time.sin(), 0.8));
+    }
 
     fn render(&self, context: &WebGl2RenderingContext) {
         self.renderer.render(context, &self.scene, &self.camera)
