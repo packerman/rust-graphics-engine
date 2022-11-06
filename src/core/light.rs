@@ -70,6 +70,19 @@ impl Light {
             }
         }
     }
+
+    pub fn update_node(&self, node: &Node) {
+        if let Some(light_type) = &self.light_type {
+            match light_type {
+                LightType::Directional { direction } => {
+                    node.set_direction(direction);
+                }
+                LightType::Point { position } => {
+                    node.set_position(position);
+                }
+            }
+        }
+    }
 }
 
 impl Default for Light {

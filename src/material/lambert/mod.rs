@@ -19,6 +19,8 @@ pub struct LambertMaterial {
     pub texture: Option<Sampler2D>,
     pub ambient: Color,
     pub diffuse: Color,
+    pub bump_texture: Option<Sampler2D>,
+    pub bump_strength: f32,
 }
 
 impl Default for LambertMaterial {
@@ -28,6 +30,8 @@ impl Default for LambertMaterial {
             texture: None,
             ambient: Color::black(),
             diffuse: Color::white(),
+            bump_texture: None,
+            bump_strength: 1.0,
         }
     }
 }
@@ -56,18 +60,30 @@ pub fn create(
     .map(Rc::new)
 }
 
-fn create_material_struct(flat_material: LambertMaterial) -> Data {
+fn create_material_struct(material: LambertMaterial) -> Data {
     let mut members = HashMap::from([
-        ("ambient", Data::from(flat_material.ambient)),
-        ("diffuse", Data::from(flat_material.diffuse)),
+        ("ambient", Data::from(material.ambient)),
+        ("diffuse", Data::from(material.diffuse)),
     ]);
+
     let use_texture: bool;
-    if let Some(sampler) = flat_material.texture {
+    if let Some(sampler) = material.texture {
         use_texture = true;
         members.insert("texture0", Data::from(sampler));
     } else {
         use_texture = false;
     }
     members.insert("useTexture", Data::from(use_texture));
+
+    let use_bump_texture: bool;
+    if let Some(sampler) = material.bump_texture {
+        use_bump_texture = true;
+        members.insert("bumpTexture", Data::from(sampler));
+    } else {
+        use_bump_texture = false;
+    }
+    members.insert("useBumpTexture", Data::from(use_bump_texture));
+    members.insert("bumpStrength", Data::from(material.bump_strength));
+
     Data::from(members)
 }

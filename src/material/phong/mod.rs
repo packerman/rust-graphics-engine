@@ -21,6 +21,8 @@ pub struct PhongMaterial {
     pub diffuse: Color,
     pub specular_strength: f32,
     pub shininess: f32,
+    pub bump_texture: Option<Sampler2D>,
+    pub bump_strength: f32,
 }
 
 impl Default for PhongMaterial {
@@ -32,6 +34,8 @@ impl Default for PhongMaterial {
             diffuse: Color::white(),
             specular_strength: 1.0,
             shininess: 32.0,
+            bump_texture: None,
+            bump_strength: 1.0,
         }
     }
 }
@@ -61,23 +65,31 @@ pub fn create(
     .map(Rc::new)
 }
 
-fn create_material_struct(flat_material: PhongMaterial) -> Data {
+fn create_material_struct(material: PhongMaterial) -> Data {
     let mut members = HashMap::from([
-        ("ambient", Data::from(flat_material.ambient)),
-        ("diffuse", Data::from(flat_material.diffuse)),
-        (
-            "specularStrength",
-            Data::from(flat_material.specular_strength),
-        ),
-        ("shininess", Data::from(flat_material.shininess)),
+        ("ambient", Data::from(material.ambient)),
+        ("diffuse", Data::from(material.diffuse)),
+        ("specularStrength", Data::from(material.specular_strength)),
+        ("shininess", Data::from(material.shininess)),
     ]);
     let use_texture: bool;
-    if let Some(sampler) = flat_material.texture {
+    if let Some(sampler) = material.texture {
         use_texture = true;
         members.insert("texture0", Data::from(sampler));
     } else {
         use_texture = false;
     }
     members.insert("useTexture", Data::from(use_texture));
+
+    let use_bump_texture: bool;
+    if let Some(sampler) = material.bump_texture {
+        use_bump_texture = true;
+        members.insert("bumpTexture", Data::from(sampler));
+    } else {
+        use_bump_texture = false;
+    }
+    members.insert("useBumpTexture", Data::from(use_bump_texture));
+    members.insert("bumpStrength", Data::from(material.bump_strength));
+
     Data::from(members)
 }
