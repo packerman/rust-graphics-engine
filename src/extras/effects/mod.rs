@@ -80,3 +80,68 @@ pub fn color_reduce(
     effect.add_uniform(context, "levels", Data::from(f32::from(levels)));
     Ok(effect)
 }
+
+#[derive(Debug, Clone, Copy)]
+pub struct BrightFilter {
+    pub threshold: f32,
+}
+
+impl Default for BrightFilter {
+    fn default() -> Self {
+        Self { threshold: 2.4 }
+    }
+}
+
+pub fn bright_filter(
+    context: &WebGl2RenderingContext,
+    sampler_2d: Sampler2D,
+    bright_filter: BrightFilter,
+) -> Result<Effect> {
+    let mut effect = create_basic(context, include_str!("bright_filter.frag"), sampler_2d)?;
+    effect.add_uniform(context, "threshold", Data::from(bright_filter.threshold));
+    Ok(effect)
+}
+
+pub struct Blur {
+    texture_size: Resolution,
+    blur_radius: i32,
+}
+
+impl Default for Blur {
+    fn default() -> Self {
+        Self {
+            texture_size: Resolution::new(512, 512),
+            blur_radius: 20,
+        }
+    }
+}
+
+pub fn horizontal_blur(
+    context: &WebGl2RenderingContext,
+    sampler_2d: Sampler2D,
+    blur: Blur,
+) -> Result<Effect> {
+    let mut effect = create_basic(context, include_str!("horizontal_blur.frag"), sampler_2d)?;
+    effect.add_uniform(
+        context,
+        "textureSize",
+        Data::from(Vec2::from(blur.texture_size)),
+    );
+    effect.add_uniform(context, "blurRadius", Data::from(blur.blur_radius));
+    Ok(effect)
+}
+
+pub fn vertical_blur(
+    context: &WebGl2RenderingContext,
+    sampler_2d: Sampler2D,
+    blur: Blur,
+) -> Result<Effect> {
+    let mut effect = create_basic(context, include_str!("vertical_blur.frag"), sampler_2d)?;
+    effect.add_uniform(
+        context,
+        "textureSize",
+        Data::from(Vec2::from(blur.texture_size)),
+    );
+    effect.add_uniform(context, "blurRadius", Data::from(blur.blur_radius));
+    Ok(effect)
+}

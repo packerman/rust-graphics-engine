@@ -28,3 +28,4 @@ pub mod e26_render_to_texture;
 pub mod e27_compound_effect;
 pub mod e28_lights;
 pub mod e29_bump_mapping;
+pub mod e30_bloom_effect;

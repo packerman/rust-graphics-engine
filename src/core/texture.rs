@@ -122,7 +122,7 @@ impl TextureData {
         format: u32,
     ) -> Result<()> {
         let result = match self {
-            TextureData::Image(image) => context
+            Self::Image(image) => context
                 .tex_image_2d_with_u32_and_u32_and_html_image_element(
                     target,
                     0,
@@ -131,7 +131,7 @@ impl TextureData {
                     Self::TYPE,
                     image,
                 ),
-            TextureData::Canvas(canvas) => context
+                Self::Canvas(canvas) => context
                 .tex_image_2d_with_u32_and_u32_and_html_canvas_element(
                     target,
                     0,
@@ -140,7 +140,7 @@ impl TextureData {
                     Self::TYPE,
                     canvas,
                 ),
-            TextureData::Buffer(resolution) => context
+                Self::Buffer(resolution) => context
                 .tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_array_buffer_view(
                     target,
                     0,
@@ -154,6 +154,14 @@ impl TextureData {
                 ),
         };
         result.map_err(|err| anyhow!("Error when uploading texture data: {:#?}", err))
+    }
+
+    pub fn resolution(&self) -> Resolution {
+        match self {
+            Self::Buffer(resolution) => *resolution,
+            Self::Canvas(canvas) => Resolution::new(canvas.width() as i32, canvas.height() as i32),
+            Self::Image(image) => Resolution::new(image.width() as i32, image.height() as i32),
+        }
     }
 }
 
@@ -201,6 +209,10 @@ impl Texture {
         }
         self.properties.upload_data(context);
         Ok(())
+    }
+
+    pub fn resolution(&self) -> Resolution {
+        self.data.resolution()
     }
 }
 
