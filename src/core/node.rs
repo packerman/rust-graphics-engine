@@ -73,7 +73,9 @@ impl Node {
     }
 
     pub fn new_light(light: RefCell<Light>) -> Rc<Self> {
-        Self::new(NodeType::Light(light))
+        let node = Self::new(NodeType::Light(light));
+        node.light().unwrap().borrow().update_node(&node);
+        node
     }
 
     pub fn new(node_type: NodeType) -> Rc<Self> {

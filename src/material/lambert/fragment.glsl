@@ -23,6 +23,9 @@ struct Material {
     vec4 diffuse;
     bool useTexture;
     sampler2D texture0;
+    bool useBumpTexture;
+    sampler2D bumpTexture;
+    float bumpStrength;
 };
 
 uniform Material material;
@@ -61,11 +64,17 @@ void main() {
     if (material.useTexture) {
         color *= texture(material.texture0, UV);
     }
+
+    vec3 bumpNormal = normal;
+    if (material.useBumpTexture) {
+        bumpNormal += material.bumpStrength * vec3(texture(material.bumpTexture, UV));
+    }
+
     vec4 total = vec4(0.0, 0.0, 0.0, 0.0);
-    total += lightCalc(light0, position, normal);
-    total += lightCalc(light1, position, normal);
-    total += lightCalc(light2, position, normal);
-    total += lightCalc(light3, position, normal);
+    total += lightCalc(light0, position, bumpNormal);
+    total += lightCalc(light1, position, bumpNormal);
+    total += lightCalc(light2, position, bumpNormal);
+    total += lightCalc(light3, position, bumpNormal);
     color *= vec4(total.xyz, 1.0);
     fragColor = material.ambient + color;
 }
