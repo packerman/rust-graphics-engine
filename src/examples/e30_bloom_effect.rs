@@ -12,13 +12,17 @@ use crate::{
         convert::FromWithContext,
         geometry::Geometry,
         input::KeyState,
-        math::{angle::Angle, resolution::Resolution},
+        math::angle::Angle,
         mesh::Mesh,
         node::Node,
         renderer::{Renderer, RendererOptions},
         texture::{Texture, TextureData, TextureUnit},
+        uniform::data::Sampler2D,
     },
-    extras::{effects, postprocessor::Postprocessor},
+    extras::{
+        effects::{self, Blend, Blur, BrightFilter},
+        postprocessor::Postprocessor,
+    },
     geometry::{parametric::Sphere, Rectangle},
     material::{self, texture::TextureMaterial},
 };
@@ -96,16 +100,17 @@ impl AsyncCreator for Example {
             grass.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grass);
         }
+        let grid_texture = Texture::initialize(
+            context,
+            TextureData::load_from_source("images/grid.png").await?,
+            Default::default(),
+        )?;
         let sphere = Node::new_mesh(Mesh::initialize(
             context,
             Rc::new(Geometry::from_with_context(context, Sphere::default())?),
             material::texture::create(
                 context,
-                Texture::initialize(
-                    context,
-                    TextureData::load_from_source("images/grid.png").await?,
-                    Default::default(),
-                )?,
+                Rc::clone(&grid_texture),
                 TextureUnit::from(2),
                 Default::default(),
             )?,
@@ -121,8 +126,45 @@ impl AsyncCreator for Example {
             scene,
             camera,
             None,
-            vec![&|sampler| effects::vertical_blur(context, sampler, Default::default())],
-            TextureUnit::from(3),
+            vec![
+                &|sampler| {
+                    effects::bright_filter(context, sampler, BrightFilter { threshold: 2.4 })
+                },
+                &|sampler| {
+                    let texture_size = sampler.resolution();
+                    effects::horizontal_blur(
+                        context,
+                        sampler,
+                        Blur {
+                            texture_size,
+                            blur_radius: 50,
+                        },
+                    )
+                },
+                &|sampler| {
+                    let texture_size = sampler.resolution();
+                    effects::vertical_blur(
+                        context,
+                        sampler,
+                        Blur {
+                            texture_size,
+                            blur_radius: 50,
+                        },
+                    )
+                },
+                &|sampler| {
+                    effects::additive_blend(
+                        context,
+                        sampler,
+                        Sampler2D::new(Rc::clone(&grid_texture), TextureUnit::from(3)),
+                        Blend {
+                            original_strength: 2.0,
+                            blend_strength: 1.0,
+                        },
+                    )
+                },
+            ],
+            TextureUnit::from(4),
         )?;
 
         Ok(Box::new(Example { postprocessor }))

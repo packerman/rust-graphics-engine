@@ -103,8 +103,8 @@ pub fn bright_filter(
 }
 
 pub struct Blur {
-    texture_size: Resolution,
-    blur_radius: i32,
+    pub texture_size: Resolution,
+    pub blur_radius: i32,
 }
 
 impl Default for Blur {
@@ -143,5 +143,40 @@ pub fn vertical_blur(
         Data::from(Vec2::from(blur.texture_size)),
     );
     effect.add_uniform(context, "blurRadius", Data::from(blur.blur_radius));
+    Ok(effect)
+}
+
+pub struct Blend {
+    pub original_strength: f32,
+    pub blend_strength: f32,
+}
+
+impl Default for Blend {
+    fn default() -> Self {
+        Self {
+            original_strength: 1.0,
+            blend_strength: 1.0,
+        }
+    }
+}
+
+pub fn additive_blend(
+    context: &WebGl2RenderingContext,
+    original_texture: Sampler2D,
+    blend_texture: Sampler2D,
+    blend: Blend,
+) -> Result<Effect> {
+    let mut effect = create_basic(
+        context,
+        include_str!("additive_blend.frag"),
+        original_texture,
+    )?;
+    effect.add_uniform(context, "blendTexture", Data::from(blend_texture));
+    effect.add_uniform(
+        context,
+        "originalStrength",
+        Data::from(blend.original_strength),
+    );
+    effect.add_uniform(context, "blendStrength", Data::from(blend.blend_strength));
     Ok(effect)
 }
