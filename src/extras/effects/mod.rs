@@ -35,7 +35,7 @@ pub fn tint(
     tint_color: Color,
 ) -> Result<Effect> {
     let mut effect = create_basic(context, include_str!("tint.frag"), sampler_2d)?;
-    effect.add_uniform(context, "tintColor", Data::from(tint_color));
+    effect.add_uniform(context, "tintColor", tint_color);
     Ok(effect)
 }
 
@@ -51,8 +51,8 @@ pub fn pixelate(
     resolution: Resolution,
 ) -> Result<Effect> {
     let mut effect = create_basic(context, include_str!("pixelate.frag"), sampler_2d)?;
-    effect.add_uniform(context, "pixelSize", Data::from(f32::from(pixel_size)));
-    effect.add_uniform(context, "resolution", Data::from(Vec2::from(resolution)));
+    effect.add_uniform(context, "pixelSize", f32::from(pixel_size));
+    effect.add_uniform(context, "resolution", Vec2::from(resolution));
     Ok(effect)
 }
 
@@ -65,9 +65,9 @@ pub fn vignette(
     dim_color: Color,
 ) -> Result<Effect> {
     let mut effect = create_basic(context, include_str!("vignette.frag"), sampler_2d)?;
-    effect.add_uniform(context, "dimStart", Data::from(dim_start));
-    effect.add_uniform(context, "dimEnd", Data::from(dim_end));
-    effect.add_uniform(context, "dimColor", Data::from(dim_color));
+    effect.add_uniform(context, "dimStart", dim_start);
+    effect.add_uniform(context, "dimEnd", dim_end);
+    effect.add_uniform(context, "dimColor", dim_color);
     Ok(effect)
 }
 
@@ -77,7 +77,7 @@ pub fn color_reduce(
     levels: u16,
 ) -> Result<Effect> {
     let mut effect = create_basic(context, include_str!("color_reduce.frag"), sampler_2d)?;
-    effect.add_uniform(context, "levels", Data::from(f32::from(levels)));
+    effect.add_uniform(context, "levels", f32::from(levels));
     Ok(effect)
 }
 
@@ -98,7 +98,7 @@ pub fn bright_filter(
     bright_filter: BrightFilter,
 ) -> Result<Effect> {
     let mut effect = create_basic(context, include_str!("bright_filter.frag"), sampler_2d)?;
-    effect.add_uniform(context, "threshold", Data::from(bright_filter.threshold));
+    effect.add_uniform(context, "threshold", bright_filter.threshold);
     Ok(effect)
 }
 
@@ -127,7 +127,7 @@ pub fn horizontal_blur(
         "textureSize",
         Data::from(Vec2::from(blur.texture_size)),
     );
-    effect.add_uniform(context, "blurRadius", Data::from(blur.blur_radius));
+    effect.add_uniform(context, "blurRadius", blur.blur_radius);
     Ok(effect)
 }
 
@@ -142,7 +142,7 @@ pub fn vertical_blur(
         "textureSize",
         Data::from(Vec2::from(blur.texture_size)),
     );
-    effect.add_uniform(context, "blurRadius", Data::from(blur.blur_radius));
+    effect.add_uniform(context, "blurRadius", blur.blur_radius);
     Ok(effect)
 }
 
@@ -171,12 +171,12 @@ pub fn additive_blend(
         include_str!("additive_blend.frag"),
         original_texture,
     )?;
-    effect.add_uniform(context, "blendTexture", Data::from(blend_texture));
+    effect.add_uniform(context, "blendTexture", blend_texture);
     effect.add_uniform(
         context,
         "originalStrength",
         Data::from(blend.original_strength),
     );
-    effect.add_uniform(context, "blendStrength", Data::from(blend.blend_strength));
+    effect.add_uniform(context, "blendStrength", blend.blend_strength);
     Ok(effect)
 }
