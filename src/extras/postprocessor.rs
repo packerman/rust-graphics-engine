@@ -9,11 +9,12 @@ use crate::core::{
     convert::FromWithContext,
     geometry::Geometry,
     material::Material,
+    math::resolution::Resolution,
     mesh::Mesh,
     node::Node,
     render_target::RenderTarget,
     renderer::{self, Renderer},
-    texture::TextureUnit,
+    texture::{Texture, TextureUnit},
     uniform::data::Sampler2D,
 };
 
@@ -24,6 +25,10 @@ pub struct Postprocessor {
     scenes: Vec<Rc<Node>>,
     cameras: Vec<Rc<RefCell<Camera>>>,
     render_targets: Vec<Option<RenderTarget>>,
+    resolution: Resolution,
+    geometry: Rc<Geometry>,
+    texture_unit: TextureUnit,
+    default_camera: Rc<RefCell<Camera>>,
 }
 
 impl Postprocessor {
@@ -33,34 +38,39 @@ impl Postprocessor {
         scene: Rc<Node>,
         camera: Rc<RefCell<Camera>>,
         render_target: Option<RenderTarget>,
-        effects: Vec<&dyn Fn(Sampler2D) -> Result<Effect>>,
         texture_unit: TextureUnit,
     ) -> Result<Self> {
-        let geometry = Rc::new(self::create_geometry(context)?);
-        let default_camera = Camera::new_ortographic(Default::default());
-        let mut scenes = vec![scene];
-        let mut cameras = vec![camera];
-        let mut render_targets = vec![];
-        let resolution = renderer::get_canvas_size(context);
-        for effect in effects.into_iter() {
-            let target = RenderTarget::initialize(context, resolution)?;
-            scenes.push(self::create_scene(
-                context,
-                Rc::clone(&geometry),
-                effect(Sampler2D::new(Rc::clone(target.texture()), texture_unit))?,
-                Rc::clone(&default_camera),
-            )?);
-            cameras.push(Rc::clone(&default_camera));
-            render_targets.push(Some(target));
-        }
-        render_targets.push(render_target);
-
         Ok(Self {
             renderer,
-            scenes,
-            cameras,
-            render_targets,
+            scenes: vec![scene],
+            cameras: vec![camera],
+            render_targets: vec![render_target],
+            resolution: renderer::get_canvas_size(context),
+            geometry: Rc::new(self::create_geometry(context)?),
+            texture_unit,
+            default_camera: Camera::new_ortographic(Default::default()),
         })
+    }
+
+    pub fn add_effect<E>(&mut self, context: &WebGl2RenderingContext, effect: E) -> Result<()>
+    where
+        E: Fn(Sampler2D) -> Result<Effect>,
+    {
+        let target = RenderTarget::initialize(context, self.resolution)?;
+        self.scenes.push(self::create_scene(
+            context,
+            Rc::clone(&self.geometry),
+            effect(Sampler2D::new(
+                Rc::clone(target.texture()),
+                self.texture_unit,
+            ))?,
+            Rc::clone(&self.default_camera),
+        )?);
+        self.cameras.push(Rc::clone(&self.default_camera));
+        let final_render_target = self.render_targets.pop().flatten();
+        self.render_targets.push(Some(target));
+        self.render_targets.push(final_render_target);
+        Ok(())
     }
 
     pub fn render(&self, context: &WebGl2RenderingContext) {
@@ -71,6 +81,12 @@ impl Postprocessor {
             self.renderer
                 .render_to_target(context, scene, camera, target.as_ref())
         }
+    }
+
+    pub fn get_texture(&self, index: usize) -> Option<&Rc<Texture>> {
+        self.render_targets[index]
+            .as_ref()
+            .map(|render_target| render_target.texture())
     }
 }
 

@@ -120,52 +120,53 @@ impl AsyncCreator for Example {
             scene.add_child(&sphere);
         }
 
-        let postprocessor = Postprocessor::initialize(
+        let mut postprocessor = Postprocessor::initialize(
             context,
             renderer,
             scene,
             camera,
             None,
-            vec![
-                &|sampler| {
-                    effects::bright_filter(context, sampler, BrightFilter { threshold: 2.4 })
-                },
-                &|sampler| {
-                    let texture_size = sampler.resolution();
-                    effects::horizontal_blur(
-                        context,
-                        sampler,
-                        Blur {
-                            texture_size,
-                            blur_radius: 50,
-                        },
-                    )
-                },
-                &|sampler| {
-                    let texture_size = sampler.resolution();
-                    effects::vertical_blur(
-                        context,
-                        sampler,
-                        Blur {
-                            texture_size,
-                            blur_radius: 50,
-                        },
-                    )
-                },
-                &|sampler| {
-                    effects::additive_blend(
-                        context,
-                        sampler,
-                        Sampler2D::new(Rc::clone(&grid_texture), TextureUnit::from(3)),
-                        Blend {
-                            original_strength: 2.0,
-                            blend_strength: 1.0,
-                        },
-                    )
-                },
-            ],
-            TextureUnit::from(4),
+            TextureUnit::from(3),
         )?;
+        postprocessor.add_effect(context, |sampler| {
+            effects::bright_filter(context, sampler, BrightFilter { threshold: 2.4 })
+        })?;
+        postprocessor.add_effect(context, |sampler| {
+            let texture_size = sampler.resolution();
+            effects::horizontal_blur(
+                context,
+                sampler,
+                Blur {
+                    texture_size,
+                    blur_radius: 50,
+                },
+            )
+        })?;
+        postprocessor.add_effect(context, |sampler| {
+            let texture_size = sampler.resolution();
+            effects::vertical_blur(
+                context,
+                sampler,
+                Blur {
+                    texture_size,
+                    blur_radius: 50,
+                },
+            )
+        })?;
+        if let Some(main_scene) = postprocessor.get_texture(0) {
+            let main_scene = Rc::clone(main_scene);
+            postprocessor.add_effect(context, |sampler| {
+                effects::additive_blend(
+                    context,
+                    sampler,
+                    Sampler2D::new(Rc::clone(&main_scene), TextureUnit::from(4)),
+                    Blend {
+                        original_strength: 2.0,
+                        blend_strength: 1.0,
+                    },
+                )
+            })?;
+        }
 
         Ok(Box::new(Example { postprocessor }))
     }
