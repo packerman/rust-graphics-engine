@@ -21,7 +21,7 @@ use crate::core::{
 pub type Effect = Material;
 
 pub struct Postprocessor {
-    renderer: Renderer,
+    renderer: Rc<Renderer>,
     scenes: Vec<Rc<Node>>,
     cameras: Vec<Rc<RefCell<Camera>>>,
     render_targets: Vec<Option<RenderTarget>>,
@@ -34,7 +34,7 @@ pub struct Postprocessor {
 impl Postprocessor {
     pub fn initialize(
         context: &WebGl2RenderingContext,
-        renderer: Renderer,
+        renderer: Rc<Renderer>,
         scene: Rc<Node>,
         camera: Rc<RefCell<Camera>>,
         render_target: Option<RenderTarget>,
@@ -60,10 +60,7 @@ impl Postprocessor {
         self.scenes.push(self::create_scene(
             context,
             Rc::clone(&self.geometry),
-            effect(Sampler2D::new(
-                Rc::clone(target.texture()),
-                self.texture_unit,
-            ))?,
+            effect(Sampler2D::new(target.texture(), self.texture_unit))?,
             Rc::clone(&self.default_camera),
         )?);
         self.cameras.push(Rc::clone(&self.default_camera));
@@ -83,7 +80,7 @@ impl Postprocessor {
         }
     }
 
-    pub fn get_texture(&self, index: usize) -> Option<&Rc<Texture>> {
+    pub fn get_texture(&self, index: usize) -> Option<Rc<Texture>> {
         self.render_targets[index]
             .as_ref()
             .map(|render_target| render_target.texture())

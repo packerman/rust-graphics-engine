@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -13,14 +13,19 @@ use crate::{
         geometry::Geometry,
         input::KeyState,
         material::Material,
-        math::{angle::Angle, resolution::Resolution},
+        math::angle::Angle,
         mesh::Mesh,
         node::Node,
         render_target::RenderTarget,
-        renderer::{Renderer, RendererOptions},
+        renderer::{self, Renderer, RendererOptions},
         texture::{Texture, TextureData, TextureUnit},
+        uniform::data::Sampler2D,
     },
-    geometry::{parametric::Sphere, BoxGeometry, Rectangle},
+    extras::{
+        effects::{self, Blend, Blur},
+        postprocessor::Postprocessor,
+    },
+    geometry::{parametric::Sphere, Rectangle},
     material::{
         self,
         basic::{BasicMaterial, SurfaceMaterial},
@@ -29,28 +34,27 @@ use crate::{
 };
 
 struct Example {
-    renderer: Renderer,
-    scene: Rc<Node>,
-    rig: Rc<Node>,
-    camera: Rc<RefCell<Camera>>,
-    sky_camera: Rc<RefCell<Camera>>,
-    sphere: Rc<Node>,
-    render_target: RenderTarget,
+    glow_pass: Postprocessor,
+    combo_pass: Postprocessor,
 }
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let renderer = Renderer::new(context, RendererOptions::default());
+        let renderer = Rc::new(Renderer::new(
+            context,
+            RendererOptions {
+                clear_color: Color::black(),
+                ..Default::default()
+            },
+        ));
         let scene = Node::new_group();
 
         let camera = Camera::new_perspective(Default::default());
-        let rig = Node::new_movement_rig(Default::default());
         {
             let camera = Node::new_camera(Rc::clone(&camera));
-            rig.add_child(&camera);
-            scene.add_child(&rig);
-            rig.set_position(&glm::vec3(0.0, 1.0, 4.0));
+            scene.add_child(&camera);
+            camera.set_position(&glm::vec3(0.0, 1.0, 4.0));
         }
         {
             let sky = Node::new_mesh(Mesh::initialize(
@@ -103,6 +107,7 @@ impl AsyncCreator for Example {
             grass.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grass);
         }
+
         let sphere = Node::new_mesh(Mesh::initialize(
             context,
             Rc::new(Geometry::from_with_context(context, Sphere::default())?),
@@ -118,91 +123,98 @@ impl AsyncCreator for Example {
             )?,
         )?);
         {
-            sphere.set_position(&glm::vec3(-1.2, 1.0, 0.0));
+            sphere.set_position(&glm::vec3(0.0, 1.0, 0.0));
             scene.add_child(&sphere);
         }
+
+        let glow_scene = Node::new_group();
         {
-            let box_mesh = Node::new_mesh(Mesh::initialize(
+            let glow_sphere = Node::new_mesh(Mesh::initialize(
                 context,
-                Rc::new(Geometry::from_with_context(
-                    context,
-                    BoxGeometry {
-                        width: 2.0,
-                        height: 2.0,
-                        depth: 0.2,
-                    },
-                )?),
+                Rc::new(Geometry::from_with_context(context, Sphere::default())?),
                 Rc::new(Material::from_with_context(
                     context,
                     SurfaceMaterial {
                         basic: BasicMaterial {
-                            base_color: Color::black(),
+                            base_color: Color::red(),
                             ..Default::default()
                         },
                         ..Default::default()
                     },
                 )?),
             )?);
-            box_mesh.set_position(&glm::vec3(1.2, 1.0, 0.0));
-            scene.add_child(&box_mesh);
-        }
-        let render_target = RenderTarget::initialize(context, Resolution::new(512, 512))?;
-        let screen = Node::new_mesh(Mesh::initialize(
-            context,
-            Rc::new(Geometry::from_with_context(
-                context,
-                Rectangle {
-                    width: 1.8,
-                    height: 1.8,
-                    ..Default::default()
-                },
-            )?),
-            material::texture::create(
-                context,
-                render_target.texture(),
-                TextureUnit::from(3),
-                Default::default(),
-            )?,
-        )?);
-        {
-            screen.set_position(&glm::vec3(1.2, 1.0, 0.11));
-            scene.add_child(&screen);
-        }
-        let sky_camera = Camera::new_perspective(Default::default());
-        {
-            let sky_camera = Node::new_camera(Rc::clone(&sky_camera));
-            sky_camera.set_position(&glm::vec3(0.0, 10.0, 0.1));
-            sky_camera.look_at(&glm::vec3(0.0, 0.0, 0.0));
-            scene.add_child(&sky_camera);
+            glow_sphere.set_transform(&sphere.transform());
+            glow_scene.add_child(&glow_sphere);
         }
 
-        Ok(Box::new(Example {
+        let resolution = renderer::get_canvas_size(context);
+
+        let glow_target = RenderTarget::initialize(context, resolution)?;
+        let glow_texture = glow_target.texture();
+        let mut glow_pass = Postprocessor::initialize(
+            context,
+            Rc::clone(&renderer),
+            glow_scene,
+            Rc::clone(&camera),
+            Some(glow_target),
+            TextureUnit::from(3),
+        )?;
+        glow_pass.add_effect(context, |sampler| {
+            let texture_size = sampler.resolution();
+            effects::horizontal_blur(
+                context,
+                sampler,
+                Blur {
+                    texture_size,
+                    blur_radius: 50,
+                },
+            )
+        })?;
+        glow_pass.add_effect(context, |sampler| {
+            let texture_size = sampler.resolution();
+            effects::vertical_blur(
+                context,
+                sampler,
+                Blur {
+                    texture_size,
+                    blur_radius: 50,
+                },
+            )
+        })?;
+
+        let mut combo_pass = Postprocessor::initialize(
+            context,
             renderer,
-            rig,
             scene,
             camera,
-            sky_camera,
-            sphere,
-            render_target,
+            None,
+            TextureUnit::from(4),
+        )?;
+        combo_pass.add_effect(context, |sampler| {
+            effects::additive_blend(
+                context,
+                sampler,
+                Sampler2D::new(Rc::clone(&glow_texture), TextureUnit::from(5)),
+                Blend {
+                    original_strength: 1.0,
+                    blend_strength: 3.0,
+                },
+            )
+        })?;
+
+        Ok(Box::new(Example {
+            glow_pass,
+            combo_pass,
         }))
     }
 }
 
 impl Application for Example {
-    fn update(&mut self, key_state: &KeyState) {
-        self.sphere
-            .rotate_y(Angle::STRAIGHT / 235.0, Default::default());
-        self.rig.update(key_state);
-    }
+    fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.renderer.render_to_target(
-            context,
-            &self.scene,
-            &self.sky_camera,
-            Some(&self.render_target),
-        );
-        self.renderer.render(context, &self.scene, &self.camera);
+        self.glow_pass.render(context);
+        self.combo_pass.render(context);
     }
 }
 

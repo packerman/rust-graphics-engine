@@ -34,13 +34,13 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let renderer = Renderer::new(
+        let renderer = Rc::new(Renderer::new(
             context,
             RendererOptions {
                 clear_color: Color::black(),
                 ..Default::default()
             },
-        );
+        ));
         let scene = Node::new_group();
 
         let camera = Camera::new_perspective(Default::default());
@@ -100,17 +100,16 @@ impl AsyncCreator for Example {
             grass.rotate_x(-Angle::RIGHT, Default::default());
             scene.add_child(&grass);
         }
-        let grid_texture = Texture::initialize(
-            context,
-            TextureData::load_from_source("images/grid.png").await?,
-            Default::default(),
-        )?;
         let sphere = Node::new_mesh(Mesh::initialize(
             context,
             Rc::new(Geometry::from_with_context(context, Sphere::default())?),
             material::texture::create(
                 context,
-                Rc::clone(&grid_texture),
+                Texture::initialize(
+                    context,
+                    TextureData::load_from_source("images/grid.png").await?,
+                    Default::default(),
+                )?,
                 TextureUnit::from(2),
                 Default::default(),
             )?,
@@ -154,7 +153,6 @@ impl AsyncCreator for Example {
             )
         })?;
         if let Some(main_scene) = postprocessor.get_texture(0) {
-            let main_scene = Rc::clone(main_scene);
             postprocessor.add_effect(context, |sampler| {
                 effects::additive_blend(
                     context,
