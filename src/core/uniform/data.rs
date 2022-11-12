@@ -5,6 +5,7 @@ use web_sys::{WebGl2RenderingContext, WebGlUniformLocation};
 
 use crate::core::{
     color::Color,
+    math::resolution::Resolution,
     texture::{Texture, TextureUnit},
 };
 
@@ -26,6 +27,10 @@ impl Sampler2D {
     ) {
         self.unit
             .upload_data(context, location, self.texture.texture());
+    }
+
+    pub fn resolution(&self) -> Resolution {
+        self.texture.resolution()
     }
 }
 

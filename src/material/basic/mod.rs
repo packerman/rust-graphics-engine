@@ -71,7 +71,7 @@ impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material {
             WebGl2RenderingContext::POINTS,
             point_material.basic,
         )?;
-        material.add_uniform(context, "pointSize", Data::from(point_material.point_size));
+        material.add_uniform(context, "pointSize", point_material.point_size);
         Ok(material)
     }
 }

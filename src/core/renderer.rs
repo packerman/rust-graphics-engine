@@ -25,6 +25,7 @@ impl Default for RendererOptions {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Renderer {
     default_node: Rc<Node>,
     default_light: RefCell<Light>,

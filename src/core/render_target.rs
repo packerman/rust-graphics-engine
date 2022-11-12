@@ -25,8 +25,8 @@ impl RenderTarget {
         self.resolution
     }
 
-    pub fn texture(&self) -> &Rc<Texture> {
-        &self.texture
+    pub fn texture(&self) -> Rc<Texture> {
+        Rc::clone(&self.texture)
     }
 }
 

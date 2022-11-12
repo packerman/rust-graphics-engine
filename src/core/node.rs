@@ -1,7 +1,7 @@
 pub mod movement_rig;
 
 use std::{
-    cell::RefCell,
+    cell::{Ref, RefCell},
     collections::VecDeque,
     ptr,
     rc::{Rc, Weak},
@@ -224,6 +224,14 @@ impl Node {
         let position = self.position();
         let target_position = position + direction;
         self.look_at(&target_position);
+    }
+
+    pub fn transform(&self) -> Ref<Mat4> {
+        self.transform.borrow()
+    }
+
+    pub fn set_transform(&self, m: &Mat4) {
+        *self.transform.borrow_mut() = *m;
     }
 
     fn create_parent_child_relation(&self, child: &Rc<Node>) {

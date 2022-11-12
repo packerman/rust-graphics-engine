@@ -22,8 +22,11 @@ pub struct Material {
 }
 
 impl Material {
-    pub fn add_uniform(&mut self, context: &WebGl2RenderingContext, name: &str, data: Data) {
-        if let Some(uniform) = Uniform::from_data(context, &self.program, name, data) {
+    pub fn add_uniform<T>(&mut self, context: &WebGl2RenderingContext, name: &str, value: T)
+    where
+        Data: From<T>,
+    {
+        if let Some(uniform) = Uniform::from_data(context, &self.program, name, Data::from(value)) {
             self.uniforms.insert(String::from(name), uniform);
         }
     }

@@ -30,7 +30,7 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let renderer = Renderer::new(context, RendererOptions::default());
+        let renderer = Rc::new(Renderer::new(context, RendererOptions::default()));
         let scene = Node::new_group();
 
         let camera = Camera::new_perspective(Default::default());
@@ -109,19 +109,23 @@ impl AsyncCreator for Example {
             scene.add_child(&sphere);
         }
 
-        let postprocessor = Postprocessor::initialize(
+        let mut postprocessor = Postprocessor::initialize(
             context,
             renderer,
             scene,
             camera,
             None,
-            vec![
-                &|sampler| effects::tint(context, sampler, Color::lime()),
-                &|sampler| effects::color_reduce(context, sampler, 5),
-                &|sampler| effects::pixelate(context, sampler, 4, Resolution::new(800, 600)),
-            ],
             TextureUnit::from(3),
         )?;
+        postprocessor.add_effect(context, |sampler| {
+            effects::tint(context, sampler, Color::lime())
+        })?;
+        postprocessor.add_effect(context, |sampler| {
+            effects::color_reduce(context, sampler, 5)
+        })?;
+        postprocessor.add_effect(context, |sampler| {
+            effects::pixelate(context, sampler, 4, Resolution::new(800, 600))
+        })?;
 
         Ok(Box::new(Example { postprocessor }))
     }
