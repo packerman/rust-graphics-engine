@@ -34,6 +34,19 @@ uniform Material material;
 
 uniform vec3 viewPosition;
 
+struct Shadow {
+    vec3 lightDirection;
+    mat4 projectionMatrix;
+    mat4 viewMatrix;
+    sampler2D depthTexture;
+    float strength;
+    float bias;
+};
+
+uniform bool useShadow;
+uniform Shadow shadow0;
+in vec3 shadowPosition0;
+
 float lightAttenuation(vec3 attenuation, float distance) {
     return 1.0 / (attenuation[0] + attenuation[1] * distance + attenuation[2] * distance * distance);
 }
@@ -68,6 +81,16 @@ in vec3 position;
 in vec2 UV;
 in vec3 normal;
 
+bool fragmentInShadow() {
+    if (dot(normalize(normal), -normalize(shadow0.lightDirection)) <= 0.01) {
+        return false;
+    }
+    vec3 shadowCoord = (shadowPosition0 + 1.0) / 2.0;
+    float closestDistanceToLight = texture(shadow0.depthTexture, shadowCoord.xy).r;
+    float fragmentDistanceToLight = clamp(shadowCoord.z, 0.0, 1.0);
+    return fragmentDistanceToLight > closestDistanceToLight + shadow0.bias;
+}
+
 out vec4 fragColor;
 
 void main() {
@@ -87,5 +110,10 @@ void main() {
     total += lightCalc(light2, position, bumpNormal);
     total += lightCalc(light3, position, bumpNormal);
     color *= vec4(total.xyz, 1.0);
-    fragColor = material.ambient + color;
+    color += material.ambient;
+    if (useShadow && fragmentInShadow()) {
+        float s = 1.0 - shadow0.strength;
+        color *= vec4(s, s, s, 1.0);
+    }
+    fragColor = color;
 }

@@ -163,12 +163,6 @@ fn viewport(context: &WebGl2RenderingContext, resolution: Resolution) {
     context.viewport(0, 0, resolution.width, resolution.height)
 }
 
-fn filter_cameras(nodes: &[Rc<Node>]) -> impl Iterator<Item = (&RefCell<Camera>, &Rc<Node>)> {
-    nodes
-        .iter()
-        .filter_map(|node| node.camera().map(|camera| (camera, node)))
-}
-
 fn filter_meshes(nodes: &[Rc<Node>]) -> impl Iterator<Item = (&Mesh, &Rc<Node>)> {
     nodes
         .iter()

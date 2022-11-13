@@ -107,7 +107,7 @@ impl Default for Light {
 }
 
 impl UpdateUniform for Light {
-    fn create_data() -> Data {
+    fn create_data(&self) -> Data {
         Data::from([
             (Self::LIGHT_TYPE_MEMBER, Data::default::<i32>()),
             (Self::COLOR_MEMBER, Data::from(Color::white())),

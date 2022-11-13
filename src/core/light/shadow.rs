@@ -65,6 +65,7 @@ pub struct Shadow {
     resolution: Resolution,
     options: ShadowOptions,
     camera: Rc<Node>,
+    render_target: RenderTarget,
     material: Rc<Material>,
 }
 
@@ -90,6 +91,7 @@ impl Shadow {
             resolution,
             options,
             camera,
+            render_target,
             material,
         })
     }

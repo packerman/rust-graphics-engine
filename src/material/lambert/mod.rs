@@ -9,8 +9,8 @@ use crate::core::{
     light::Light,
     material::{Material, MaterialSettings, RenderSetting},
     uniform::{
+        self,
         data::{Data, Sampler2D},
-        UpdateUniform,
     },
 };
 
@@ -21,6 +21,7 @@ pub struct LambertMaterial {
     pub diffuse: Color,
     pub bump_texture: Option<Sampler2D>,
     pub bump_strength: f32,
+    pub use_shadow: bool,
 }
 
 impl Default for LambertMaterial {
@@ -32,6 +33,7 @@ impl Default for LambertMaterial {
             diffuse: Color::white(),
             bump_texture: None,
             bump_strength: 1.0,
+            use_shadow: false,
         }
     }
 }
@@ -48,10 +50,10 @@ pub fn create(
             fragment_shader: include_str!("fragment.glsl"),
             uniforms: vec![
                 ("material", self::create_material_struct(flat_material)),
-                ("light0", Light::create_data()),
-                ("light1", Light::create_data()),
-                ("light2", Light::create_data()),
-                ("light3", Light::create_data()),
+                ("light0", uniform::default_data::<Light>()),
+                ("light1", uniform::default_data::<Light>()),
+                ("light2", uniform::default_data::<Light>()),
+                ("light3", uniform::default_data::<Light>()),
             ],
             render_settings,
             draw_style: WebGl2RenderingContext::TRIANGLES,

@@ -9,8 +9,8 @@ use crate::core::{
     light::Light,
     material::{Material, MaterialSettings, RenderSetting},
     uniform::{
+        self,
         data::{Data, Sampler2D},
-        UpdateUniform,
     },
 };
 
@@ -44,10 +44,10 @@ pub fn create(
             fragment_shader: include_str!("fragment.glsl"),
             uniforms: vec![
                 ("material", self::create_material_struct(flat_material)),
-                ("light0", Light::create_data()),
-                ("light1", Light::create_data()),
-                ("light2", Light::create_data()),
-                ("light3", Light::create_data()),
+                ("light0", uniform::default_data::<Light>()),
+                ("light1", uniform::default_data::<Light>()),
+                ("light2", uniform::default_data::<Light>()),
+                ("light3", uniform::default_data::<Light>()),
             ],
             render_settings,
             draw_style: WebGl2RenderingContext::TRIANGLES,

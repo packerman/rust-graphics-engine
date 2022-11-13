@@ -12,7 +12,7 @@ use glm::{Mat3, Mat4, Vec3};
 use self::movement_rig::MovementRig;
 
 use super::{
-    camera::{self, Camera},
+    camera::Camera,
     input::KeyState,
     light::Light,
     math::{angle::Angle, matrix, resolution::Resolution},
