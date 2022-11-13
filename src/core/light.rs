@@ -1,3 +1,5 @@
+pub mod shadow;
+
 use std::cell::RefCell;
 
 use glm::Vec3;
