@@ -118,16 +118,12 @@ impl Renderer {
 
         let nodes = scene.descendants();
 
-        filter_cameras(&nodes).for_each(|(camera, node)| {
-            camera.borrow_mut().set_aspect_ratio(resolution.ratio());
-            camera.borrow_mut().update_world_matrix(node.world_matrix());
+        nodes.iter().for_each(|node| {
+            node.update_resolution(&resolution);
+            node.update();
         });
 
         let lights = self.filter_lights(&nodes);
-
-        lights.iter().for_each(|(light, node)| {
-            light.borrow_mut().update_from_node(node);
-        });
 
         let camera = &camera.borrow();
         filter_meshes(&nodes).for_each(|(mesh, node)| {

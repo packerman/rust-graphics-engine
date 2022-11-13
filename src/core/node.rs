@@ -12,10 +12,10 @@ use glm::{Mat3, Mat4, Vec3};
 use self::movement_rig::MovementRig;
 
 use super::{
-    camera::Camera,
+    camera::{self, Camera},
     input::KeyState,
     light::Light,
-    math::{angle::Angle, matrix},
+    math::{angle::Angle, matrix, resolution::Resolution},
     mesh::Mesh,
 };
 
@@ -157,9 +157,27 @@ impl Node {
         };
     }
 
-    pub fn update(&self, key_state: &KeyState) {
+    pub fn update_key_state(&self, key_state: &KeyState) {
         if let NodeType::MovementRig(movement_rig) = &self.node_type {
             movement_rig.update(key_state, self)
+        }
+    }
+
+    pub fn update(&self) {
+        match &self.node_type {
+            NodeType::Camera(camera) => {
+                camera.borrow_mut().update_world_matrix(self.world_matrix());
+            }
+            NodeType::Light(light) => {
+                light.borrow_mut().update_from_node(self);
+            }
+            _ => {}
+        }
+    }
+
+    pub fn update_resolution(&self, resolution: &Resolution) {
+        if let NodeType::Camera(camera) = &self.node_type {
+            camera.borrow_mut().set_aspect_ratio(resolution.ratio());
         }
     }
 

@@ -86,6 +86,12 @@ impl Material {
             .and_then(|uniform| uniform.vec3_mut())
     }
 
+    pub fn mat4_mut(&self, name: &str) -> Option<RefMut<Mat4>> {
+        self.uniforms
+            .get(name)
+            .and_then(|uniform| uniform.mat4_mut())
+    }
+
     fn set_matrix_uniform(uniform: Option<&Uniform>, matrix: Mat4) {
         if let Some(uniform) = uniform {
             let mut m = uniform.mat4_mut().unwrap();

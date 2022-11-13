@@ -24,6 +24,10 @@ impl LightType {
     pub fn point(position: Vec3) -> Self {
         Self::Point { position }
     }
+
+    pub fn is_directional(&self) -> bool {
+        matches!(self, Self::Directional { .. })
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -84,6 +88,11 @@ impl Light {
                 }
             }
         }
+    }
+
+    pub fn is_directional(&self) -> bool {
+        self.light_type
+            .map_or(false, |light_type| light_type.is_directional())
     }
 }
 

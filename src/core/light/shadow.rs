@@ -1,8 +1,19 @@
+use std::rc::Rc;
+
+use anyhow::Result;
 use glm::Vec3;
+use web_sys::WebGl2RenderingContext;
 
-use crate::core::math::{matrix::Ortographic, resolution::Resolution};
-
-use super::Light;
+use crate::{
+    core::{
+        camera::Camera,
+        material::Material,
+        math::{matrix::Ortographic, resolution::Resolution},
+        node::Node,
+        render_target::RenderTarget,
+    },
+    material,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct CameraBounds {
@@ -25,7 +36,7 @@ impl From<CameraBounds> for Ortographic {
             left: camera_bounds.min.x,
             right: camera_bounds.max.x,
             bottom: camera_bounds.min.y,
-            top: camera_bounds.max.x,
+            top: camera_bounds.max.y,
             near: camera_bounds.min.z,
             far: camera_bounds.max.z,
         }
@@ -49,18 +60,50 @@ impl Default for ShadowOptions {
     }
 }
 
-pub struct Shadow<'a> {
-    light_source: &'a Light,
+pub struct Shadow {
+    light_source: Rc<Node>,
     resolution: Resolution,
     options: ShadowOptions,
+    camera: Rc<Node>,
+    material: Rc<Material>,
 }
 
-impl<'a> Shadow<'a> {
-    pub fn new(light_source: &'a Light, resolution: Resolution, options: ShadowOptions) -> Self {
-        Self {
+impl Shadow {
+    pub fn initialize(
+        context: &WebGl2RenderingContext,
+        light_source: Rc<Node>,
+        resolution: Resolution,
+        options: ShadowOptions,
+    ) -> Result<Self> {
+        assert!(light_source
+            .light()
+            .map_or(false, |light| light.borrow().is_directional()));
+        let camera = Node::new_camera(Camera::new_ortographic(options.camera_bounds.into()));
+        light_source.add_child(&camera);
+
+        let render_target = RenderTarget::initialize(context, resolution)?;
+
+        let material = material::depth::create(context)?;
+
+        Ok(Self {
             light_source,
             resolution,
             options,
+            camera,
+            material,
+        })
+    }
+
+    pub fn update_internal(&self) {
+        self.camera.update();
+        if let Some(camera) = self.camera.camera() {
+            let camera = camera.borrow();
+            if let Some(mut view_matrix) = self.material.mat4_mut("viewMatrix") {
+                *view_matrix = *camera.view_matrix();
+            }
+            if let Some(mut projection_matrix) = self.material.mat4_mut("projectionMatrix") {
+                *projection_matrix = camera.projection_matrix();
+            }
         }
     }
 }

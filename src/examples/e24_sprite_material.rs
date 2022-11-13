@@ -83,7 +83,7 @@ impl Application for Example {
                 }
             }
         }
-        self.rig.update(key_state);
+        self.rig.update_key_state(key_state);
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {

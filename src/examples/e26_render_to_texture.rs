@@ -192,7 +192,7 @@ impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         self.sphere
             .rotate_y(Angle::STRAIGHT / 235.0, Default::default());
-        self.rig.update(key_state);
+        self.rig.update_key_state(key_state);
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {

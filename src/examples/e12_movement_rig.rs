@@ -74,7 +74,7 @@ impl AsyncCreator for Example {
 
 impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
-        self.rig.update(key_state)
+        self.rig.update_key_state(key_state)
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {

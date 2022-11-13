@@ -119,7 +119,7 @@ async fn create_crate_mesh(context: &WebGl2RenderingContext) -> Result<Rc<Node>>
 
 impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
-        self.rig.update(key_state);
+        self.rig.update_key_state(key_state);
         self.label.look_at(&self.camera.world_position());
     }
 
