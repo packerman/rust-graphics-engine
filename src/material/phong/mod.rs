@@ -23,6 +23,16 @@ pub struct PhongMaterial {
     pub use_shadow: bool,
 }
 
+impl PhongMaterial {
+    fn texture(&self) -> Option<Sampler2D> {
+        self.texture.clone()
+    }
+
+    fn bump_texture(&self) -> Option<Sampler2D> {
+        self.bump_texture.clone()
+    }
+}
+
 impl Default for PhongMaterial {
     fn default() -> Self {
         Self {
@@ -41,21 +51,22 @@ impl Default for PhongMaterial {
 
 pub fn create(
     context: &WebGl2RenderingContext,
-    flat_material: PhongMaterial,
+    phong_material: PhongMaterial,
 ) -> Result<Rc<Material>> {
-    let render_settings = vec![RenderSetting::CullFace(!flat_material.double_side)];
+    let render_settings = vec![RenderSetting::CullFace(!phong_material.double_side)];
     Material::from_with_context(
         context,
         MaterialSettings {
             vertex_shader: include_str!("vertex.glsl"),
             fragment_shader: include_str!("fragment.glsl"),
             uniforms: vec![
-                ("material", self::create_material_struct(flat_material)),
+                ("material", self::create_material_struct(&phong_material)),
                 ("viewPosition", Data::from(glm::vec3(0.0, 0.0, 0.0))),
                 ("light0", Light::create_data()),
                 ("light1", Light::create_data()),
                 ("light2", Light::create_data()),
                 ("light3", Light::create_data()),
+                ("useShadow", Data::from(phong_material.use_shadow)),
             ],
             render_settings,
             draw_style: WebGl2RenderingContext::TRIANGLES,
@@ -64,7 +75,7 @@ pub fn create(
     .map(Rc::new)
 }
 
-fn create_material_struct(material: PhongMaterial) -> Data {
+fn create_material_struct(material: &PhongMaterial) -> Data {
     let mut members = HashMap::from([
         ("ambient", Data::from(material.ambient)),
         ("diffuse", Data::from(material.diffuse)),
@@ -72,7 +83,7 @@ fn create_material_struct(material: PhongMaterial) -> Data {
         ("shininess", Data::from(material.shininess)),
     ]);
     let use_texture: bool;
-    if let Some(sampler) = material.texture {
+    if let Some(sampler) = material.texture() {
         use_texture = true;
         members.insert("texture0", Data::from(sampler));
     } else {
@@ -81,7 +92,7 @@ fn create_material_struct(material: PhongMaterial) -> Data {
     members.insert("useTexture", Data::from(use_texture));
 
     let use_bump_texture: bool;
-    if let Some(sampler) = material.bump_texture {
+    if let Some(sampler) = material.bump_texture() {
         use_bump_texture = true;
         members.insert("bumpTexture", Data::from(sampler));
     } else {
