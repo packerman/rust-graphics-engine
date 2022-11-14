@@ -227,16 +227,7 @@ impl Uniform {
 }
 
 pub trait UpdateUniform {
-    fn create_data(&self) -> Data;
-
     fn update_uniform(&self, uniform: &Uniform);
-}
-
-pub fn default_data<T>() -> Data
-where
-    T: UpdateUniform + Default,
-{
-    T::default().create_data()
 }
 
 #[derive(Debug, Clone)]

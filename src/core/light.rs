@@ -7,7 +7,10 @@ use glm::Vec3;
 use super::{
     color::Color,
     node::Node,
-    uniform::{data::Data, Uniform, UpdateUniform},
+    uniform::{
+        data::{CreateDataFromType, Data},
+        Uniform, UpdateUniform,
+    },
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -106,8 +109,8 @@ impl Default for Light {
     }
 }
 
-impl UpdateUniform for Light {
-    fn create_data(&self) -> Data {
+impl CreateDataFromType for Light {
+    fn create_data() -> Data {
         Data::from([
             (Self::LIGHT_TYPE_MEMBER, Data::default::<i32>()),
             (Self::COLOR_MEMBER, Data::from(Color::white())),
@@ -116,7 +119,9 @@ impl UpdateUniform for Light {
             (Self::ATTENUATION_MEMBER, Data::default::<Vec3>()),
         ])
     }
+}
 
+impl UpdateUniform for Light {
     fn update_uniform(&self, uniform: &Uniform) {
         if let Some(uniform) = uniform.get_struct() {
             if let Some(light_type) = self.light_type {

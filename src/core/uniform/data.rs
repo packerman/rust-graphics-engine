@@ -126,3 +126,11 @@ impl From<HashMap<&str, Data>> for Data {
         }
     }
 }
+
+pub trait CreateDataFromValue {
+    fn create_data(&self) -> Data;
+}
+
+pub trait CreateDataFromType {
+    fn create_data() -> Data;
+}
