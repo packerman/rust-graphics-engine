@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use anyhow::{anyhow, Result};
 use futures::Future;
 use wasm_bindgen::{closure::WasmClosureFnOnce, prelude::*, JsCast};
@@ -81,6 +83,29 @@ pub fn request_animation_frame(f: &Closure<dyn FnMut(f64)>) -> Result<i32> {
             .request_animation_frame(f.as_ref().unchecked_ref())
             .map_err(|err| anyhow!("Cannot register requestAnimationFrame: {:#?}", err))
     })
+}
+
+pub fn request_animation_loop<F>(mut frame: F) -> Result<i32>
+where
+    F: FnMut(f64) -> () + 'static,
+{
+    let f = Rc::new(RefCell::new(None));
+    let g = f.clone();
+    *g.borrow_mut() = Some(Closure::wrap(Box::new(move |current_time| {
+        frame(current_time);
+        self::request_animation_frame(
+            f.borrow()
+                .as_ref()
+                .expect("Empty reference to the `requestAnimationFrame` callback"),
+        )
+        .expect("Cannot run `requestAnimationFrame`");
+    }) as Box<dyn FnMut(f64)>));
+    let request_id = self::request_animation_frame(
+        g.borrow()
+            .as_ref()
+            .ok_or_else(|| anyhow!("Empty reference to the `requestAnimationFrame` callback"))?,
+    )?;
+    Ok(request_id)
 }
 
 pub fn window_inner_size(window: &Window) -> Result<(f64, f64)> {
