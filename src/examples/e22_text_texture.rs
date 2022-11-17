@@ -32,12 +32,13 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let renderer = Renderer::new(
+        let renderer = Renderer::initialize(
             context,
             RendererOptions {
                 clear_color: Color::black(),
                 ..Default::default()
             },
+            None,
         );
         let scene = Node::new_group();
 

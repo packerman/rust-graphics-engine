@@ -27,37 +27,37 @@ enum UniformCall {
 }
 
 impl UniformCall {
-    pub fn int_mut(&mut self) -> Option<&mut i32> {
+    pub fn as_mut_int(&mut self) -> Option<&mut i32> {
         match self {
-            UniformCall::Int(data) => Some(data),
+            Self::Int(data) => Some(data),
             _ => None,
         }
     }
 
-    pub fn float_mut(&mut self) -> Option<&mut f32> {
+    pub fn as_mut_float(&mut self) -> Option<&mut f32> {
         match self {
-            UniformCall::Float(data) => Some(data),
+            Self::Float(data) => Some(data),
             _ => None,
         }
     }
 
-    pub fn vec3_mut(&mut self) -> Option<&mut Vec3> {
+    pub fn as_mut_vec3(&mut self) -> Option<&mut Vec3> {
         match self {
-            UniformCall::Vec3(data) => Some(data),
+            Self::Vec3(data) => Some(data),
             _ => None,
         }
     }
 
-    pub fn color_mut(&mut self) -> Option<&mut Color> {
+    pub fn as_mut_color(&mut self) -> Option<&mut Color> {
         match self {
-            UniformCall::Color(data) => Some(data),
+            Self::Color(data) => Some(data),
             _ => None,
         }
     }
 
-    pub fn mat4_mut(&mut self) -> Option<&mut Mat4> {
+    pub fn as_mut_mat4(&mut self) -> Option<&mut Mat4> {
         match self {
-            UniformCall::Mat4(data) => Some(data),
+            Self::Mat4(data) => Some(data),
             _ => None,
         }
     }
@@ -65,49 +65,49 @@ impl UniformCall {
 
 impl From<bool> for UniformCall {
     fn from(data: bool) -> Self {
-        UniformCall::Boolean(data)
+        Self::Boolean(data)
     }
 }
 
 impl From<i32> for UniformCall {
     fn from(data: i32) -> Self {
-        UniformCall::Int(data)
+        Self::Int(data)
     }
 }
 
 impl From<f32> for UniformCall {
     fn from(data: f32) -> Self {
-        UniformCall::Float(data)
+        Self::Float(data)
     }
 }
 
 impl From<Vec2> for UniformCall {
     fn from(data: Vec2) -> Self {
-        UniformCall::Vec2(data)
+        Self::Vec2(data)
     }
 }
 
 impl From<Vec3> for UniformCall {
     fn from(data: Vec3) -> Self {
-        UniformCall::Vec3(data)
+        Self::Vec3(data)
     }
 }
 
 impl From<Mat4> for UniformCall {
     fn from(data: Mat4) -> Self {
-        UniformCall::Mat4(data)
+        Self::Mat4(data)
     }
 }
 
 impl From<Color> for UniformCall {
     fn from(data: Color) -> Self {
-        UniformCall::Color(data)
+        Self::Color(data)
     }
 }
 
 impl From<Sampler2D> for UniformCall {
     fn from(data: Sampler2D) -> Self {
-        UniformCall::Sampler2D(data)
+        Self::Sampler2D(data)
     }
 }
 
@@ -191,34 +191,34 @@ impl Uniform {
         }
     }
 
-    pub fn int_mut(&self) -> Option<RefMut<i32>> {
-        self.get_basic().and_then(|basic| basic.int_mut())
+    pub fn as_mut_int(&self) -> Option<RefMut<i32>> {
+        self.as_basic().and_then(|basic| basic.as_mut_int())
     }
 
-    pub fn float_mut(&self) -> Option<RefMut<f32>> {
-        self.get_basic().and_then(|basic| basic.float_mut())
+    pub fn as_mut_float(&self) -> Option<RefMut<f32>> {
+        self.as_basic().and_then(|basic| basic.as_mut_float())
     }
 
-    pub fn vec3_mut(&self) -> Option<RefMut<Vec3>> {
-        self.get_basic().and_then(|basic| basic.vec3_mut())
+    pub fn as_mut_vec3(&self) -> Option<RefMut<Vec3>> {
+        self.as_basic().and_then(|basic| basic.as_mut_vec3())
     }
 
-    pub fn color_mut(&self) -> Option<RefMut<Color>> {
-        self.get_basic().and_then(|basic| basic.color_mut())
+    pub fn as_mut_color(&self) -> Option<RefMut<Color>> {
+        self.as_basic().and_then(|basic| basic.as_mut_color())
     }
 
-    pub fn mat4_mut(&self) -> Option<RefMut<Mat4>> {
-        self.get_basic().and_then(|basic| basic.mat4_mut())
+    pub fn as_mut_mat4(&self) -> Option<RefMut<Mat4>> {
+        self.as_basic().and_then(|basic| basic.as_mut_mat4())
     }
 
-    pub fn get_struct(&self) -> Option<&StructUniform> {
+    pub fn as_struct(&self) -> Option<&StructUniform> {
         match self {
             Self::Struct(struct_uniform) => Some(struct_uniform),
             _ => None,
         }
     }
 
-    fn get_basic(&self) -> Option<&BasicUniform> {
+    fn as_basic(&self) -> Option<&BasicUniform> {
         match self {
             Self::Basic(basic) => Some(basic),
             _ => None,
@@ -269,24 +269,24 @@ impl BasicUniform {
         }
     }
 
-    pub fn int_mut(&self) -> Option<RefMut<i32>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.int_mut()).ok()
+    pub fn as_mut_int(&self) -> Option<RefMut<i32>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.as_mut_int()).ok()
     }
 
-    pub fn float_mut(&self) -> Option<RefMut<f32>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.float_mut()).ok()
+    pub fn as_mut_float(&self) -> Option<RefMut<f32>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.as_mut_float()).ok()
     }
 
-    pub fn vec3_mut(&self) -> Option<RefMut<Vec3>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.vec3_mut()).ok()
+    pub fn as_mut_vec3(&self) -> Option<RefMut<Vec3>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.as_mut_vec3()).ok()
     }
 
-    pub fn color_mut(&self) -> Option<RefMut<Color>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.color_mut()).ok()
+    pub fn as_mut_color(&self) -> Option<RefMut<Color>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.as_mut_color()).ok()
     }
 
-    pub fn mat4_mut(&self) -> Option<RefMut<Mat4>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.mat4_mut()).ok()
+    pub fn as_mut_mat4(&self) -> Option<RefMut<Mat4>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.as_mut_mat4()).ok()
     }
 }
 
@@ -322,7 +322,15 @@ impl StructUniform {
 
     pub fn set_int_member(&self, name: &str, value: i32) {
         if let Some(member) = self.members.get(name) {
-            if let Some(mut data) = member.int_mut() {
+            if let Some(mut data) = member.as_mut_int() {
+                *data = value;
+            }
+        }
+    }
+
+    pub fn set_float_member(&self, name: &str, value: f32) {
+        if let Some(member) = self.members.get(name) {
+            if let Some(mut data) = member.as_mut_float() {
                 *data = value;
             }
         }
@@ -330,7 +338,15 @@ impl StructUniform {
 
     pub fn set_vec3_member(&self, name: &str, value: Vec3) {
         if let Some(member) = self.members.get(name) {
-            if let Some(mut data) = member.vec3_mut() {
+            if let Some(mut data) = member.as_mut_vec3() {
+                *data = value;
+            }
+        }
+    }
+
+    pub fn set_mat4_member(&self, name: &str, value: Mat4) {
+        if let Some(member) = self.members.get(name) {
+            if let Some(mut data) = member.as_mut_mat4() {
                 *data = value;
             }
         }
@@ -338,7 +354,7 @@ impl StructUniform {
 
     pub fn set_color_member(&self, name: &str, value: Color) {
         if let Some(member) = self.members.get(name) {
-            if let Some(mut data) = member.color_mut() {
+            if let Some(mut data) = member.as_mut_color() {
                 *data = value;
             }
         }

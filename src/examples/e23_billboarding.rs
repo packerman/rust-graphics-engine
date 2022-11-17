@@ -34,12 +34,13 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let renderer = Renderer::new(
+        let renderer = Renderer::initialize(
             context,
             RendererOptions {
                 clear_color: Color::dark_slate_gray(),
                 ..Default::default()
             },
+            None,
         );
         let scene = Node::new_group();
 
@@ -125,7 +126,7 @@ impl Application for Example {
 
     fn render(&self, context: &WebGl2RenderingContext) {
         self.renderer
-            .render(context, &self.scene, self.camera.camera().unwrap())
+            .render(context, &self.scene, self.camera.as_camera().unwrap())
     }
 }
 

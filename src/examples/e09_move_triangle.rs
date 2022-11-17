@@ -88,7 +88,7 @@ impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         let move_amount = self.move_speed * DELTA_TIME_SEC;
         let turn_mount = self.turn_speed * DELTA_TIME_SEC;
-        if let Some(mut model_matrix) = self.model_matrix.mat4_mut() {
+        if let Some(mut model_matrix) = self.model_matrix.as_mut_mat4() {
             // global
             if key_state.is_pressed("KeyW") {
                 let m = matrix::translation(0.0, move_amount, 0.0);

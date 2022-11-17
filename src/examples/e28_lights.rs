@@ -36,7 +36,7 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let renderer = Renderer::new(context, Default::default());
+        let renderer = Renderer::initialize(context, Default::default(), None);
         let scene = Node::new_group();
 
         let camera = Camera::new_perspective(Default::default());
@@ -60,13 +60,13 @@ impl AsyncCreator for Example {
         {
             let direct_helper = Node::new_mesh(
                 DirectionalLightHelper::default()
-                    .create_mesh(context, &directional.light().unwrap().borrow())?,
+                    .create_mesh(context, &directional.as_light().unwrap().borrow())?,
             );
             directional.set_position(&glm::vec3(3.0, 2.0, 0.0));
             directional.add_child(&direct_helper);
             let point_helper = Node::new_mesh(
                 PointLightHelper::default()
-                    .create_mesh(context, &point.light().unwrap().borrow())?,
+                    .create_mesh(context, &point.as_light().unwrap().borrow())?,
             );
             point.add_child(&point_helper);
         }

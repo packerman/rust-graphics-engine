@@ -3,8 +3,16 @@ use std::{cell::RefCell, rc::Rc};
 use web_sys::WebGl2RenderingContext;
 
 use super::{
-    camera::Camera, color::Color, gl, light::Light, math::resolution::Resolution, mesh::Mesh,
-    node::Node, render_target::RenderTarget, uniform::UpdateUniform, web,
+    camera::Camera,
+    color::Color,
+    gl,
+    light::{shadow::Shadow, Light},
+    math::resolution::Resolution,
+    mesh::Mesh,
+    node::Node,
+    render_target::RenderTarget,
+    uniform::UpdateUniform,
+    web,
 };
 
 pub struct RendererOptions {
@@ -30,6 +38,7 @@ pub struct Renderer {
     default_node: Rc<Node>,
     default_light: RefCell<Light>,
     light_count: usize,
+    shadow: Option<Shadow>,
 }
 
 impl Renderer {
@@ -37,7 +46,11 @@ impl Renderer {
         WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT;
     pub const CLEAR_DEPTH_ONLY: u32 = WebGl2RenderingContext::DEPTH_BUFFER_BIT;
 
-    pub fn new(context: &WebGl2RenderingContext, options: RendererOptions) -> Self {
+    pub fn initialize(
+        context: &WebGl2RenderingContext,
+        options: RendererOptions,
+        shadow: Option<Shadow>,
+    ) -> Self {
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
         gl::set_clear_color(context, &options.clear_color);
 
@@ -60,7 +73,12 @@ impl Renderer {
             default_node,
             default_light,
             light_count: options.light_count,
+            shadow,
         }
+    }
+
+    pub fn shadow(&self) -> Option<&Shadow> {
+        self.shadow.as_ref()
     }
 
     pub fn render(&self, context: &WebGl2RenderingContext, scene: &Node, camera: &RefCell<Camera>) {
@@ -144,7 +162,7 @@ impl Renderer {
     fn filter_lights<'a>(&'a self, nodes: &'a [Rc<Node>]) -> Vec<(&RefCell<Light>, &Rc<Node>)> {
         let mut lights: Vec<_> = nodes
             .iter()
-            .filter_map(|node| node.light().map(|light| (light, node)))
+            .filter_map(|node| node.as_light().map(|light| (light, node)))
             .collect();
         lights.resize_with(self.light_count, || {
             (&self.default_light, &self.default_node)
@@ -166,5 +184,5 @@ fn viewport(context: &WebGl2RenderingContext, resolution: Resolution) {
 fn filter_meshes(nodes: &[Rc<Node>]) -> impl Iterator<Item = (&Mesh, &Rc<Node>)> {
     nodes
         .iter()
-        .filter_map(|node| node.mesh().map(|mesh| (mesh, node)))
+        .filter_map(|node| node.as_mesh().map(|mesh| (mesh, node)))
 }

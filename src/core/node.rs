@@ -74,7 +74,7 @@ impl Node {
 
     pub fn new_light(light: RefCell<Light>) -> Rc<Self> {
         let node = Self::new(NodeType::Light(light));
-        node.light().unwrap().borrow().update_node(&node);
+        node.as_light().unwrap().borrow().update_node(&node);
         node
     }
 
@@ -88,21 +88,21 @@ impl Node {
         })
     }
 
-    pub fn mesh(&self) -> Option<&Mesh> {
+    pub fn as_mesh(&self) -> Option<&Mesh> {
         match &self.node_type {
             NodeType::Mesh(mesh) => Some(mesh),
             _ => None,
         }
     }
 
-    pub fn camera(&self) -> Option<&RefCell<Camera>> {
+    pub fn as_camera(&self) -> Option<&RefCell<Camera>> {
         match &self.node_type {
             NodeType::Camera(camera) => Some(camera),
             _ => None,
         }
     }
 
-    pub fn light(&self) -> Option<&RefCell<Light>> {
+    pub fn as_light(&self) -> Option<&RefCell<Light>> {
         match &self.node_type {
             NodeType::Light(light) => Some(light),
             _ => None,

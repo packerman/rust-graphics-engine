@@ -83,18 +83,18 @@ impl Material {
     pub fn vec3_mut(&self, name: &str) -> Option<RefMut<Vec3>> {
         self.uniforms
             .get(name)
-            .and_then(|uniform| uniform.vec3_mut())
+            .and_then(|uniform| uniform.as_mut_vec3())
     }
 
     pub fn mat4_mut(&self, name: &str) -> Option<RefMut<Mat4>> {
         self.uniforms
             .get(name)
-            .and_then(|uniform| uniform.mat4_mut())
+            .and_then(|uniform| uniform.as_mut_mat4())
     }
 
     fn set_matrix_uniform(uniform: Option<&Uniform>, matrix: Mat4) {
         if let Some(uniform) = uniform {
-            let mut m = uniform.mat4_mut().unwrap();
+            let mut m = uniform.as_mut_mat4().unwrap();
             *m = matrix;
         }
     }

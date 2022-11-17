@@ -69,7 +69,7 @@ impl AsyncCreator for Example {
 
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
-        if let Some(mut translation) = self.translation.vec3_mut() {
+        if let Some(mut translation) = self.translation.as_mut_vec3() {
             translation[0] += 0.01;
             if translation[0] > 1.2 {
                 translation[0] = -1.2;
