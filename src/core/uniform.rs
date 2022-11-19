@@ -10,7 +10,7 @@ use anyhow::{anyhow, Result};
 use glm::{Mat4, Vec2, Vec3};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
-use self::data::{Data, Sampler2D};
+use self::data::{Basic as BasicData, Data, Sampler2D};
 
 use super::color::Color;
 
@@ -63,51 +63,18 @@ impl UniformCall {
     }
 }
 
-impl From<bool> for UniformCall {
-    fn from(data: bool) -> Self {
-        Self::Boolean(data)
-    }
-}
-
-impl From<i32> for UniformCall {
-    fn from(data: i32) -> Self {
-        Self::Int(data)
-    }
-}
-
-impl From<f32> for UniformCall {
-    fn from(data: f32) -> Self {
-        Self::Float(data)
-    }
-}
-
-impl From<Vec2> for UniformCall {
-    fn from(data: Vec2) -> Self {
-        Self::Vec2(data)
-    }
-}
-
-impl From<Vec3> for UniformCall {
-    fn from(data: Vec3) -> Self {
-        Self::Vec3(data)
-    }
-}
-
-impl From<Mat4> for UniformCall {
-    fn from(data: Mat4) -> Self {
-        Self::Mat4(data)
-    }
-}
-
-impl From<Color> for UniformCall {
-    fn from(data: Color) -> Self {
-        Self::Color(data)
-    }
-}
-
-impl From<Sampler2D> for UniformCall {
-    fn from(data: Sampler2D) -> Self {
-        Self::Sampler2D(data)
+impl From<BasicData> for UniformCall {
+    fn from(data: BasicData) -> Self {
+        match data {
+            BasicData::Boolean(value) => Self::Boolean(value),
+            BasicData::Int(value) => Self::Int(value),
+            BasicData::Float(value) => Self::Float(value),
+            BasicData::Vec2(value) => Self::Vec2(value),
+            BasicData::Vec3(value) => Self::Vec3(value),
+            BasicData::Mat4(value) => Self::Mat4(value),
+            BasicData::Color(value) => Self::Color(value),
+            BasicData::Sampler2D(value) => Self::Sampler2D(value),
+        }
     }
 }
 
@@ -134,20 +101,7 @@ impl Uniform {
         data: Data,
     ) -> Option<Self> {
         match data {
-            Data::Boolean(value) => {
-                Self::initialize(context, UniformCall::from(value), program, name)
-            }
-            Data::Int(value) => Self::initialize(context, UniformCall::from(value), program, name),
-            Data::Float(value) => {
-                Self::initialize(context, UniformCall::from(value), program, name)
-            }
-            Data::Vec2(value) => Self::initialize(context, UniformCall::from(value), program, name),
-            Data::Vec3(value) => Self::initialize(context, UniformCall::from(value), program, name),
-            Data::Mat4(value) => Self::initialize(context, UniformCall::from(value), program, name),
-            Data::Color(value) => {
-                Self::initialize(context, UniformCall::from(value), program, name)
-            }
-            Data::Sampler2D(value) => {
+            Data::Basic { value } => {
                 Self::initialize(context, UniformCall::from(value), program, name)
             }
             Data::Struct { members } => Self::from_members(context, program, name, members),
