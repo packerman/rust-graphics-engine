@@ -149,7 +149,7 @@ impl UpdateUniform for Light {
                         uniform.set_vec3_member(Self::POSITION_MEMBER, position);
                     }
                 }
-                uniform.set_color_member(Self::COLOR_MEMBER, self.color);
+                uniform.set_vec4_member(Self::COLOR_MEMBER, self.color.into());
                 uniform.set_vec3_member(Self::ATTENUATION_MEMBER, self.attenuation.into());
             } else {
                 uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::NONE_TYPE);

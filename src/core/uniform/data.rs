@@ -1,6 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
 
-use glm::{Mat4, Vec2, Vec3};
+use glm::{Mat4, Vec2, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlUniformLocation};
 
 use crate::core::{
@@ -41,8 +41,8 @@ pub enum Basic {
     Float(f32),
     Vec2(Vec2),
     Vec3(Vec3),
+    Vec4(Vec4),
     Mat4(Mat4),
-    Color(Color),
     Sampler2D(Sampler2D),
 }
 
@@ -102,18 +102,18 @@ impl From<Vec3> for Data {
     }
 }
 
-impl From<Mat4> for Data {
-    fn from(data: Mat4) -> Self {
+impl From<Vec4> for Data {
+    fn from(data: Vec4) -> Self {
         Self::Basic {
-            value: Basic::Mat4(data),
+            value: Basic::Vec4(data),
         }
     }
 }
 
-impl From<Color> for Data {
-    fn from(data: Color) -> Self {
+impl From<Mat4> for Data {
+    fn from(data: Mat4) -> Self {
         Self::Basic {
-            value: Basic::Color(data),
+            value: Basic::Mat4(data),
         }
     }
 }

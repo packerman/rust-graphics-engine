@@ -7,7 +7,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Result};
-use glm::{Mat4, Vec2, Vec3};
+use glm::{Mat4, Vec2, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
 use self::data::{Basic as BasicData, Data, Sampler2D};
@@ -20,7 +20,7 @@ enum UniformCall {
     Int(i32),
     Float(f32),
     Vec3(Vec3),
-    Color(Color),
+    Vec4(Vec4),
     Mat4(Mat4),
     Sampler2D(Sampler2D),
     Vec2(Vec2),
@@ -48,9 +48,9 @@ impl UniformCall {
         }
     }
 
-    pub fn as_mut_color(&mut self) -> Option<&mut Color> {
+    pub fn as_mut_vec4(&mut self) -> Option<&mut Vec4> {
         match self {
-            Self::Color(data) => Some(data),
+            Self::Vec4(data) => Some(data),
             _ => None,
         }
     }
@@ -71,8 +71,8 @@ impl From<BasicData> for UniformCall {
             BasicData::Float(value) => Self::Float(value),
             BasicData::Vec2(value) => Self::Vec2(value),
             BasicData::Vec3(value) => Self::Vec3(value),
+            BasicData::Vec4(value) => Self::Vec4(value),
             BasicData::Mat4(value) => Self::Mat4(value),
-            BasicData::Color(value) => Self::Color(value),
             BasicData::Sampler2D(value) => Self::Sampler2D(value),
         }
     }
@@ -157,8 +157,8 @@ impl Uniform {
         self.as_basic().and_then(|basic| basic.as_mut_vec3())
     }
 
-    pub fn as_mut_color(&self) -> Option<RefMut<Color>> {
-        self.as_basic().and_then(|basic| basic.as_mut_color())
+    pub fn as_mut_vec4(&self) -> Option<RefMut<Vec4>> {
+        self.as_basic().and_then(|basic| basic.as_mut_vec4())
     }
 
     pub fn as_mut_mat4(&self) -> Option<RefMut<Mat4>> {
@@ -212,9 +212,7 @@ impl BasicUniform {
             UniformCall::Int(data) => context.uniform1i(location, *data),
             UniformCall::Float(data) => context.uniform1f(location, *data),
             UniformCall::Vec3(data) => context.uniform3f(location, data.x, data.y, data.z),
-            UniformCall::Color(data) => {
-                context.uniform4f(location, data[0], data[1], data[2], data[3])
-            }
+            UniformCall::Vec4(data) => context.uniform4f(location, data.x, data.y, data.z, data.w),
             UniformCall::Mat4(data) => {
                 context.uniform_matrix4fv_with_f32_array(location, false, data.into())
             }
@@ -235,8 +233,8 @@ impl BasicUniform {
         RefMut::filter_map(self.data.borrow_mut(), |data| data.as_mut_vec3()).ok()
     }
 
-    pub fn as_mut_color(&self) -> Option<RefMut<Color>> {
-        RefMut::filter_map(self.data.borrow_mut(), |data| data.as_mut_color()).ok()
+    pub fn as_mut_vec4(&self) -> Option<RefMut<Vec4>> {
+        RefMut::filter_map(self.data.borrow_mut(), |data| data.as_mut_vec4()).ok()
     }
 
     pub fn as_mut_mat4(&self) -> Option<RefMut<Mat4>> {
@@ -306,9 +304,9 @@ impl StructUniform {
         }
     }
 
-    pub fn set_color_member(&self, name: &str, value: Color) {
+    pub fn set_vec4_member(&self, name: &str, value: Vec4) {
         if let Some(member) = self.members.get(name) {
-            if let Some(mut data) = member.as_mut_color() {
+            if let Some(mut data) = member.as_mut_vec4() {
                 *data = value;
             }
         }

@@ -76,7 +76,7 @@ impl Application for Example {
             translation[0] = 0.75 * t.cos();
             translation[1] = 0.75 * t.sin();
         }
-        if let Some(mut color) = self.base_color.as_mut_color() {
+        if let Some(mut color) = self.base_color.as_mut_vec4() {
             color[0] = (t.sin() + 1.0) / 2.0;
             color[1] = ((t + 2.1).sin() + 1.0) / 2.0;
             color[2] = ((t + 4.2).sin() + 1.0) / 2.0;
