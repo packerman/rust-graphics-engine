@@ -87,7 +87,7 @@ pub fn request_animation_frame(f: &Closure<dyn FnMut(f64)>) -> Result<i32> {
 
 pub fn request_animation_loop<F>(mut frame: F) -> Result<i32>
 where
-    F: FnMut(f64) -> () + 'static,
+    F: FnMut(f64) + 'static,
 {
     let f = Rc::new(RefCell::new(None));
     let g = f.clone();

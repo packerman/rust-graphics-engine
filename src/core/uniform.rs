@@ -12,8 +12,6 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
 use self::data::{Basic as BasicData, Data, Sampler2D};
 
-use super::color::Color;
-
 #[derive(Debug, Clone)]
 enum UniformCall {
     Boolean(bool),

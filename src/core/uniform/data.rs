@@ -4,7 +4,6 @@ use glm::{Mat4, Vec2, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlUniformLocation};
 
 use crate::core::{
-    color::Color,
     math::resolution::Resolution,
     texture::{Texture, TextureUnit},
 };
