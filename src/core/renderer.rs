@@ -144,19 +144,35 @@ impl Renderer {
         let lights = self.filter_lights(&nodes);
 
         let camera = &camera.borrow();
-        filter_meshes(&nodes).for_each(|(mesh, node)| {
-            if mesh.material().has_uniform("light0") {
-                lights.iter().enumerate().for_each(|(i, (light, _))| {
-                    if let Some(uniform) = mesh.material().uniform(&format!("light{}", i)) {
-                        light.borrow().update_uniform(uniform);
-                    }
-                });
-            }
+        let meshes = filter_meshes(&nodes);
+        self.shadow_pass(context, &meshes);
+        meshes.iter().for_each(|(mesh, node)| {
+            Self::update_lights(mesh, &lights);
+            self.update_shadow(mesh);
             if let Some(mut view_position) = mesh.material().vec3_mut("viewPosition") {
                 *view_position = camera.world_position();
             }
             mesh.render(context, camera, node.world_matrix());
         });
+    }
+
+    fn shadow_pass(&self, context: &WebGl2RenderingContext, meshes: &[(&Mesh, &Rc<Node>)]) {
+        if let Some(shadow) = self.shadow() {
+            shadow.bind(context);
+            context.clear_color(1.0, 1.0, 1.0, 1.0);
+            context.clear(
+                WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT,
+            );
+            let material = shadow.material();
+            material.use_program(context);
+            shadow.update();
+            meshes
+                .iter()
+                .filter(|(mesh, _)| mesh.is_triangle_based())
+                .for_each(|(mesh, node)| {
+                    mesh.render_with_material(context, material, node.world_matrix());
+                });
+        }
     }
 
     fn filter_lights<'a>(&'a self, nodes: &'a [Rc<Node>]) -> Vec<(&RefCell<Light>, &Rc<Node>)> {
@@ -168,6 +184,24 @@ impl Renderer {
             (&self.default_light, &self.default_node)
         });
         lights
+    }
+
+    fn update_shadow(&self, mesh: &Mesh) {
+        if let Some(shadow) = self.shadow() {
+            if let Some(uniform) = mesh.material().uniform("shadow0") {
+                shadow.update_uniform(uniform);
+            }
+        }
+    }
+
+    fn update_lights(mesh: &Mesh, lights: &[(&RefCell<Light>, &Rc<Node>)]) {
+        if mesh.material().has_uniform("light0") {
+            lights.iter().enumerate().for_each(|(i, (light, _))| {
+                if let Some(uniform) = mesh.material().uniform(&format!("light{}", i)) {
+                    light.borrow().update_uniform(uniform);
+                }
+            });
+        }
     }
 }
 
@@ -181,8 +215,9 @@ fn viewport(context: &WebGl2RenderingContext, resolution: Resolution) {
     context.viewport(0, 0, resolution.width, resolution.height)
 }
 
-fn filter_meshes(nodes: &[Rc<Node>]) -> impl Iterator<Item = (&Mesh, &Rc<Node>)> {
+fn filter_meshes(nodes: &[Rc<Node>]) -> Vec<(&Mesh, &Rc<Node>)> {
     nodes
         .iter()
         .filter_map(|node| node.as_mesh().map(|mesh| (mesh, node)))
+        .collect()
 }

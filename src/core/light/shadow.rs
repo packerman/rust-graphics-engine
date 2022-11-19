@@ -110,17 +110,23 @@ impl Shadow {
         })
     }
 
-    pub fn update_internal(&self) {
+    pub fn update(&self) {
         self.camera.update();
         if let Some(camera) = self.camera.as_camera() {
             let camera = camera.borrow();
-            if let Some(mut view_matrix) = self.material.mat4_mut("viewMatrix") {
-                *view_matrix = *camera.view_matrix();
-            }
-            if let Some(mut projection_matrix) = self.material.mat4_mut("projectionMatrix") {
-                *projection_matrix = camera.projection_matrix();
-            }
+            self.material.set_view_matrix(*camera.view_matrix());
+            self.material
+                .set_projection_matrix(camera.projection_matrix());
         }
+    }
+
+    pub fn bind(&self, context: &WebGl2RenderingContext) {
+        self.render_target.bind(context);
+        context.viewport(0, 0, self.resolution.width, self.resolution.height);
+    }
+
+    pub fn material(&self) -> &Material {
+        &self.material
     }
 
     fn light_direction(&self) -> Vec3 {
