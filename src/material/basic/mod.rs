@@ -76,7 +76,6 @@ impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material {
     }
 }
 
-#[allow(dead_code)]
 pub enum LineType {
     Connected,
     Loop,

@@ -19,7 +19,6 @@ use super::{
     mesh::Mesh,
 };
 
-#[allow(dead_code)]
 pub enum Transform {
     Local,
     Global,
@@ -95,7 +94,7 @@ impl Node {
         }
     }
 
-    pub fn as_camera(&self) -> Option<&RefCell<Camera>> {
+    pub fn as_camera(&self) -> Option<&Rc<RefCell<Camera>>> {
         match &self.node_type {
             NodeType::Camera(camera) => Some(camera),
             _ => None,
@@ -116,7 +115,6 @@ impl Node {
         }
     }
 
-    #[allow(dead_code)]
     pub fn remove_child(&self, child: &Node) {
         match &self.node_type {
             NodeType::MovementRig(movement_rig) => movement_rig.remove_child(child),
@@ -196,19 +194,16 @@ impl Node {
         self.apply_matrix(&m, transform);
     }
 
-    #[allow(dead_code)]
     pub fn rotate_z(&self, angle: Angle, transform: Transform) {
         let m = matrix::rotation_z(angle);
         self.apply_matrix(&m, transform);
     }
 
-    #[allow(dead_code)]
     pub fn scale(&self, s: f32, transform: Transform) {
         let m = matrix::scale(s);
         self.apply_matrix(&m, transform);
     }
 
-    #[allow(dead_code)]
     pub fn position(&self) -> Vec3 {
         let transform = self.transform.borrow();
         glm::vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])

@@ -22,7 +22,6 @@ pub fn rotation_z(angle: Angle) -> Mat4 {
     glm::rotation(angle.to_radians(), &glm::vec3(0.0, 0.0, 1.0))
 }
 
-#[allow(dead_code)]
 pub fn scale(s: f32) -> Mat4 {
     glm::scaling(&glm::vec3(s, s, s))
 }
