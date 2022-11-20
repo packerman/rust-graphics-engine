@@ -36,6 +36,7 @@ void main()
 struct Example {
     program: WebGlProgram,
     position_attribute: Attribute,
+    #[allow(dead_code)]
     color_attribute: Attribute,
 }
 

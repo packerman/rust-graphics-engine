@@ -78,6 +78,7 @@ impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material {
 
 pub enum LineType {
     Connected,
+    #[allow(dead_code)]
     Loop,
     Segments,
 }

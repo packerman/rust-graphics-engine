@@ -39,6 +39,7 @@ pub fn tint(
     Ok(effect)
 }
 
+#[allow(dead_code)]
 pub fn invert(context: &WebGl2RenderingContext, sampler_2d: Sampler2D) -> Result<Effect> {
     create_basic(context, include_str!("invert.frag"), sampler_2d)
 }
@@ -55,6 +56,7 @@ pub fn pixelate(
     Ok(effect)
 }
 
+#[allow(dead_code)]
 pub fn vignette(
     context: &WebGl2RenderingContext,
     sampler_2d: Sampler2D,

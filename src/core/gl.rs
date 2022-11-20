@@ -153,6 +153,7 @@ pub fn check_framebuffer_status(context: &WebGl2RenderingContext, target: u32) -
     }
 }
 
+#[allow(dead_code)]
 pub fn get_supported_extensions(context: &WebGl2RenderingContext) -> Vec<String> {
     if let Some(extensions) = context.get_supported_extensions() {
         let mut result = Vec::with_capacity(extensions.length() as usize);

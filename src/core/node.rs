@@ -21,6 +21,7 @@ use super::{
 
 pub enum Transform {
     Local,
+    #[allow(dead_code)]
     Global,
 }
 
@@ -115,6 +116,7 @@ impl Node {
         }
     }
 
+    #[allow(dead_code)]
     pub fn remove_child(&self, child: &Node) {
         match &self.node_type {
             NodeType::MovementRig(movement_rig) => movement_rig.remove_child(child),
@@ -194,11 +196,13 @@ impl Node {
         self.apply_matrix(&m, transform);
     }
 
+    #[allow(dead_code)]
     pub fn rotate_z(&self, angle: Angle, transform: Transform) {
         let m = matrix::rotation_z(angle);
         self.apply_matrix(&m, transform);
     }
 
+    #[allow(dead_code)]
     pub fn scale(&self, s: f32, transform: Transform) {
         let m = matrix::scale(s);
         self.apply_matrix(&m, transform);

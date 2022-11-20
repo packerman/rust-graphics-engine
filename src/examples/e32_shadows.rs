@@ -90,7 +90,7 @@ impl AsyncCreator for Example {
                         TextureData::load_from_source("images/grid.png").await?,
                         Default::default(),
                     )?,
-                    TextureUnit::from(2),
+                    TextureUnit::from(0),
                 )
                 .into(),
                 ambient: ambient_color,
