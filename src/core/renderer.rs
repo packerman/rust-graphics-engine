@@ -39,6 +39,7 @@ pub struct Renderer {
     default_light: RefCell<Light>,
     light_count: usize,
     shadow: Option<Shadow>,
+    clear_color: Color,
 }
 
 impl Renderer {
@@ -52,7 +53,6 @@ impl Renderer {
         shadow: Option<Shadow>,
     ) -> Self {
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
-        gl::set_clear_color(context, &options.clear_color);
 
         if options.blending {
             context.enable(WebGl2RenderingContext::BLEND);
@@ -74,6 +74,7 @@ impl Renderer {
             default_light,
             light_count: options.light_count,
             shadow,
+            clear_color: options.clear_color,
         }
     }
 
@@ -113,39 +114,25 @@ impl Renderer {
         clear_mask: u32,
         render_target: Option<&RenderTarget>,
     ) {
-        let resolution: Resolution;
-        if let Some(render_target) = render_target {
-            render_target.bind(context);
-            resolution = render_target.resolution();
-        } else {
-            context.bind_framebuffer(WebGl2RenderingContext::FRAMEBUFFER, None);
-            resolution = self::get_canvas_size(context);
-        }
-        context.clear(clear_mask);
-        self.render_with_resolution(context, scene, camera, resolution)
-    }
-
-    fn render_with_resolution(
-        &self,
-        context: &WebGl2RenderingContext,
-        scene: &Node,
-        camera: &RefCell<Camera>,
-        resolution: Resolution,
-    ) {
-        self::viewport(context, resolution);
-
         let nodes = scene.descendants();
 
+        let resolution = self::get_resolution(context, render_target);
         nodes.iter().for_each(|node| {
             node.update_resolution(&resolution);
             node.update();
         });
 
-        let lights = self.filter_lights(&nodes);
-
-        let camera = &camera.borrow();
-        let meshes = filter_meshes(&nodes);
+        let meshes = Self::filter_meshes(&nodes);
         self.shadow_pass(context, &meshes);
+
+        let lights = self.filter_lights(&nodes);
+        let camera = &camera.borrow();
+
+        self::bind_render_target(context, render_target);
+        gl::set_clear_color(context, &self.clear_color);
+        context.clear(clear_mask);
+        self::viewport(context, resolution);
+
         meshes.iter().for_each(|(mesh, node)| {
             Self::update_lights(mesh, &lights);
             self.update_shadow(mesh);
@@ -159,7 +146,7 @@ impl Renderer {
     fn shadow_pass(&self, context: &WebGl2RenderingContext, meshes: &[(&Mesh, &Rc<Node>)]) {
         if let Some(shadow) = self.shadow() {
             shadow.bind(context);
-            context.clear_color(1.0, 1.0, 1.0, 1.0);
+            context.clear_color(1.0, 0.0, 0.0, 1.0);
             context.clear(
                 WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT,
             );
@@ -203,21 +190,40 @@ impl Renderer {
             });
         }
     }
+
+    fn filter_meshes(nodes: &[Rc<Node>]) -> Vec<(&Mesh, &Rc<Node>)> {
+        nodes
+            .iter()
+            .filter_map(|node| node.as_mesh().map(|mesh| (mesh, node)))
+            .collect()
+    }
 }
 
-pub fn get_canvas_size(context: &WebGl2RenderingContext) -> Resolution {
+pub fn get_canvas_resolution(context: &WebGl2RenderingContext) -> Resolution {
     let canvas = web::get_canvas(context).unwrap();
     let (width, height) = web::canvas_size(&canvas);
     Resolution::new(width as i32, height as i32)
 }
 
-fn viewport(context: &WebGl2RenderingContext, resolution: Resolution) {
-    context.viewport(0, 0, resolution.width, resolution.height)
+fn get_resolution(
+    context: &WebGl2RenderingContext,
+    render_target: Option<&RenderTarget>,
+) -> Resolution {
+    if let Some(render_target) = render_target {
+        render_target.resolution()
+    } else {
+        self::get_canvas_resolution(context)
+    }
 }
 
-fn filter_meshes(nodes: &[Rc<Node>]) -> Vec<(&Mesh, &Rc<Node>)> {
-    nodes
-        .iter()
-        .filter_map(|node| node.as_mesh().map(|mesh| (mesh, node)))
-        .collect()
+fn bind_render_target(context: &WebGl2RenderingContext, render_target: Option<&RenderTarget>) {
+    if let Some(render_target) = render_target {
+        render_target.bind(context);
+    } else {
+        context.bind_framebuffer(WebGl2RenderingContext::FRAMEBUFFER, None);
+    }
+}
+
+fn viewport(context: &WebGl2RenderingContext, resolution: Resolution) {
+    context.viewport(0, 0, resolution.width, resolution.height)
 }

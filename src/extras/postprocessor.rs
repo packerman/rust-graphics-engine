@@ -45,7 +45,7 @@ impl Postprocessor {
             scenes: vec![scene],
             cameras: vec![camera],
             render_targets: vec![render_target],
-            resolution: renderer::get_canvas_size(context),
+            resolution: renderer::get_canvas_resolution(context),
             geometry: Rc::new(self::create_geometry(context)?),
             texture_unit,
             default_camera: Camera::new_ortographic(Default::default()),

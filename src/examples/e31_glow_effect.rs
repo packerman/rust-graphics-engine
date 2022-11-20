@@ -148,7 +148,7 @@ impl AsyncCreator for Example {
             glow_scene.add_child(&glow_sphere);
         }
 
-        let resolution = renderer::get_canvas_size(context);
+        let resolution = renderer::get_canvas_resolution(context);
 
         let glow_target = RenderTarget::initialize(context, resolution)?;
         let glow_texture = glow_target.texture();
