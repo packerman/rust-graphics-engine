@@ -6,24 +6,33 @@ use web_sys::WebGl2RenderingContext;
 use crate::core::{
     color::Color,
     convert::FromWithContext,
-    light::Light,
+    light::{shadow::Shadow, Light},
     material::{Material, MaterialSettings, RenderSetting},
-    uniform::{
-        data::{Data, Sampler2D},
-        UpdateUniform,
-    },
+    uniform::data::{CreateDataFromType, CreateDataFromValue, Data, Sampler2D},
 };
 
-pub struct LambertMaterial {
+#[derive(Debug, Clone)]
+pub struct LambertMaterial<'a> {
     pub double_side: bool,
     pub texture: Option<Sampler2D>,
     pub ambient: Color,
     pub diffuse: Color,
     pub bump_texture: Option<Sampler2D>,
     pub bump_strength: f32,
+    pub shadow: Option<&'a Shadow>,
 }
 
-impl Default for LambertMaterial {
+impl LambertMaterial<'_> {
+    fn texture(&self) -> Option<Sampler2D> {
+        self.texture.clone()
+    }
+
+    fn bump_texture(&self) -> Option<Sampler2D> {
+        self.bump_texture.clone()
+    }
+}
+
+impl Default for LambertMaterial<'_> {
     fn default() -> Self {
         Self {
             double_side: true,
@@ -32,22 +41,23 @@ impl Default for LambertMaterial {
             diffuse: Color::white(),
             bump_texture: None,
             bump_strength: 1.0,
+            shadow: None,
         }
     }
 }
 
 pub fn create(
     context: &WebGl2RenderingContext,
-    flat_material: LambertMaterial,
+    lambert_material: LambertMaterial,
 ) -> Result<Rc<Material>> {
-    let render_settings = vec![RenderSetting::CullFace(!flat_material.double_side)];
-    Material::from_with_context(
+    let render_settings = vec![RenderSetting::CullFace(!lambert_material.double_side)];
+    let mut material = Material::from_with_context(
         context,
         MaterialSettings {
             vertex_shader: include_str!("vertex.glsl"),
             fragment_shader: include_str!("fragment.glsl"),
             uniforms: vec![
-                ("material", self::create_material_struct(flat_material)),
+                ("material", self::create_material_struct(&lambert_material)),
                 ("light0", Light::create_data()),
                 ("light1", Light::create_data()),
                 ("light2", Light::create_data()),
@@ -56,18 +66,24 @@ pub fn create(
             render_settings,
             draw_style: WebGl2RenderingContext::TRIANGLES,
         },
-    )
-    .map(Rc::new)
+    )?;
+    if let Some(shadow) = lambert_material.shadow {
+        material.add_uniform(context, "useShadow", true);
+        material.add_uniform(context, "shadow0", shadow.create_data());
+    } else {
+        material.add_uniform(context, "useShadow", false);
+    }
+    Ok(Rc::new(material))
 }
 
-fn create_material_struct(material: LambertMaterial) -> Data {
+fn create_material_struct(material: &LambertMaterial) -> Data {
     let mut members = HashMap::from([
         ("ambient", Data::from(material.ambient)),
         ("diffuse", Data::from(material.diffuse)),
     ]);
 
     let use_texture: bool;
-    if let Some(sampler) = material.texture {
+    if let Some(sampler) = material.texture() {
         use_texture = true;
         members.insert("texture0", Data::from(sampler));
     } else {
@@ -76,7 +92,7 @@ fn create_material_struct(material: LambertMaterial) -> Data {
     members.insert("useTexture", Data::from(use_texture));
 
     let use_bump_texture: bool;
-    if let Some(sampler) = material.bump_texture {
+    if let Some(sampler) = material.bump_texture() {
         use_bump_texture = true;
         members.insert("bumpTexture", Data::from(sampler));
     } else {

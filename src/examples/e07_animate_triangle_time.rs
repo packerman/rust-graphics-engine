@@ -72,11 +72,11 @@ impl AsyncCreator for Example {
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
         let t = self.frame as f32 / 60.0;
-        if let Some(mut translation) = self.translation.vec3_mut() {
+        if let Some(mut translation) = self.translation.as_mut_vec3() {
             translation[0] = 0.75 * t.cos();
             translation[1] = 0.75 * t.sin();
         }
-        if let Some(mut color) = self.base_color.color_mut() {
+        if let Some(mut color) = self.base_color.as_mut_vec4() {
             color[0] = (t.sin() + 1.0) / 2.0;
             color[1] = ((t + 2.1).sin() + 1.0) / 2.0;
             color[2] = ((t + 4.2).sin() + 1.0) / 2.0;

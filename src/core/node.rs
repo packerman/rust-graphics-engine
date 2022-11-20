@@ -15,13 +15,13 @@ use super::{
     camera::Camera,
     input::KeyState,
     light::Light,
-    math::{angle::Angle, matrix},
+    math::{angle::Angle, matrix, resolution::Resolution},
     mesh::Mesh,
 };
 
-#[allow(dead_code)]
 pub enum Transform {
     Local,
+    #[allow(dead_code)]
     Global,
 }
 
@@ -74,7 +74,7 @@ impl Node {
 
     pub fn new_light(light: RefCell<Light>) -> Rc<Self> {
         let node = Self::new(NodeType::Light(light));
-        node.light().unwrap().borrow().update_node(&node);
+        node.as_light().unwrap().borrow().update_node(&node);
         node
     }
 
@@ -88,21 +88,21 @@ impl Node {
         })
     }
 
-    pub fn mesh(&self) -> Option<&Mesh> {
+    pub fn as_mesh(&self) -> Option<&Mesh> {
         match &self.node_type {
             NodeType::Mesh(mesh) => Some(mesh),
             _ => None,
         }
     }
 
-    pub fn camera(&self) -> Option<&RefCell<Camera>> {
+    pub fn as_camera(&self) -> Option<&Rc<RefCell<Camera>>> {
         match &self.node_type {
             NodeType::Camera(camera) => Some(camera),
             _ => None,
         }
     }
 
-    pub fn light(&self) -> Option<&RefCell<Light>> {
+    pub fn as_light(&self) -> Option<&RefCell<Light>> {
         match &self.node_type {
             NodeType::Light(light) => Some(light),
             _ => None,
@@ -157,9 +157,27 @@ impl Node {
         };
     }
 
-    pub fn update(&self, key_state: &KeyState) {
+    pub fn update_key_state(&self, key_state: &KeyState) {
         if let NodeType::MovementRig(movement_rig) = &self.node_type {
             movement_rig.update(key_state, self)
+        }
+    }
+
+    pub fn update(&self) {
+        match &self.node_type {
+            NodeType::Camera(camera) => {
+                camera.borrow_mut().update_world_matrix(self.world_matrix());
+            }
+            NodeType::Light(light) => {
+                light.borrow_mut().update_from_node(self);
+            }
+            _ => {}
+        }
+    }
+
+    pub fn update_resolution(&self, resolution: &Resolution) {
+        if let NodeType::Camera(camera) = &self.node_type {
+            camera.borrow_mut().set_aspect_ratio(resolution.ratio());
         }
     }
 
@@ -190,7 +208,6 @@ impl Node {
         self.apply_matrix(&m, transform);
     }
 
-    #[allow(dead_code)]
     pub fn position(&self) -> Vec3 {
         let transform = self.transform.borrow();
         glm::vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])

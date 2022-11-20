@@ -36,15 +36,26 @@ impl Mesh {
 
     pub fn render(&self, context: &WebGl2RenderingContext, camera: &Camera, model_matrix: Mat4) {
         if self.visible {
-            context.use_program(Some(self.material.program()));
-            context.bind_vertex_array(Some(self.vao()));
-            self.material.set_model_matrix(model_matrix);
+            self.material.use_program(context);
             self.material.set_view_matrix(*camera.view_matrix());
             self.material
                 .set_projection_matrix(camera.projection_matrix());
-            self.material.upload_uniform_data(context);
-            self.material.update_render_settings(context);
-            context.draw_arrays(self.material.draw_style, 0, self.geometry.count_vertices())
+            self.render_with_material(context, &self.material, model_matrix)
+        }
+    }
+
+    pub fn render_with_material(
+        &self,
+        context: &WebGl2RenderingContext,
+        material: &Material,
+        model_matrix: Mat4,
+    ) {
+        if self.visible {
+            context.bind_vertex_array(self.vao().into());
+            material.set_model_matrix(model_matrix);
+            material.upload_uniform_data(context);
+            material.update_render_settings(context);
+            context.draw_arrays(material.draw_style, 0, self.geometry.count_vertices())
         }
     }
 
@@ -54,6 +65,10 @@ impl Mesh {
 
     pub fn material(&self) -> &Material {
         &self.material
+    }
+
+    pub fn is_triangle_based(&self) -> bool {
+        self.material.is_triangle_based()
     }
 
     fn vao(&self) -> &WebGlVertexArrayObject {

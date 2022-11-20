@@ -39,6 +39,10 @@ impl Material {
         &self.program
     }
 
+    pub fn use_program(&self, context: &WebGl2RenderingContext) {
+        context.use_program(Some(&self.program));
+    }
+
     pub fn set_model_matrix(&self, matrix: Mat4) {
         Self::set_matrix_uniform(self.model_matrix.as_ref(), matrix);
     }
@@ -80,15 +84,21 @@ impl Material {
         self.uniforms.contains_key(name)
     }
 
+    pub fn is_triangle_based(&self) -> bool {
+        self.draw_style == WebGl2RenderingContext::TRIANGLES
+            || self.draw_style == WebGl2RenderingContext::TRIANGLE_STRIP
+            || self.draw_style == WebGl2RenderingContext::TRIANGLE_FAN
+    }
+
     pub fn vec3_mut(&self, name: &str) -> Option<RefMut<Vec3>> {
         self.uniforms
             .get(name)
-            .and_then(|uniform| uniform.vec3_mut())
+            .and_then(|uniform| uniform.as_mut_vec3())
     }
 
     fn set_matrix_uniform(uniform: Option<&Uniform>, matrix: Mat4) {
         if let Some(uniform) = uniform {
-            let mut m = uniform.mat4_mut().unwrap();
+            let mut m = uniform.as_mut_mat4().unwrap();
             *m = matrix;
         }
     }

@@ -2,6 +2,8 @@ use std::ops::{Index, IndexMut};
 
 use glm::{Vec3, Vec4};
 
+use super::uniform::data::Data;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Color(Vec4);
 
@@ -118,9 +120,21 @@ impl From<Color> for Vec3 {
     }
 }
 
+impl From<Color> for Vec4 {
+    fn from(color: Color) -> Self {
+        color.0
+    }
+}
+
 impl From<&Color> for Vec<f32> {
     fn from(color: &Color) -> Self {
         vec![color.0.x, color.0.y, color.0.z, color.0.w]
+    }
+}
+
+impl From<Color> for Data {
+    fn from(color: Color) -> Self {
+        Data::from(color.0)
     }
 }
 

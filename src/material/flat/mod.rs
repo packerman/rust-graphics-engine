@@ -8,10 +8,7 @@ use crate::core::{
     convert::FromWithContext,
     light::Light,
     material::{Material, MaterialSettings, RenderSetting},
-    uniform::{
-        data::{Data, Sampler2D},
-        UpdateUniform,
-    },
+    uniform::data::{CreateDataFromType, Data, Sampler2D},
 };
 
 pub struct FlatMaterial {

@@ -73,7 +73,7 @@ impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         let distance = SPEED / 60.0;
 
-        if let Some(mut translation) = self.translation.vec3_mut() {
+        if let Some(mut translation) = self.translation.as_mut_vec3() {
             if key_state.is_pressed("ArrowLeft") {
                 translation[0] -= distance;
             }

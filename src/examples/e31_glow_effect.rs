@@ -41,12 +41,13 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let renderer = Rc::new(Renderer::new(
+        let renderer = Rc::new(Renderer::initialize(
             context,
             RendererOptions {
                 clear_color: Color::black(),
                 ..Default::default()
             },
+            None,
         ));
         let scene = Node::new_group();
 
@@ -147,7 +148,7 @@ impl AsyncCreator for Example {
             glow_scene.add_child(&glow_sphere);
         }
 
-        let resolution = renderer::get_canvas_size(context);
+        let resolution = renderer::get_canvas_resolution(context);
 
         let glow_target = RenderTarget::initialize(context, resolution)?;
         let glow_texture = glow_target.texture();

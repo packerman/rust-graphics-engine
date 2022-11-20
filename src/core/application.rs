@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::{anyhow, Result};
 
@@ -56,9 +56,7 @@ impl Loop {
         };
         let mut key_state = KeyState::new();
         let mut keyboard_input = KeyboardInput::prepare(canvas);
-        let f = Rc::new(RefCell::new(None));
-        let g = f.clone();
-        *g.borrow_mut() = Some(Closure::wrap(Box::new(move |current_time| {
+        web::request_animation_loop(move |current_time| {
             keyboard_input.process(&mut key_state);
             let elapsed = current_time - state.previous_time;
             state.previous_time = current_time;
@@ -68,18 +66,7 @@ impl Loop {
                 state.lag -= Self::MS_PER_UPDATE;
             }
             app.render(&context);
-            web::request_animation_frame(
-                f.borrow()
-                    .as_ref()
-                    .expect("Empty reference to the `requestAnimationFrame` callback"),
-            )
-            .expect("Cannot run `requestAnimationFrame`");
-        }) as Box<dyn FnMut(f64)>));
-        web::request_animation_frame(
-            g.borrow().as_ref().ok_or_else(|| {
-                anyhow!("Empty reference to the `requestAnimationFrame` callback")
-            })?,
-        )?;
+        })?;
         Ok(())
     }
 }

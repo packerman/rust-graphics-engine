@@ -30,7 +30,7 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let renderer = Renderer::new(context, Default::default());
+        let renderer = Renderer::initialize(context, Default::default(), None);
         let scene = Node::new_group();
 
         let camera = Camera::new_perspective(Default::default());

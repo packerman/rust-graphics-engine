@@ -17,20 +17,6 @@ pub struct RenderTarget {
 }
 
 impl RenderTarget {
-    pub fn bind(&self, context: &WebGl2RenderingContext) {
-        context.bind_framebuffer(WebGl2RenderingContext::FRAMEBUFFER, Some(&self.framebuffer));
-    }
-
-    pub fn resolution(&self) -> Resolution {
-        self.resolution
-    }
-
-    pub fn texture(&self) -> Rc<Texture> {
-        Rc::clone(&self.texture)
-    }
-}
-
-impl RenderTarget {
     pub fn initialize(context: &WebGl2RenderingContext, resolution: Resolution) -> Result<Self> {
         Self::initialize_with_texture(
             context,
@@ -74,6 +60,18 @@ impl RenderTarget {
             framebuffer,
             texture,
         })
+    }
+
+    pub fn bind(&self, context: &WebGl2RenderingContext) {
+        context.bind_framebuffer(WebGl2RenderingContext::FRAMEBUFFER, Some(&self.framebuffer));
+    }
+
+    pub fn resolution(&self) -> Resolution {
+        self.resolution
+    }
+
+    pub fn texture(&self) -> Rc<Texture> {
+        Rc::clone(&self.texture)
     }
 
     fn create_texture(

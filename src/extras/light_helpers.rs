@@ -30,6 +30,7 @@ impl Default for DirectionalLightHelper {
 
 impl DirectionalLightHelper {
     pub fn create_mesh(self, context: &WebGl2RenderingContext, light: &Light) -> Result<Mesh> {
+        assert!(light.is_directional());
         let color = light.color;
         let mut mesh = Mesh::from_with_context(
             context,

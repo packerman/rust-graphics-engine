@@ -32,7 +32,7 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let renderer = Renderer::new(context, RendererOptions::default());
+        let renderer = Renderer::initialize(context, RendererOptions::default(), None);
         let scene = Node::new_group();
 
         let camera = Camera::new_perspective(Default::default());
@@ -105,7 +105,7 @@ impl AsyncCreator for Example {
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
         if let Some(uniform) = self.blend_material.uniform("time") {
-            if let Some(mut time) = uniform.float_mut() {
+            if let Some(mut time) = uniform.as_mut_float() {
                 *time = (web::now().unwrap() / 1000.0) as f32;
             }
         }

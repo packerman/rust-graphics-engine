@@ -36,12 +36,13 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let renderer = Renderer::new(
+        let renderer = Renderer::initialize(
             context,
             RendererOptions {
                 clear_color: Color::dark_slate_gray(),
                 ..Default::default()
             },
+            None,
         );
         let scene = Node::new_group();
 
@@ -76,14 +77,14 @@ impl AsyncCreator for Example {
 impl Application for Example {
     fn update(&mut self, key_state: &KeyState) {
         let tile_number = ((web::now().unwrap() as f32) * self.tiles_per_second / 1000.0).floor();
-        if let Some(mesh) = self.sprite.mesh() {
+        if let Some(mesh) = self.sprite.as_mesh() {
             if let Some(uniform) = mesh.material().uniform("tileNumber") {
-                if let Some(mut data) = uniform.float_mut() {
+                if let Some(mut data) = uniform.as_mut_float() {
                     *data = tile_number;
                 }
             }
         }
-        self.rig.update(key_state);
+        self.rig.update_key_state(key_state);
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
