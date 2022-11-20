@@ -50,9 +50,9 @@ impl From<CameraBounds> for Ortographic {
 
 #[derive(Debug, Clone, Copy)]
 pub struct ShadowOptions {
-    strength: f32,
-    camera_bounds: CameraBounds,
-    bias: f32,
+    pub strength: f32,
+    pub camera_bounds: CameraBounds,
+    pub bias: f32,
 }
 
 impl Default for ShadowOptions {

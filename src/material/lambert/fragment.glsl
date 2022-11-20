@@ -98,8 +98,8 @@ void main() {
     total += lightCalc(light1, position, bumpNormal);
     total += lightCalc(light2, position, bumpNormal);
     total += lightCalc(light3, position, bumpNormal);
+    total += material.ambient;
     color *= vec4(total.xyz, 1.0);
-    color += material.ambient;
     if (useShadow && fragmentInShadow()) {
         float s = 1.0 - shadow0.strength;
         color *= vec4(s, s, s, 1.0);
