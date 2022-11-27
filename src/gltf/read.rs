@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
+use anyhow::{anyhow, Result};
 use serde::Deserialize;
+
+use crate::core::web;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -73,4 +76,9 @@ struct Node {
 #[derive(Debug, Deserialize)]
 struct Scene {
     nodes: Vec<usize>,
+}
+
+pub async fn fetch_gltf(uri: &str) -> Result<Gltf> {
+    serde_wasm_bindgen::from_value(web::fetch_json(uri).await?)
+        .map_err(|error| anyhow!("Error while fetching glTF from {}: {:#?}", uri, error))
 }

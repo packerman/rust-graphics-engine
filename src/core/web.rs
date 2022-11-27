@@ -45,25 +45,30 @@ pub fn get_canvas_by_id(id: &str) -> Result<HtmlCanvasElement> {
         .get_element_by_id(id)
         .ok_or_else(|| anyhow!("Cannot find element with id {:#?}", id))?
         .dyn_into::<HtmlCanvasElement>()
-        .map_err(|err| anyhow!("Cannot cast element {:#?} to HtmlCanvasElement", err))
+        .map_err(|error| anyhow!("Cannot cast element {:#?} to HtmlCanvasElement", error))
 }
 
 pub fn get_webgl2_context(canvas: &HtmlCanvasElement) -> Result<WebGl2RenderingContext> {
     canvas
         .get_context("webgl2")
-        .map_err(|err| anyhow!("Error when getting webgl2 context: {:#?}", err))?
+        .map_err(|error| anyhow!("Error when getting webgl2 context: {:#?}", error))?
         .ok_or_else(|| anyhow!("Cannot find webgl2 context"))?
         .dyn_into::<WebGl2RenderingContext>()
-        .map_err(|err| anyhow!("Cannot cast element {:#?} to WebGl2RenderingContext", err))
+        .map_err(|error| anyhow!("Cannot cast element {:#?} to WebGl2RenderingContext", error))
 }
 
 pub fn get_2d_context(canvas: &HtmlCanvasElement) -> Result<CanvasRenderingContext2d> {
     canvas
         .get_context("2d")
-        .map_err(|err| anyhow!("Error when getting 2d context: {:#?}", err))?
+        .map_err(|error| anyhow!("Error when getting 2d context: {:#?}", error))?
         .ok_or_else(|| anyhow!("Cannot find 2d context"))?
         .dyn_into::<CanvasRenderingContext2d>()
-        .map_err(|err| anyhow!("Cannot cast element {:#?} to CanvasRenderingContext2d", err))
+        .map_err(|error| {
+            anyhow!(
+                "Cannot cast element {:#?} to CanvasRenderingContext2d",
+                error
+            )
+        })
 }
 
 pub fn performance() -> Result<Performance> {
@@ -82,7 +87,7 @@ pub fn request_animation_frame(f: &Closure<dyn FnMut(f64)>) -> Result<i32> {
     window().and_then(|window| {
         window
             .request_animation_frame(f.as_ref().unchecked_ref())
-            .map_err(|err| anyhow!("Cannot register requestAnimationFrame: {:#?}", err))
+            .map_err(|error| anyhow!("Cannot register requestAnimationFrame: {:#?}", error))
     })
 }
 
@@ -113,12 +118,12 @@ pub fn window_inner_size(window: &Window) -> Result<(f64, f64)> {
     Ok((
         window
             .inner_width()
-            .map_err(|err| anyhow!("Error when getting window inner width: {:#?}", err))?
+            .map_err(|error| anyhow!("Error when getting window inner width: {:#?}", error))?
             .as_f64()
             .ok_or_else(|| anyhow!("Cannot cast width to f64"))?,
         window
             .inner_height()
-            .map_err(|err| anyhow!("Error when getting window inner height: {:#?}", err))?
+            .map_err(|error| anyhow!("Error when getting window inner height: {:#?}", error))?
             .as_f64()
             .ok_or_else(|| anyhow!("Cannot cast width to f64"))?,
     ))
@@ -138,7 +143,7 @@ pub fn get_canvas(context: &WebGl2RenderingContext) -> Result<HtmlCanvasElement>
         .canvas()
         .ok_or_else(|| anyhow!("Cannot find canvas"))?
         .dyn_into::<HtmlCanvasElement>()
-        .map_err(|err| anyhow!("Cannot cast element {:#?} to WebGl2RenderingContext", err))
+        .map_err(|error| anyhow!("Cannot cast element {:#?} to WebGl2RenderingContext", error))
 }
 
 pub fn new_image() -> Result<HtmlImageElement> {
@@ -148,9 +153,9 @@ pub fn new_image() -> Result<HtmlImageElement> {
 pub fn new_canvas(width: u32, height: u32) -> Result<HtmlCanvasElement> {
     let canvas = document()?
         .create_element("canvas")
-        .map_err(|err| anyhow!("Cannot create HtmlCanvasElement: {:#?}", err))?
+        .map_err(|error| anyhow!("Cannot create HtmlCanvasElement: {:#?}", error))?
         .dyn_into::<HtmlCanvasElement>()
-        .map_err(|err| anyhow!("Cannot cast element {:#?} to HtmlCanvasElement", err))?;
+        .map_err(|error| anyhow!("Cannot cast element {:#?} to HtmlCanvasElement", error))?;
     canvas.set_width(width);
     canvas.set_height(height);
     Ok(canvas)
@@ -170,9 +175,21 @@ where
     wasm_bindgen_futures::spawn_local(future)
 }
 
-pub async fn fetch(uri: &str) -> Result<Response> {
+async fn fetch(uri: &str) -> Result<Response> {
     JsFuture::from(self::window()?.fetch_with_str(uri))
-        .await?
+        .await
+        .map_err(|err| anyhow!("Error while fetching '{}': {:#?}", uri, err))?
         .dyn_into::<Response>()
-        .map_err(|err| anyhow!("Error while fetching '{}': {:#?}", uri, err))
+        .map_err(|error| anyhow!("Error while casting {} to Response: {:#?}", uri, error))
+}
+
+pub async fn fetch_json(uri: &str) -> Result<JsValue> {
+    let response = self::fetch(uri).await?;
+    JsFuture::from(
+        response
+            .json()
+            .map_err(|error| anyhow!("Error while fetching JSON from {}: {:#?}", uri, error))?,
+    )
+    .await
+    .map_err(|error| anyhow!("Error while fetching JSON from {}: {:#?}", uri, error))
 }
