@@ -3,8 +3,9 @@ use std::{cell::RefCell, rc::Rc};
 use anyhow::{anyhow, Result};
 use futures::Future;
 use wasm_bindgen::{closure::WasmClosureFnOnce, prelude::*, JsCast};
+use wasm_bindgen_futures::JsFuture;
 use web_sys::{
-    CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlImageElement, Performance,
+    CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlImageElement, Performance, Response,
     WebGl2RenderingContext, Window,
 };
 
@@ -167,4 +168,11 @@ where
     F: Future<Output = ()> + 'static,
 {
     wasm_bindgen_futures::spawn_local(future)
+}
+
+pub async fn fetch(uri: &str) -> Result<Response> {
+    JsFuture::from(self::window()?.fetch_with_str(uri))
+        .await?
+        .dyn_into::<Response>()
+        .map_err(|err| anyhow!("Error while fetching '{}': {:#?}", uri, err))
 }
