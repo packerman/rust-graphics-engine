@@ -42,7 +42,7 @@ fn khronos_sample(name: &str, variant: Variant) -> String {
     format!(
         "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/{}/{}/{}.{}",
         name,
-        variant.to_string(),
+        variant,
         name,
         variant.extension()
     )
