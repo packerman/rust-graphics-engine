@@ -5,21 +5,24 @@ use serde::Deserialize;
 
 use crate::core::web;
 
+type Integer = i32;
+type Number = f64;
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Accessor {
-    buffer_view: Option<usize>,
+    buffer_view: Option<Integer>,
     #[serde(default = "default_byte_offset")]
-    byte_offset: usize,
-    component_type: usize,
-    count: usize,
+    byte_offset: Integer,
+    component_type: Integer,
+    count: Integer,
     #[serde(rename = "type")]
     accessor_type: String,
-    min: Option<Vec<f64>>,
-    max: Option<Vec<f64>>,
+    min: Option<Vec<Number>>,
+    max: Option<Vec<Number>>,
 }
 
-fn default_byte_offset() -> usize {
+fn default_byte_offset() -> Integer {
     0
 }
 
@@ -32,29 +35,29 @@ struct Asset {
 #[serde(rename_all = "camelCase")]
 struct Buffer {
     uri: Option<String>,
-    byte_length: usize,
+    byte_length: Integer,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct BufferView {
-    buffer: usize,
+    buffer: Integer,
     #[serde(default = "default_byte_offset")]
-    byte_offset: usize,
-    byte_length: Option<usize>,
-    target: Option<usize>,
+    byte_offset: Integer,
+    byte_length: Option<Integer>,
+    target: Option<Integer>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct Gltf {
+pub struct Gltf {
     asset: Asset,
     accessors: Vec<Accessor>,
     buffers: Vec<Buffer>,
     buffer_views: Vec<BufferView>,
     meshes: Vec<Mesh>,
     nodes: Vec<Node>,
-    scene: Option<usize>,
+    scene: Option<Integer>,
     scenes: Vec<Scene>,
 }
 
@@ -65,17 +68,17 @@ struct Mesh {
 
 #[derive(Debug, Deserialize)]
 struct Primitive {
-    attributes: HashMap<String, usize>,
+    attributes: HashMap<String, Integer>,
 }
 
 #[derive(Debug, Deserialize)]
 struct Node {
-    mesh: Option<usize>,
+    mesh: Option<Integer>,
 }
 
 #[derive(Debug, Deserialize)]
 struct Scene {
-    nodes: Vec<usize>,
+    nodes: Vec<Integer>,
 }
 
 pub async fn fetch_gltf(uri: &str) -> Result<Gltf> {

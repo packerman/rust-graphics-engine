@@ -6,7 +6,6 @@ use std::{
     ops::Deref,
 };
 
-use anyhow::{anyhow, Result};
 use glm::{Mat4, Vec2, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
@@ -104,16 +103,6 @@ impl Uniform {
             }
             Data::Struct { members } => Self::from_members(context, program, name, members),
         }
-    }
-
-    pub fn try_from_data(
-        context: &WebGl2RenderingContext,
-        program: &WebGlProgram,
-        name: &str,
-        data: Data,
-    ) -> Result<Self> {
-        Self::from_data(context, program, name, data)
-            .ok_or_else(|| anyhow!("Cannot find uniform {:#?}", name))
     }
 
     pub fn from_default<T>(
