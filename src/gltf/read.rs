@@ -1,9 +1,14 @@
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
+use js_sys::ArrayBuffer;
 use serde::Deserialize;
+use url::Url;
+use web_sys::WebGl2RenderingContext;
 
 use crate::core::web;
+
+use super::validate::{self, Validate};
 
 type Integer = i32;
 type Number = f64;
@@ -13,7 +18,7 @@ type Number = f64;
 struct Accessor {
     buffer_view: Option<Integer>,
     #[serde(default = "default_byte_offset")]
-    byte_offset: Integer,
+    byte_offset: u32,
     component_type: Integer,
     count: Integer,
     #[serde(rename = "type")]
@@ -22,7 +27,7 @@ struct Accessor {
     max: Option<Vec<Number>>,
 }
 
-fn default_byte_offset() -> Integer {
+fn default_byte_offset() -> u32 {
     0
 }
 
@@ -33,19 +38,34 @@ struct Asset {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct Buffer {
-    uri: Option<String>,
+pub struct Buffer {
+    pub uri: Option<String>,
     byte_length: Integer,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct BufferView {
-    buffer: Integer,
+pub struct BufferView {
+    pub buffer: Integer,
     #[serde(default = "default_byte_offset")]
-    byte_offset: Integer,
-    byte_length: Option<Integer>,
-    target: Option<Integer>,
+    pub byte_offset: u32,
+    pub byte_length: Option<u32>,
+    pub target: Option<u32>,
+}
+
+const TARGETS: [u32; 2] = [
+    WebGl2RenderingContext::ARRAY_BUFFER,
+    WebGl2RenderingContext::ELEMENT_ARRAY_BUFFER,
+];
+
+impl Validate for BufferView {
+    fn validate(&self) -> Result<()> {
+        validate::optional(&self.target, |target| {
+            validate::contains(target, &TARGETS, |value| {
+                anyhow!("Unkown target: {}", value)
+            })
+        })
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -53,7 +73,7 @@ struct BufferView {
 pub struct Gltf {
     asset: Asset,
     accessors: Vec<Accessor>,
-    buffers: Vec<Buffer>,
+    pub buffers: Vec<Buffer>,
     buffer_views: Vec<BufferView>,
     meshes: Vec<Mesh>,
     nodes: Vec<Node>,
@@ -84,4 +104,17 @@ struct Scene {
 pub async fn fetch_gltf(uri: &str) -> Result<Gltf> {
     serde_wasm_bindgen::from_value(web::fetch_json(uri).await?)
         .map_err(|error| anyhow!("Error while fetching glTF from {}: {:#?}", uri, error))
+}
+
+pub async fn fetch_buffers(base_url: &Url, buffers: &[Buffer]) -> Result<Vec<ArrayBuffer>> {
+    let mut array_buffers = Vec::with_capacity(buffers.len());
+    for (i, buffer) in buffers.iter().enumerate() {
+        let relative_uri = buffer
+            .uri
+            .as_ref()
+            .ok_or_else(|| anyhow!("Undefined url in buffer[{}]", i))?;
+        let url = base_url.join(relative_uri)?;
+        array_buffers.push(web::fetch_array_buffer(url.as_str()).await?);
+    }
+    Ok(array_buffers)
 }
