@@ -2,7 +2,7 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
-    color::Color,
+    color::{self, Color},
     convert::FromWithContext,
     material::{Material, MaterialSettings, RenderSetting},
     uniform::data::Data,
@@ -16,7 +16,7 @@ pub struct BasicMaterial {
 impl Default for BasicMaterial {
     fn default() -> Self {
         Self {
-            base_color: Color::white(),
+            base_color: color::white(),
             use_vertex_colors: false,
         }
     }

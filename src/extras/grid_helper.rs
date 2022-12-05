@@ -5,8 +5,12 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     core::{
-        attribute::AttributeData, color::Color, convert::FromWithContext, geometry::Geometry,
-        material::Material, mesh::Mesh,
+        attribute::AttributeData,
+        color::{self, Color},
+        convert::FromWithContext,
+        geometry::Geometry,
+        material::Material,
+        mesh::Mesh,
     },
     material::basic::{BasicMaterial, LineMaterial, LineType},
 };
@@ -24,8 +28,8 @@ impl Default for GridHelper {
         Self {
             size: 10.0,
             divisions: 10,
-            grid_color: Color::black(),
-            center_color: Color::gray(),
+            grid_color: color::black(),
+            center_color: color::gray(),
             line_width: 1.0,
         }
     }

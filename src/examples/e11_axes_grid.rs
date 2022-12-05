@@ -8,7 +8,7 @@ use crate::{
     core::{
         application::{self, Application, AsyncCreator},
         camera::Camera,
-        color::Color,
+        color::{self},
         convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
@@ -50,8 +50,8 @@ impl AsyncCreator for Example {
             context,
             GridHelper {
                 size: 20.0,
-                grid_color: Color::white(),
-                center_color: Color::yellow(),
+                grid_color: color::white(),
+                center_color: color::yellow(),
                 ..Default::default()
             },
         )?;

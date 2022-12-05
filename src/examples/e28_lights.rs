@@ -8,7 +8,7 @@ use crate::{
     core::{
         application::{self, Application, AsyncCreator},
         camera::Camera,
-        color::Color,
+        color,
         convert::FromWithContext,
         geometry::Geometry,
         input::KeyState,
@@ -47,12 +47,12 @@ impl AsyncCreator for Example {
         }
 
         let directional = Node::new_light(Light::directional(
-            Color::new_rgb(0.8, 0.8, 0.8),
+            color::rgb(0.8, 0.8, 0.8),
             glm::vec3(-1.0, -1.0, -2.0),
         ));
         scene.add_child(&directional);
         let point = Node::new_light(Light::point(
-            Color::new_rgb(0.9, 0.0, 0.0),
+            color::rgb(0.9, 0.0, 0.0),
             glm::vec3(1.0, 1.0, 0.8),
         ));
         scene.add_child(&point);
@@ -78,8 +78,8 @@ impl AsyncCreator for Example {
                 material::flat::create(
                     context,
                     FlatMaterial {
-                        ambient: Color::new_rgb(0.1, 0.1, 0.1),
-                        diffuse: Color::new_rgb(0.6, 0.2, 0.2),
+                        ambient: color::rgb(0.1, 0.1, 0.1),
+                        diffuse: color::rgb(0.6, 0.2, 0.2),
                         ..Default::default()
                     },
                 )?,
@@ -94,7 +94,7 @@ impl AsyncCreator for Example {
                 material::lambert::create(
                     context,
                     LambertMaterial {
-                        ambient: Color::new_rgb(0.1, 0.1, 0.1),
+                        ambient: color::rgb(0.1, 0.1, 0.1),
                         texture: Sampler2D::new(
                             Texture::initialize(
                                 context,
@@ -118,8 +118,8 @@ impl AsyncCreator for Example {
                 material::phong::create(
                     context,
                     PhongMaterial {
-                        ambient: Color::new_rgb(0.1, 0.1, 0.1),
-                        diffuse: Color::new_rgb(0.5, 0.5, 1.0),
+                        ambient: color::rgb(0.1, 0.1, 0.1),
+                        diffuse: color::rgb(0.5, 0.5, 1.0),
                         ..Default::default()
                     },
                 )?,

@@ -5,7 +5,7 @@ use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
-    color::Color,
+    color::{self, Color},
     convert::FromWithContext,
     material::{Material, MaterialSettings, RenderSetting},
     texture::{Texture, TextureUnit},
@@ -23,7 +23,7 @@ pub struct SpriteMaterial {
 impl Default for SpriteMaterial {
     fn default() -> Self {
         Self {
-            base_color: Color::white(),
+            base_color: color::white(),
             billboard: false,
             tile_number: -1.0,
             tile_count: glm::vec2(1.0, 1.0),

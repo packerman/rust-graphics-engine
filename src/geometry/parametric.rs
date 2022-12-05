@@ -9,7 +9,7 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
     attribute::AttributeData,
-    color::Color,
+    color,
     convert::FromWithContext,
     geometry::Geometry,
     math::{angle::Angle, matrix},
@@ -81,12 +81,12 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
         }
 
         let colors = [
-            Color::red(),
-            Color::lime(),
-            Color::blue(),
-            Color::aqua(),
-            Color::fuchsia(),
-            Color::yellow(),
+            color::red(),
+            color::lime(),
+            color::blue(),
+            color::aqua(),
+            color::fuchsia(),
+            color::yellow(),
         ];
 
         let mut vertex_normal_data =

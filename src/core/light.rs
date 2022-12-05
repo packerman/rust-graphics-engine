@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use glm::Vec3;
 
 use super::{
-    color::Color,
+    color::{self, Color},
     node::Node,
     uniform::{
         data::{CreateDataFromType, Data},
@@ -117,7 +117,7 @@ impl Default for Light {
     fn default() -> Self {
         Self {
             light_type: None,
-            color: Color::white(),
+            color: color::white(),
             attenuation: Default::default(),
         }
     }
@@ -127,7 +127,7 @@ impl CreateDataFromType for Light {
     fn create_data() -> Data {
         Data::from([
             (Self::LIGHT_TYPE_MEMBER, Data::default::<i32>()),
-            (Self::COLOR_MEMBER, Data::from(Color::white())),
+            (Self::COLOR_MEMBER, Data::from(color::white())),
             (Self::DIRECTION_MEMBER, Data::default::<Vec3>()),
             (Self::POSITION_MEMBER, Data::default::<Vec3>()),
             (Self::ATTENUATION_MEMBER, Data::default::<Vec3>()),
@@ -149,7 +149,7 @@ impl UpdateUniform for Light {
                         uniform.set_vec3_member(Self::POSITION_MEMBER, position);
                     }
                 }
-                uniform.set_vec4_member(Self::COLOR_MEMBER, self.color.into());
+                uniform.set_vec4_member(Self::COLOR_MEMBER, self.color);
                 uniform.set_vec3_member(Self::ATTENUATION_MEMBER, self.attenuation.into());
             } else {
                 uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::NONE_TYPE);

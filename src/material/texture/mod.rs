@@ -5,7 +5,7 @@ use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
-    color::Color,
+    color::{self, Color},
     convert::FromWithContext,
     material::{Material, MaterialSettings, RenderSetting},
     texture::{Texture, TextureUnit},
@@ -22,7 +22,7 @@ pub struct TextureMaterial {
 impl Default for TextureMaterial {
     fn default() -> Self {
         Self {
-            base_color: Color::white(),
+            base_color: color::white(),
             repeat_uv: glm::vec2(1.0, 1.0),
             offset_uv: glm::vec2(0.0, 0.0),
             double_side: true,

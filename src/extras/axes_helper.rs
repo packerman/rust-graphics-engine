@@ -5,8 +5,12 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     core::{
-        attribute::AttributeData, color::Color, convert::FromWithContext, geometry::Geometry,
-        material::Material, mesh::Mesh,
+        attribute::AttributeData,
+        color::{self, Color},
+        convert::FromWithContext,
+        geometry::Geometry,
+        material::Material,
+        mesh::Mesh,
     },
     material::basic::{BasicMaterial, LineMaterial, LineType},
 };
@@ -22,7 +26,7 @@ impl Default for AxesHelper {
         Self {
             axis_length: 1.0,
             line_width: 4.0,
-            axis_colors: [Color::red(), Color::green(), Color::blue()],
+            axis_colors: [color::red(), color::green(), color::blue()],
         }
     }
 }

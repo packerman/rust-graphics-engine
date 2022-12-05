@@ -8,7 +8,7 @@ use crate::{
     core::{
         application::{self, Application, AsyncCreator},
         camera::Camera,
-        color::Color,
+        color,
         convert::FromWithContext,
         geometry::Geometry,
         input::KeyState,
@@ -38,7 +38,7 @@ impl AsyncCreator for Example {
         let renderer = Renderer::initialize(
             context,
             RendererOptions {
-                clear_color: Color::black(),
+                clear_color: color::black(),
                 ..Default::default()
             },
             None,
@@ -76,8 +76,8 @@ impl AsyncCreator for Example {
             let grid = Node::new_mesh(Mesh::from_with_context(
                 context,
                 GridHelper {
-                    grid_color: Color::white(),
-                    center_color: Color::yellow(),
+                    grid_color: color::white(),
+                    center_color: color::yellow(),
                     ..Default::default()
                 },
             )?);
