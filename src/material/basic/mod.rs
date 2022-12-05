@@ -78,8 +78,6 @@ impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material {
 
 pub enum LineType {
     Connected,
-    #[allow(dead_code)]
-    Loop,
     Segments,
 }
 
@@ -106,7 +104,6 @@ impl FromWithContext<WebGl2RenderingContext, LineMaterial> for Material {
     ) -> Result<Self> {
         let draw_style = match line_material.line_type {
             LineType::Connected => WebGl2RenderingContext::LINE_STRIP,
-            LineType::Loop => WebGl2RenderingContext::LINE_LOOP,
             LineType::Segments => WebGl2RenderingContext::LINES,
         };
         let mut material = self::basic_material(context, draw_style, line_material.basic)?;

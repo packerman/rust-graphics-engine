@@ -14,10 +14,6 @@ pub fn white() -> Color {
     self::rgb_u8(255, 255, 255)
 }
 
-pub fn silver() -> Color {
-    self::rgb_u8(192, 192, 192)
-}
-
 pub fn gray() -> Color {
     self::rgb_u8(128, 128, 128)
 }
@@ -42,10 +38,6 @@ pub fn yellow() -> Color {
     self::rgb_u8(255, 255, 0)
 }
 
-pub fn olive() -> Color {
-    self::rgb_u8(128, 128, 0)
-}
-
 pub fn lime() -> Color {
     self::rgb_u8(0, 255, 0)
 }
@@ -58,10 +50,6 @@ pub fn aqua() -> Color {
     self::rgb_u8(0, 255, 255)
 }
 
-pub fn teal() -> Color {
-    self::rgb_u8(0, 128, 128)
-}
-
 pub fn blue() -> Color {
     self::rgb_u8(0, 0, 255)
 }
@@ -72,18 +60,6 @@ pub fn navy() -> Color {
 
 pub fn fuchsia() -> Color {
     self::rgb_u8(255, 0, 255)
-}
-
-pub fn purple() -> Color {
-    self::rgb_u8(128, 0, 128)
-}
-
-pub fn dark_orange() -> Color {
-    self::rgb_u8(255, 140, 0)
-}
-
-pub fn blue_violet() -> Color {
-    self::rgb_u8(138, 43, 226)
 }
 
 pub fn light_coral() -> Color {

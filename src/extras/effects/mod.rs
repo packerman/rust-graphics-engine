@@ -39,11 +39,6 @@ pub fn tint(
     Ok(effect)
 }
 
-#[allow(dead_code)]
-pub fn invert(context: &WebGl2RenderingContext, sampler_2d: Sampler2D) -> Result<Effect> {
-    create_basic(context, include_str!("invert.frag"), sampler_2d)
-}
-
 pub fn pixelate(
     context: &WebGl2RenderingContext,
     sampler_2d: Sampler2D,
@@ -53,21 +48,6 @@ pub fn pixelate(
     let mut effect = create_basic(context, include_str!("pixelate.frag"), sampler_2d)?;
     effect.add_uniform(context, "pixelSize", f32::from(pixel_size));
     effect.add_uniform(context, "resolution", Vec2::from(resolution));
-    Ok(effect)
-}
-
-#[allow(dead_code)]
-pub fn vignette(
-    context: &WebGl2RenderingContext,
-    sampler_2d: Sampler2D,
-    dim_start: f32,
-    dim_end: f32,
-    dim_color: Color,
-) -> Result<Effect> {
-    let mut effect = create_basic(context, include_str!("vignette.frag"), sampler_2d)?;
-    effect.add_uniform(context, "dimStart", dim_start);
-    effect.add_uniform(context, "dimEnd", dim_end);
-    effect.add_uniform(context, "dimColor", dim_color);
     Ok(effect)
 }
 

@@ -98,8 +98,4 @@ impl MovementRig {
     pub fn add_child(&self, child: &Rc<Node>) {
         self.look_attachment.add_child(child)
     }
-
-    pub fn remove_child(&self, child: &Node) {
-        self.look_attachment.remove_child(child)
-    }
 }
