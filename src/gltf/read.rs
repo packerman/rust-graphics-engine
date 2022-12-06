@@ -15,24 +15,22 @@ type Number = f64;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct Accessor {
-    buffer_view: Option<Integer>,
-    #[serde(default = "default_byte_offset")]
-    byte_offset: u32,
-    component_type: Integer,
-    count: Integer,
+pub struct Accessor {
+    pub buffer_view: Option<Integer>,
+    #[serde(default)]
+    pub byte_offset: i32,
+    pub component_type: u32,
+    pub count: Integer,
     #[serde(rename = "type")]
-    accessor_type: String,
-    min: Option<Vec<Number>>,
-    max: Option<Vec<Number>>,
-}
-
-fn default_byte_offset() -> u32 {
-    0
+    pub accessor_type: String,
+    pub min: Option<Vec<Number>>,
+    pub max: Option<Vec<Number>>,
+    #[serde(default)]
+    pub normalized: bool,
 }
 
 #[derive(Debug, Deserialize)]
-struct Asset {
+pub struct Asset {
     version: String,
 }
 
@@ -47,7 +45,7 @@ pub struct Buffer {
 #[serde(rename_all = "camelCase")]
 pub struct BufferView {
     pub buffer: Integer,
-    #[serde(default = "default_byte_offset")]
+    #[serde(default)]
     pub byte_offset: u32,
     pub byte_length: Option<u32>,
     pub target: Option<u32>,
@@ -71,34 +69,34 @@ impl Validate for BufferView {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Gltf {
-    asset: Asset,
-    accessors: Vec<Accessor>,
+    pub asset: Asset,
+    pub accessors: Vec<Accessor>,
     pub buffers: Vec<Buffer>,
-    buffer_views: Vec<BufferView>,
-    meshes: Vec<Mesh>,
-    nodes: Vec<Node>,
-    scene: Option<Integer>,
-    scenes: Vec<Scene>,
+    pub buffer_views: Vec<BufferView>,
+    pub meshes: Vec<Mesh>,
+    pub nodes: Vec<Node>,
+    pub scene: Option<Integer>,
+    pub scenes: Vec<Scene>,
 }
 
 #[derive(Debug, Deserialize)]
-struct Mesh {
-    primitives: Vec<Primitive>,
+pub struct Mesh {
+    pub primitives: Vec<Primitive>,
 }
 
 #[derive(Debug, Deserialize)]
-struct Primitive {
-    attributes: HashMap<String, Integer>,
+pub struct Primitive {
+    pub attributes: HashMap<String, u32>,
 }
 
 #[derive(Debug, Deserialize)]
-struct Node {
-    mesh: Option<Integer>,
+pub struct Node {
+    pub mesh: Option<Integer>,
 }
 
 #[derive(Debug, Deserialize)]
-struct Scene {
-    nodes: Vec<Integer>,
+pub struct Scene {
+    pub nodes: Vec<Integer>,
 }
 
 pub async fn fetch_gltf(uri: &str) -> Result<Gltf> {
