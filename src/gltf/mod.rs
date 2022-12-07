@@ -33,7 +33,7 @@ fn process_meshes(
     meshes: &[GltfMesh],
 ) -> Result<Vec<Mesh>> {
     let material = material::basic(context)?;
-    let meshes: Result<Vec<_>> = meshes
+    meshes
         .iter()
         .map(|mesh| -> Result<Mesh> {
             let primitives: Result<Vec<_>> = mesh
@@ -71,8 +71,7 @@ fn process_meshes(
                 .collect();
             Ok(Mesh::new(primitives?))
         })
-        .collect();
-    Ok(meshes?)
+        .collect()
 }
 
 fn get_size(type_name: &str) -> i32 {
