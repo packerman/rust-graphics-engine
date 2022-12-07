@@ -10,21 +10,18 @@ use crate::core::web;
 
 use super::validate::{self, Validate};
 
-type Integer = i32;
-type Number = f64;
-
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Accessor {
-    pub buffer_view: Option<Integer>,
+    pub buffer_view: Option<u32>,
     #[serde(default)]
     pub byte_offset: i32,
     pub component_type: u32,
-    pub count: Integer,
+    pub count: i32,
     #[serde(rename = "type")]
     pub accessor_type: String,
-    pub min: Option<Vec<Number>>,
-    pub max: Option<Vec<Number>>,
+    pub min: Option<Vec<f64>>,
+    pub max: Option<Vec<f64>>,
     #[serde(default)]
     pub normalized: bool,
 }
@@ -38,16 +35,17 @@ pub struct Asset {
 #[serde(rename_all = "camelCase")]
 pub struct Buffer {
     pub uri: Option<String>,
-    byte_length: Integer,
+    byte_length: u32,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BufferView {
-    pub buffer: Integer,
+    pub buffer: u32,
     #[serde(default)]
     pub byte_offset: u32,
     pub byte_length: Option<u32>,
+    pub byte_stride: Option<i32>,
     pub target: Option<u32>,
 }
 
@@ -75,7 +73,7 @@ pub struct Gltf {
     pub buffer_views: Vec<BufferView>,
     pub meshes: Vec<Mesh>,
     pub nodes: Vec<Node>,
-    pub scene: Option<Integer>,
+    pub scene: Option<u32>,
     pub scenes: Vec<Scene>,
 }
 
@@ -91,12 +89,12 @@ pub struct Primitive {
 
 #[derive(Debug, Deserialize)]
 pub struct Node {
-    pub mesh: Option<Integer>,
+    pub mesh: Option<u32>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Scene {
-    pub nodes: Vec<Integer>,
+    pub nodes: Vec<u32>,
 }
 
 pub async fn fetch_gltf(uri: &str) -> Result<Gltf> {
