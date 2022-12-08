@@ -1,7 +1,7 @@
 use std::{collections::HashMap, rc::Rc};
 
 use anyhow::{anyhow, Result};
-use js_sys::{ArrayBuffer, DataView, Object, SharedArrayBuffer};
+use js_sys::{ArrayBuffer, DataView};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlVertexArrayObject};
 
 use crate::core::{gl, material::Material};
