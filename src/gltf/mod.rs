@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, hash::Hash, rc::Rc};
 
 use anyhow::{anyhow, Result};
 use js_sys::ArrayBuffer;
@@ -7,14 +7,14 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::core::gl;
 
-use self::core::{Accessor, Buffer, BufferView, Mesh, Node, Primitive};
+use self::core::{Accessor, Buffer, BufferView, Mesh, Node, Primitive, Root, Scene};
 
 pub mod core;
 pub mod material;
 pub mod read;
 pub mod validate;
 
-pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<()> {
+pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
     let gltf = self::read::fetch_gltf(uri).await?;
     let base_uri = Url::parse(uri)?;
     let buffer_data = self::read::fetch_buffers(&base_uri, gltf.buffers.as_deref()).await?;
@@ -53,13 +53,9 @@ pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<()> {
             .primitives
             .iter()
             .map(|primitive| {
-                let attributes = primitive
-                    .attributes
-                    .iter()
-                    .map(|(attribute, index)| {
-                        (String::from(attribute), self::get_ref(&accessors, *index))
-                    })
-                    .collect();
+                let attributes = self::map_values(&primitive.attributes, |index| {
+                    self::get_ref(&accessors, *index)
+                });
                 Primitive::new(context, attributes, Rc::clone(&material))
             })
             .collect();
@@ -68,7 +64,22 @@ pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<()> {
     let nodes = self::map_optional_slice(gltf.nodes.as_deref(), |node| {
         Node::new(node.mesh.map(|index| self::get_ref(&meshes, index)))
     });
-    Ok(())
+    let scenes: Vec<_> = gltf
+        .scenes
+        .unwrap_or_default()
+        .into_iter()
+        .map(|scene| {
+            Scene::new(
+                scene
+                    .nodes
+                    .unwrap_or_default()
+                    .iter()
+                    .map(|index| self::get_ref(&nodes, *index))
+                    .collect(),
+            )
+        })
+        .collect();
+    Ok(Root::new(scenes, gltf.scene.map(|index| index as usize)))
 }
 
 fn get_size(type_name: &str) -> i32 {
@@ -111,6 +122,14 @@ where
     F: Fn(&T) -> Result<S>,
 {
     self::try_map_slice(source.unwrap_or_default(), f)
+}
+
+fn map_values<K, T, F, S>(hash_map: &HashMap<K, T>, f: F) -> HashMap<K, S>
+where
+    F: Fn(&T) -> S,
+    K: Clone + Eq + Hash,
+{
+    hash_map.iter().map(|(k, v)| (k.clone(), f(v))).collect()
 }
 
 fn get_ref<T>(slice: &[Rc<T>], index: u32) -> Rc<T> {

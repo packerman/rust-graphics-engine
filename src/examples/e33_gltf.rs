@@ -9,7 +9,7 @@ use crate::{
         application::{self, Application, AsyncCreator},
         input::KeyState,
     },
-    gltf,
+    gltf::{self, core::Root},
 };
 
 enum Variant {
@@ -48,25 +48,29 @@ fn khronos_sample(name: &str, variant: Variant) -> String {
     )
 }
 
-struct Example {}
+struct Example {
+    root: Root,
+}
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
-    async fn create(_context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let gltf = gltf::read::fetch_gltf(&khronos_sample(
-            "TriangleWithoutIndices",
-            Default::default(),
-        ))
+    async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
+        let root = gltf::load(
+            context,
+            &khronos_sample("TriangleWithoutIndices", Default::default()),
+        )
         .await?;
-        debug!("{:#?}", gltf);
-        Ok(Box::new(Example {}))
+        debug!("{:#?}", root);
+        Ok(Box::new(Example { root }))
     }
 }
 
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {}
 
-    fn render(&self, _context: &WebGl2RenderingContext) {}
+    fn render(&self, context: &WebGl2RenderingContext) {
+        self.root.render(context);
+    }
 }
 
 pub fn example() -> Box<dyn Fn()> {

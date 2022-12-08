@@ -212,3 +212,28 @@ impl Node {
         Self { mesh }
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct Scene {
+    nodes: Vec<Rc<Node>>,
+}
+
+impl Scene {
+    pub fn new(nodes: Vec<Rc<Node>>) -> Self {
+        Self { nodes }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Root {
+    scenes: Vec<Scene>,
+    scene: Option<usize>,
+}
+
+impl Root {
+    pub fn new(scenes: Vec<Scene>, scene: Option<usize>) -> Self {
+        Self { scenes, scene }
+    }
+
+    pub fn render(&self, context: &WebGl2RenderingContext) {}
+}
