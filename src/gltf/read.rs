@@ -10,7 +10,7 @@ use crate::core::web;
 
 use super::validate::{self, Validate};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Accessor {
     pub buffer_view: Option<u32>,
@@ -26,25 +26,25 @@ pub struct Accessor {
     pub normalized: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Asset {
     version: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Buffer {
     pub uri: Option<String>,
     byte_length: u32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BufferView {
     pub buffer: u32,
     #[serde(default)]
     pub byte_offset: u32,
-    pub byte_length: Option<u32>,
+    pub byte_length: u32,
     pub byte_stride: Option<i32>,
     pub target: Option<u32>,
 }
@@ -64,37 +64,37 @@ impl Validate for BufferView {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Gltf {
     pub asset: Asset,
-    pub accessors: Vec<Accessor>,
-    pub buffers: Vec<Buffer>,
-    pub buffer_views: Vec<BufferView>,
-    pub meshes: Vec<Mesh>,
-    pub nodes: Vec<Node>,
+    pub accessors: Option<Vec<Accessor>>,
+    pub buffers: Option<Vec<Buffer>>,
+    pub buffer_views: Option<Vec<BufferView>>,
+    pub meshes: Option<Vec<Mesh>>,
+    pub nodes: Option<Vec<Node>>,
     pub scene: Option<u32>,
-    pub scenes: Vec<Scene>,
+    pub scenes: Option<Vec<Scene>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Mesh {
     pub primitives: Vec<Primitive>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Primitive {
     pub attributes: HashMap<String, u32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Node {
     pub mesh: Option<u32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Scene {
-    pub nodes: Vec<u32>,
+    pub nodes: Option<Vec<u32>>,
 }
 
 pub async fn fetch_gltf(uri: &str) -> Result<Gltf> {
@@ -102,15 +102,19 @@ pub async fn fetch_gltf(uri: &str) -> Result<Gltf> {
         .map_err(|error| anyhow!("Error while fetching glTF from {}: {:#?}", uri, error))
 }
 
-pub async fn fetch_buffers(base_url: &Url, buffers: &[Buffer]) -> Result<Vec<ArrayBuffer>> {
-    let mut array_buffers = Vec::with_capacity(buffers.len());
-    for (i, buffer) in buffers.iter().enumerate() {
-        let relative_uri = buffer
-            .uri
-            .as_ref()
-            .ok_or_else(|| anyhow!("Undefined url in buffer[{}]", i))?;
-        let url = base_url.join(relative_uri)?;
-        array_buffers.push(web::fetch_array_buffer(url.as_str()).await?);
+pub async fn fetch_buffers(base_url: &Url, buffers: Option<&[Buffer]>) -> Result<Vec<ArrayBuffer>> {
+    if let Some(buffers) = buffers {
+        let mut array_buffers = Vec::with_capacity(buffers.len());
+        for (i, buffer) in buffers.iter().enumerate() {
+            let relative_uri = buffer
+                .uri
+                .as_ref()
+                .ok_or_else(|| anyhow!("Undefined url in buffer[{}]", i))?;
+            let url = base_url.join(relative_uri)?;
+            array_buffers.push(web::fetch_array_buffer(url.as_str()).await?);
+        }
+        Ok(array_buffers)
+    } else {
+        Ok(vec![])
     }
-    Ok(array_buffers)
 }
