@@ -1,11 +1,9 @@
 use std::{collections::HashMap, hash::Hash, rc::Rc};
 
-use anyhow::{anyhow, Result};
-use js_sys::ArrayBuffer;
+use anyhow::Result;
+
 use url::Url;
 use web_sys::WebGl2RenderingContext;
-
-use crate::core::gl;
 
 use self::core::{Accessor, Buffer, BufferView, Mesh, Node, Primitive, Root, Scene};
 
@@ -56,7 +54,7 @@ pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
                 let attributes = self::map_values(&primitive.attributes, |index| {
                     self::get_ref(&accessors, *index)
                 });
-                Primitive::new(context, attributes, Rc::clone(&material))
+                Primitive::new(context, attributes, Rc::clone(&material), primitive.mode)
             })
             .collect();
         Ok(Mesh::new(primitives?))

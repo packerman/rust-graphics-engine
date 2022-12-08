@@ -85,6 +85,14 @@ pub struct Mesh {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Primitive {
     pub attributes: HashMap<String, u32>,
+    #[serde(default = "Primitive::default_mode")]
+    pub mode: u32,
+}
+
+impl Primitive {
+    fn default_mode() -> u32 {
+        WebGl2RenderingContext::TRIANGLES
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]

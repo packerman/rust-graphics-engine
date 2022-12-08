@@ -1,7 +1,7 @@
 use std::{collections::HashMap, rc::Rc};
 
 use anyhow::{anyhow, Result};
-use js_sys::{ArrayBuffer, Object};
+use js_sys::{ArrayBuffer, DataView, Object, SharedArrayBuffer};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlVertexArrayObject};
 
 use crate::core::{gl, material::Material};
@@ -16,15 +16,30 @@ impl Buffer {
         Self { array_buffer }
     }
 
-    pub fn view(&self) -> &Object {
-        &self.array_buffer
+    pub fn copy_data(
+        &self,
+        context: &WebGl2RenderingContext,
+        target: u32,
+        byte_offset: u32,
+        byte_length: u32,
+    ) {
+        let data_view = DataView::new(
+            &self.array_buffer,
+            byte_offset as usize,
+            byte_length as usize,
+        );
+        context.buffer_data_with_array_buffer_view(
+            target,
+            &data_view,
+            WebGl2RenderingContext::STATIC_DRAW,
+        );
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct BufferView {
-    object: Option<WebGlBuffer>,
-    buffer: Rc<Buffer>,
+    gl_buffer: Option<WebGlBuffer>,
+    data_buffer: Rc<Buffer>,
     byte_offset: u32,
     byte_length: u32,
     pub byte_stride: i32,
@@ -41,12 +56,12 @@ impl BufferView {
         target: Option<u32>,
     ) -> Result<Self> {
         let me = Self {
-            object: if target.is_some() {
+            gl_buffer: if target.is_some() {
                 Some(gl::create_buffer(context)?)
             } else {
                 None
             },
-            buffer,
+            data_buffer: buffer,
             byte_offset,
             byte_length,
             target,
@@ -58,7 +73,7 @@ impl BufferView {
 
     pub fn bind(&self, context: &WebGl2RenderingContext) {
         if let Some(target) = self.target {
-            context.bind_buffer(target, self.object.as_ref());
+            context.bind_buffer(target, self.gl_buffer.as_ref());
         }
     }
 
@@ -70,14 +85,9 @@ impl BufferView {
 
     pub fn copy_data(&self, context: &WebGl2RenderingContext) {
         if let Some(target) = self.target {
-            context.bind_buffer(target, self.object.as_ref());
-            context.buffer_data_with_array_buffer_view_and_src_offset_and_length(
-                target,
-                self.buffer.view(),
-                WebGl2RenderingContext::STATIC_DRAW,
-                self.byte_offset,
-                self.byte_length,
-            );
+            context.bind_buffer(target, self.gl_buffer.as_ref());
+            self.data_buffer
+                .copy_data(context, target, self.byte_offset, self.byte_length);
         }
     }
 }
@@ -138,6 +148,7 @@ pub struct Primitive {
     vertex_array: WebGlVertexArrayObject,
     attributes: HashMap<String, Rc<Accessor>>,
     material: Rc<Material>,
+    mode: u32,
     count: i32,
 }
 
@@ -146,6 +157,7 @@ impl Primitive {
         context: &WebGl2RenderingContext,
         attributes: HashMap<String, Rc<Accessor>>,
         material: Rc<Material>,
+        mode: u32,
     ) -> Result<Self> {
         let vertex_array = gl::create_vertex_array(context)?;
         let count = Self::get_count(&attributes)?;
@@ -153,6 +165,7 @@ impl Primitive {
             vertex_array,
             attributes,
             material,
+            mode,
             count,
         };
         me.copy_data(context);
@@ -170,6 +183,14 @@ impl Primitive {
                 accessor.copy_data(context, location);
             }
         }
+        context.bind_vertex_array(None);
+    }
+
+    fn render(&self, context: &WebGl2RenderingContext) {
+        self.material.use_program(context);
+        context.bind_vertex_array(Some(&self.vertex_array));
+        self.material.upload_uniform_data(context);
+        context.draw_arrays(self.mode, 0, self.count);
         context.bind_vertex_array(None);
     }
 
@@ -200,6 +221,12 @@ impl Mesh {
     pub fn new(primitives: Vec<Primitive>) -> Self {
         Self { primitives }
     }
+
+    pub fn render(&self, context: &WebGl2RenderingContext) {
+        for primitive in self.primitives.iter() {
+            primitive.render(context);
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -211,6 +238,12 @@ impl Node {
     pub fn new(mesh: Option<Rc<Mesh>>) -> Self {
         Self { mesh }
     }
+
+    pub fn render(&self, context: &WebGl2RenderingContext) {
+        if let Some(mesh) = &self.mesh {
+            mesh.render(context);
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -221,6 +254,12 @@ pub struct Scene {
 impl Scene {
     pub fn new(nodes: Vec<Rc<Node>>) -> Self {
         Self { nodes }
+    }
+
+    fn render(&self, context: &WebGl2RenderingContext) {
+        for node in self.nodes.iter() {
+            node.render(context);
+        }
     }
 }
 
@@ -235,5 +274,9 @@ impl Root {
         Self { scenes, scene }
     }
 
-    pub fn render(&self, context: &WebGl2RenderingContext) {}
+    pub fn render(&self, context: &WebGl2RenderingContext) {
+        if let Some(scene) = self.scene {
+            self.scenes[scene].render(context);
+        }
+    }
 }

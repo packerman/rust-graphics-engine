@@ -7,6 +7,7 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     core::{
         application::{self, Application, AsyncCreator},
+        color, gl,
         input::KeyState,
     },
     gltf::{self, core::Root},
@@ -69,6 +70,8 @@ impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {
+        gl::set_clear_color(context, &color::black());
+        context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
         self.root.render(context);
     }
 }
