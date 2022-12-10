@@ -4,7 +4,7 @@ use anyhow::Result;
 use url::Url;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::material::Material;
+use crate::{core::material::Material, gltf::data::GltfStatistics};
 
 use super::{
     core::{Accessor, Buffer, BufferView, Mesh, Node, Primitive, Root, Scene},
@@ -13,6 +13,8 @@ use super::{
 
 pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
     let gltf = fetch::fetch_gltf(uri).await?;
+    debug!("{:#?}", gltf.asset);
+    debug!("{:#?}", GltfStatistics::from(&gltf));
     let base_uri = Url::parse(uri)?;
     let buffers = fetch::fetch_buffers(&base_uri, &gltf.buffers.unwrap_or_default()).await?;
     let buffer_views =

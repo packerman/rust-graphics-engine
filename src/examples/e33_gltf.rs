@@ -62,7 +62,6 @@ impl AsyncCreator for Example {
             &khronos_sample("TriangleWithoutIndices", Default::default()),
         )
         .await?;
-        debug!("{:#?}", root);
         Ok(Box::new(Example { root }))
     }
 }
