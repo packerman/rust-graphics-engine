@@ -7,8 +7,6 @@ use async_trait::async_trait;
 use wasm_bindgen::{prelude::Closure, JsCast};
 use web_sys::{HtmlCanvasElement, WebGl2RenderingContext};
 
-use crate::core::gl;
-
 use super::{
     input::{KeyState, KeyboardInput},
     web,
@@ -47,7 +45,6 @@ impl Loop {
         canvas: &HtmlCanvasElement,
     ) -> Result<()> {
         let context = Rc::new(web::get_webgl2_context(canvas)?);
-        log_gl_strings(&context)?;
         auto_resize_canvas(Rc::clone(&context))?;
         let mut app = C::create(&context).await?;
         let mut state = Loop {
@@ -69,37 +66,6 @@ impl Loop {
         })?;
         Ok(())
     }
-}
-
-fn log_gl_strings(context: &WebGl2RenderingContext) -> Result<()> {
-    log!(
-        "VENDOR = {}",
-        gl::get_string_parameter(context, WebGl2RenderingContext::VENDOR)?
-    );
-    log!(
-        "RENDERER = {}",
-        gl::get_string_parameter(context, WebGl2RenderingContext::RENDERER)?
-    );
-    log!(
-        "VERSION = {}",
-        gl::get_string_parameter(context, WebGl2RenderingContext::VERSION)?
-    );
-    log!(
-        "SHADING_LANGUAGE_VERSION = {}",
-        gl::get_string_parameter(context, WebGl2RenderingContext::SHADING_LANGUAGE_VERSION)?
-    );
-    log!(
-        "MAX_COMBINED_TEXTURE_IMAGE_UNITS = {}",
-        gl::get_f64_parameter(
-            context,
-            WebGl2RenderingContext::MAX_COMBINED_TEXTURE_IMAGE_UNITS
-        )?
-    );
-    log!(
-        "MAX_TEXTURE_SIZE = {}",
-        gl::get_f64_parameter(context, WebGl2RenderingContext::MAX_TEXTURE_SIZE)?
-    );
-    Ok(())
 }
 
 pub fn auto_resize_canvas(context: Rc<WebGl2RenderingContext>) -> Result<()> {

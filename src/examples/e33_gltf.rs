@@ -7,7 +7,8 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     core::{
         application::{self, Application, AsyncCreator},
-        color, gl,
+        color,
+        gl::{self, diagnostic::GlDiagnostics},
         input::KeyState,
         web,
     },
@@ -54,12 +55,15 @@ struct Example {
     root: Root,
 }
 
+const EXAMPLE_NAMES: [&str; 2] = ["TriangleWithoutIndices", "Triangle"];
+
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
+        debug!("{:#?}", GlDiagnostics::collect(context)?);
         let root = gltf::load::load(
             context,
-            &khronos_sample("TriangleWithoutIndices", Default::default()),
+            &khronos_sample(EXAMPLE_NAMES[1], Default::default()),
         )
         .await?;
         Ok(Box::new(Example { root }))

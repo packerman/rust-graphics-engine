@@ -1,6 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use url::Url;
 use web_sys::WebGl2RenderingContext;
 
@@ -19,7 +19,7 @@ pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
     let buffers = fetch::fetch_buffers(&base_uri, &gltf.buffers.unwrap_or_default()).await?;
     let buffer_views =
         self::load_buffer_views(context, &gltf.buffer_views.unwrap_or_default(), &buffers)?;
-    let accessors = self::load_accessors(&gltf.accessors.unwrap_or_default(), &buffer_views);
+    let accessors = self::load_accessors(&gltf.accessors.unwrap_or_default(), &buffer_views)?;
     let meshes = self::load_meshes(context, &gltf.meshes.unwrap_or_default(), &accessors)?;
     let nodes = self::load_nodes(&gltf.nodes.unwrap_or_default(), &meshes);
     let scenes = self::load_scenes(&gltf.scenes.unwrap_or_default(), &nodes);
@@ -51,7 +51,7 @@ fn load_buffer_views(
 fn load_accessors(
     accessors: &[data::Accessor],
     buffer_views: &[Rc<BufferView>],
-) -> Vec<Rc<Accessor>> {
+) -> Result<Vec<Rc<Accessor>>> {
     accessors
         .iter()
         .map(|accessor| {
@@ -65,20 +65,21 @@ fn load_accessors(
                 accessor.byte_offset,
                 accessor.component_type,
                 accessor.count,
-                get_size(&accessor.accessor_type),
+                get_size(&accessor.accessor_type)?,
                 min.clone(),
                 max.clone(),
                 accessor.normalized,
             )
+            .map(Rc::new)
         })
-        .map(Rc::new)
         .collect()
 }
 
-fn get_size(type_name: &str) -> i32 {
-    match type_name {
-        "VEC3" => 3,
-        _ => panic!("Unknown type: {}", type_name),
+fn get_size(accessor_type: &str) -> Result<i32> {
+    match accessor_type {
+        "VEC3" => Ok(3),
+        "SCALAR" => Ok(1),
+        _ => Err(anyhow!("Unknown type: {}", accessor_type)),
     }
 }
 
@@ -109,7 +110,16 @@ fn load_primitives(
         .iter()
         .map(|primitive| {
             let attributes = self::load_attributes(&primitive.attributes, accessors);
-            Primitive::new(context, attributes, Rc::clone(material), primitive.mode)
+            let indices = primitive
+                .indices
+                .map(|index| self::get_rc_u32(accessors, index));
+            Primitive::new(
+                context,
+                attributes,
+                indices,
+                Rc::clone(material),
+                primitive.mode,
+            )
         })
         .collect()
 }

@@ -10,6 +10,8 @@ use web_sys::{
 
 use super::color::Color;
 
+pub mod diagnostic;
+
 pub fn set_clear_color(context: &WebGl2RenderingContext, color: &Color) {
     context.clear_color(color[0], color[1], color[2], color[3]);
 }
@@ -154,15 +156,16 @@ pub fn check_framebuffer_status(context: &WebGl2RenderingContext, target: u32) -
 }
 
 pub fn get_supported_extensions(context: &WebGl2RenderingContext) -> Vec<String> {
-    if let Some(extensions) = context.get_supported_extensions() {
-        let mut result = Vec::with_capacity(extensions.length() as usize);
-        extensions.for_each(&mut |extension, _, _| {
-            if let Some(extension) = extension.as_string() {
-                result.push(extension);
-            }
-        });
-        result
-    } else {
-        vec![]
-    }
+    context
+        .get_supported_extensions()
+        .map(|extensions| {
+            let mut result = Vec::with_capacity(extensions.length() as usize);
+            extensions.for_each(&mut |extension, _, _| {
+                if let Some(extension) = extension.as_string() {
+                    result.push(extension);
+                }
+            });
+            result
+        })
+        .unwrap_or_default()
 }

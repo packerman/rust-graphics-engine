@@ -1,12 +1,8 @@
 use std::collections::HashMap;
 
-use anyhow::{anyhow, Result};
-
 use serde::Deserialize;
 
 use web_sys::WebGl2RenderingContext;
-
-use super::validate::{self, Validate};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -47,21 +43,6 @@ pub struct BufferView {
     pub target: Option<u32>,
 }
 
-const TARGETS: [u32; 2] = [
-    WebGl2RenderingContext::ARRAY_BUFFER,
-    WebGl2RenderingContext::ELEMENT_ARRAY_BUFFER,
-];
-
-impl Validate for BufferView {
-    fn validate(&self) -> Result<()> {
-        validate::optional(&self.target, |target| {
-            validate::contains(target, &TARGETS, |value| {
-                anyhow!("Unkown target: {}", value)
-            })
-        })
-    }
-}
-
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Gltf {
@@ -83,6 +64,7 @@ pub struct Mesh {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Primitive {
     pub attributes: HashMap<String, u32>,
+    pub indices: Option<u32>,
     #[serde(default = "Primitive::default_mode")]
     pub mode: u32,
 }

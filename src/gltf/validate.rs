@@ -2,13 +2,9 @@ use std::fmt::Debug;
 
 use anyhow::{Error, Result};
 
-pub trait Validate {
-    fn validate(&self) -> Result<()>;
-}
-
-pub fn satisfies<F>(condition: bool, error: F) -> Result<()>
+pub fn check_condition<E>(condition: bool, error: E) -> Result<()>
 where
-    F: Fn() -> Error,
+    E: Fn() -> Error,
 {
     if condition {
         Ok(())
@@ -33,5 +29,5 @@ where
     T: PartialEq + Debug,
     F: Fn(&T) -> Error,
 {
-    self::satisfies(array.contains(value), || error(value))
+    self::check_condition(array.contains(value), || error(value))
 }
