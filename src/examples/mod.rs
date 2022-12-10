@@ -1,13 +1,3 @@
-pub mod e00_base_test;
-pub mod e01_point;
-pub mod e02_hexagon_lines;
-pub mod e03_two_shapes;
-pub mod e04_vertex_colors;
-pub mod e05_two_triangles;
-pub mod e06_animate_triangle;
-pub mod e07_animate_triangle_time;
-pub mod e08_keyboard_input;
-pub mod e09_move_triangle;
 pub mod e10_spinning_cube;
 pub mod e11_axes_grid;
 pub mod e12_movement_rig;
@@ -31,3 +21,4 @@ pub mod e29_bump_mapping;
 pub mod e30_bloom_effect;
 pub mod e31_glow_effect;
 pub mod e32_shadows;
+pub mod e33_gltf;

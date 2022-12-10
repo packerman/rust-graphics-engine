@@ -8,7 +8,7 @@ use crate::{
     core::{
         application::{self, Application, AsyncCreator},
         camera::Camera,
-        color::Color,
+        color,
         convert::FromWithContext,
         geometry::Geometry,
         input::KeyState,
@@ -42,7 +42,7 @@ impl AsyncCreator for Example {
             scene.add_child(&camera);
         }
 
-        let point = Node::new_light(Light::point(Color::white(), glm::vec3(1.2, 1.2, 0.3)));
+        let point = Node::new_light(Light::point(color::white(), glm::vec3(1.2, 1.2, 0.3)));
 
         scene.add_child(&point);
 
@@ -60,7 +60,7 @@ impl AsyncCreator for Example {
                 material::lambert::create(
                     context,
                     LambertMaterial {
-                        ambient: Color::new_rgb(0.3, 0.3, 0.3),
+                        ambient: color::rgb(0.3, 0.3, 0.3),
                         texture: Sampler2D::new(
                             Texture::initialize(
                                 context,

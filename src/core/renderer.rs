@@ -4,7 +4,7 @@ use web_sys::WebGl2RenderingContext;
 
 use super::{
     camera::Camera,
-    color::Color,
+    color::{self, Color},
     gl,
     light::{shadow::Shadow, Light},
     math::resolution::Resolution,
@@ -25,7 +25,7 @@ pub struct RendererOptions {
 impl Default for RendererOptions {
     fn default() -> Self {
         Self {
-            clear_color: Color::black(),
+            clear_color: color::black(),
             blending: true,
             flip_y: true,
             light_count: 4,

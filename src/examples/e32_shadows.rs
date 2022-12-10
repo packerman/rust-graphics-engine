@@ -8,7 +8,7 @@ use crate::{
     core::{
         application::{self, Application, AsyncCreator},
         camera::Camera,
-        color::Color,
+        color,
         convert::FromWithContext,
         geometry::Geometry,
         input::KeyState,
@@ -38,7 +38,7 @@ impl AsyncCreator for Example {
         let scene = Node::new_group();
 
         let directional_light = Node::new_light(Light::directional(
-            Color::new_rgb(1.0, 1.0, 1.0),
+            color::rgb(1.0, 1.0, 1.0),
             glm::vec3(-1.0, -1.0, 0.0),
         ));
         directional_light.set_position(&glm::vec3(2.0, 4.0, 0.0));
@@ -62,7 +62,7 @@ impl AsyncCreator for Example {
         let renderer = Renderer::initialize(
             context,
             RendererOptions {
-                clear_color: Color::new_rgb(0.2, 0.2, 0.2),
+                clear_color: color::rgb(0.2, 0.2, 0.2),
                 ..Default::default()
             },
             shadow.into(),
@@ -78,7 +78,7 @@ impl AsyncCreator for Example {
             scene.add_child(&rig);
         }
 
-        let ambient_color = Color::new_rgb(0.2, 0.2, 0.2);
+        let ambient_color = color::rgb(0.2, 0.2, 0.2);
 
         let sphere_geometry = Rc::new(Geometry::from_with_context(context, Sphere::default())?);
         let phong_material = material::phong::create(

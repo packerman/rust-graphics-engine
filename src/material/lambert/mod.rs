@@ -4,7 +4,7 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
-    color::Color,
+    color::{self, Color},
     convert::FromWithContext,
     light::{shadow::Shadow, Light},
     material::{Material, MaterialSettings, RenderSetting},
@@ -37,8 +37,8 @@ impl Default for LambertMaterial<'_> {
         Self {
             double_side: true,
             texture: None,
-            ambient: Color::black(),
-            diffuse: Color::white(),
+            ambient: color::black(),
+            diffuse: color::white(),
             bump_texture: None,
             bump_strength: 1.0,
             shadow: None,

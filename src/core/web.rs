@@ -2,9 +2,11 @@ use std::{cell::RefCell, rc::Rc};
 
 use anyhow::{anyhow, Result};
 use futures::Future;
+use js_sys::ArrayBuffer;
 use wasm_bindgen::{closure::WasmClosureFnOnce, prelude::*, JsCast};
+use wasm_bindgen_futures::JsFuture;
 use web_sys::{
-    CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlImageElement, Performance,
+    CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlImageElement, Performance, Response,
     WebGl2RenderingContext, Window,
 };
 
@@ -167,4 +169,35 @@ where
     F: Future<Output = ()> + 'static,
 {
     wasm_bindgen_futures::spawn_local(future)
+}
+
+async fn fetch(uri: &str) -> Result<Response> {
+    JsFuture::from(self::window()?.fetch_with_str(uri))
+        .await
+        .map_err(|err| anyhow!("Error while fetching '{}': {:#?}", uri, err))?
+        .dyn_into::<Response>()
+        .map_err(|err| anyhow!("Error while casting {} to Response: {:#?}", uri, err))
+}
+
+pub async fn fetch_json(uri: &str) -> Result<JsValue> {
+    let response = self::fetch(uri).await?;
+    JsFuture::from(
+        response
+            .json()
+            .map_err(|err| anyhow!("Error while fetching Response from {}: {:#?}", uri, err))?,
+    )
+    .await
+    .map_err(|err| anyhow!("Error while fetching JSON from {}: {:#?}", uri, err))
+}
+
+pub async fn fetch_array_buffer(uri: &str) -> Result<ArrayBuffer> {
+    let array_buffer = self::fetch(uri)
+        .await?
+        .array_buffer()
+        .map_err(|err| anyhow!("Error while fetching ArrayBuffer from {}: {:#?}", uri, err))?;
+    JsFuture::from(array_buffer)
+        .await
+        .map_err(|err| anyhow!("Error while fetching ArrayBuffer from {}: {:#?}", uri, err))?
+        .dyn_into()
+        .map_err(|err| anyhow!("Error while fetching ArrayBuffer from {}: {:#?}", uri, err))
 }

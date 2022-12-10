@@ -3,7 +3,6 @@ pub mod movement_rig;
 use std::{
     cell::{Ref, RefCell},
     collections::VecDeque,
-    ptr,
     rc::{Rc, Weak},
 };
 
@@ -21,8 +20,6 @@ use super::{
 
 pub enum Transform {
     Local,
-    #[allow(dead_code)]
-    Global,
 }
 
 impl Default for Transform {
@@ -116,14 +113,6 @@ impl Node {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn remove_child(&self, child: &Node) {
-        match &self.node_type {
-            NodeType::MovementRig(movement_rig) => movement_rig.remove_child(child),
-            _ => self.remove_parent_child_relation(child),
-        }
-    }
-
     pub fn world_matrix(&self) -> Mat4 {
         if let Some(parent) = self.parent.borrow().upgrade() {
             parent.world_matrix() * *self.transform.borrow()
@@ -153,7 +142,6 @@ impl Node {
     pub fn apply_matrix(&self, matrix: &Mat4, transform: Transform) {
         match transform {
             Transform::Local => self.transform.replace_with(|&mut old| old * matrix),
-            Transform::Global => self.transform.replace_with(|&mut old| matrix * old),
         };
     }
 
@@ -193,18 +181,6 @@ impl Node {
 
     pub fn rotate_y(&self, angle: Angle, transform: Transform) {
         let m = matrix::rotation_y(angle);
-        self.apply_matrix(&m, transform);
-    }
-
-    #[allow(dead_code)]
-    pub fn rotate_z(&self, angle: Angle, transform: Transform) {
-        let m = matrix::rotation_z(angle);
-        self.apply_matrix(&m, transform);
-    }
-
-    #[allow(dead_code)]
-    pub fn scale(&self, s: f32, transform: Transform) {
-        let m = matrix::scale(s);
         self.apply_matrix(&m, transform);
     }
 
@@ -254,21 +230,6 @@ impl Node {
     fn create_parent_child_relation(&self, child: &Rc<Node>) {
         self.children.borrow_mut().push(Rc::clone(child));
         *child.parent.borrow_mut() = Weak::clone(&self.me);
-    }
-
-    fn remove_parent_child_relation(&self, child: &Node) {
-        if let Some(index) = Self::find_child_index(self, child) {
-            self.children.borrow_mut().swap_remove(index);
-            drop(child.parent.borrow_mut());
-        }
-    }
-
-    fn find_child_index(parent: &Node, child: &Node) -> Option<usize> {
-        parent
-            .children
-            .borrow()
-            .iter()
-            .position(|node| ptr::eq(Rc::as_ptr(node), child))
     }
 }
 

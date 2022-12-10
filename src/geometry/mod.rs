@@ -8,7 +8,7 @@ use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
-    attribute::AttributeData, color::Color, convert::FromWithContext, geometry::Geometry,
+    attribute::AttributeData, color, convert::FromWithContext, geometry::Geometry,
     math::angle::Angle,
 };
 
@@ -52,7 +52,7 @@ impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
                 0.0,
             ],
         ];
-        let colors = [Color::white(), Color::red(), Color::lime(), Color::blue()];
+        let colors = [color::white(), color::red(), color::lime(), color::blue()];
         let uvs = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]];
         let indices = [0, 1, 3, 0, 3, 2];
         let normal_data = util::replicate(6, [0.0, 0.0, 1.0]).collect::<Vec<_>>();
@@ -107,12 +107,12 @@ impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
             [value.width / 2.0, value.height / 2.0, value.depth / 2.0],
         ];
         let colors = [
-            Color::light_coral(),
-            Color::maroon(),
-            Color::light_green(),
-            Color::green(),
-            Color::medium_slate_blue(),
-            Color::navy(),
+            color::light_coral(),
+            color::maroon(),
+            color::light_green(),
+            color::green(),
+            color::medium_slate_blue(),
+            color::navy(),
         ];
         let uvs = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]];
         let normals = [
@@ -200,9 +200,9 @@ impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
                 0.0,
             ));
 
-            color_data.push(Color::white());
-            color_data.push(Color::red());
-            color_data.push(Color::blue());
+            color_data.push(color::white());
+            color_data.push(color::red());
+            color_data.push(color::blue());
 
             texture_data.push(glm::vec2(0.5, 0.5));
             texture_data.push(glm::vec2(

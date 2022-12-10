@@ -4,7 +4,7 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
-    color::Color,
+    color::{self, Color},
     convert::FromWithContext,
     light::{shadow::Shadow, Light},
     material::{Material, MaterialSettings, RenderSetting},
@@ -38,8 +38,8 @@ impl Default for PhongMaterial<'_> {
         Self {
             double_side: true,
             texture: None,
-            ambient: Color::black(),
-            diffuse: Color::white(),
+            ambient: color::black(),
+            diffuse: color::white(),
             specular_strength: 1.0,
             shininess: 32.0,
             bump_texture: None,

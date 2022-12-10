@@ -18,14 +18,6 @@ pub fn rotation_y(angle: Angle) -> Mat4 {
     glm::rotation(angle.to_radians(), &glm::vec3(0.0, 1.0, 0.0))
 }
 
-pub fn rotation_z(angle: Angle) -> Mat4 {
-    glm::rotation(angle.to_radians(), &glm::vec3(0.0, 0.0, 1.0))
-}
-
-pub fn scale(s: f32) -> Mat4 {
-    glm::scaling(&glm::vec3(s, s, s))
-}
-
 #[derive(Debug, Clone, Copy)]
 pub struct Perspective {
     pub aspect_ratio: f32,

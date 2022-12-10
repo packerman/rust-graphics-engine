@@ -8,7 +8,7 @@ use crate::{
     core::{
         application::{self, Application, AsyncCreator},
         camera::Camera,
-        color::Color,
+        color,
         convert::FromWithContext,
         geometry::Geometry,
         input::KeyState,
@@ -136,7 +136,7 @@ impl AsyncCreator for Example {
                     context,
                     SurfaceMaterial {
                         basic: BasicMaterial {
-                            base_color: Color::black(),
+                            base_color: color::black(),
                             ..Default::default()
                         },
                         ..Default::default()

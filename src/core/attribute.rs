@@ -4,7 +4,7 @@ use js_sys::Float32Array;
 use na::SVector;
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
 
-use super::{color::Color, gl};
+use super::gl;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DataType {
@@ -148,21 +148,14 @@ impl<const N: usize> From<&Vec<SVector<f32, N>>> for AttributeData {
     }
 }
 
-impl From<&Vec<Color>> for AttributeData {
-    fn from(data: &Vec<Color>) -> Self {
-        fn flatten_color(data: &[Color]) -> Vec<f32> {
-            data.iter().flat_map(<Vec<f32>>::from).collect()
+impl<const N: usize, const K: usize> From<&[SVector<f32, N>; K]> for AttributeData {
+    fn from(data: &[SVector<f32, N>; K]) -> Self {
+        fn flatten_vector<T: Copy, const N: usize>(data: &[SVector<T, N>]) -> Vec<T> {
+            data.iter()
+                .flat_map(|item| item.iter().copied().collect::<Vec<T>>())
+                .collect()
         }
-        Self::new_with_flat_array(flatten_color(data), 4, data.len())
-    }
-}
-
-impl<const N: usize> From<&[Color; N]> for AttributeData {
-    fn from(data: &[Color; N]) -> Self {
-        fn flatten_color<const N: usize>(data: &[Color; N]) -> Vec<f32> {
-            data.iter().flat_map(<Vec<f32>>::from).collect()
-        }
-        Self::new_with_flat_array(flatten_color(data), 4, data.len())
+        Self::new_with_flat_array(flatten_vector(data), N, data.len())
     }
 }
 

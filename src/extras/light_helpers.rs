@@ -5,7 +5,7 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     core::{
-        attribute::AttributeData, color::Color, convert::FromWithContext, geometry::Geometry,
+        attribute::AttributeData, color, convert::FromWithContext, geometry::Geometry,
         light::Light, material::Material, mesh::Mesh,
     },
     geometry::parametric::Sphere,
@@ -38,7 +38,7 @@ impl DirectionalLightHelper {
                 size: self.size,
                 divisions: self.divisions,
                 grid_color: color,
-                center_color: Color::white(),
+                center_color: color::white(),
                 ..Default::default()
             },
         )?;

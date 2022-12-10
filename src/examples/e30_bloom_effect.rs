@@ -8,7 +8,7 @@ use crate::{
     core::{
         application::{self, Application, AsyncCreator},
         camera::Camera,
-        color::Color,
+        color,
         convert::FromWithContext,
         geometry::Geometry,
         input::KeyState,
@@ -37,7 +37,7 @@ impl AsyncCreator for Example {
         let renderer = Rc::new(Renderer::initialize(
             context,
             RendererOptions {
-                clear_color: Color::black(),
+                clear_color: color::black(),
                 ..Default::default()
             },
             None,

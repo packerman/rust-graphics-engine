@@ -8,7 +8,7 @@ use crate::{
     core::{
         application::{self, Application, AsyncCreator},
         camera::Camera,
-        color::Color,
+        color,
         convert::FromWithContext,
         geometry::Geometry,
         input::KeyState,
@@ -122,7 +122,7 @@ impl AsyncCreator for Example {
             TextureUnit::from(3),
         )?;
         postprocessor.add_effect(context, |sampler| {
-            effects::tint(context, sampler, Color::lime())
+            effects::tint(context, sampler, color::lime())
         })?;
         postprocessor.add_effect(context, |sampler| {
             effects::color_reduce(context, sampler, 5)
