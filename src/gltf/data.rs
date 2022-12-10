@@ -1,12 +1,10 @@
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
-use js_sys::ArrayBuffer;
-use serde::Deserialize;
-use url::Url;
-use web_sys::WebGl2RenderingContext;
 
-use crate::core::web;
+use serde::Deserialize;
+
+use web_sys::WebGl2RenderingContext;
 
 use super::validate::{self, Validate};
 
@@ -35,7 +33,7 @@ pub struct Asset {
 #[serde(rename_all = "camelCase")]
 pub struct Buffer {
     pub uri: Option<String>,
-    byte_length: u32,
+    pub byte_length: u32,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -103,26 +101,4 @@ pub struct Node {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Scene {
     pub nodes: Option<Vec<u32>>,
-}
-
-pub async fn fetch_gltf(uri: &str) -> Result<Gltf> {
-    serde_wasm_bindgen::from_value(web::fetch_json(uri).await?)
-        .map_err(|error| anyhow!("Error while fetching glTF from {}: {:#?}", uri, error))
-}
-
-pub async fn fetch_buffers(base_url: &Url, buffers: Option<&[Buffer]>) -> Result<Vec<ArrayBuffer>> {
-    if let Some(buffers) = buffers {
-        let mut array_buffers = Vec::with_capacity(buffers.len());
-        for (i, buffer) in buffers.iter().enumerate() {
-            let relative_uri = buffer
-                .uri
-                .as_ref()
-                .ok_or_else(|| anyhow!("Undefined url in buffer[{}]", i))?;
-            let url = base_url.join(relative_uri)?;
-            array_buffers.push(web::fetch_array_buffer(url.as_str()).await?);
-        }
-        Ok(array_buffers)
-    } else {
-        Ok(vec![])
-    }
 }

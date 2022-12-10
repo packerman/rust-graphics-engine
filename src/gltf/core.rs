@@ -9,11 +9,15 @@ use crate::core::{gl, material::Material};
 #[derive(Debug, Clone)]
 pub struct Buffer {
     array_buffer: ArrayBuffer,
+    byte_length: u32,
 }
 
 impl Buffer {
-    pub fn new(array_buffer: ArrayBuffer) -> Self {
-        Self { array_buffer }
+    pub fn new(array_buffer: ArrayBuffer, byte_length: u32) -> Self {
+        Self {
+            array_buffer,
+            byte_length,
+        }
     }
 
     pub fn copy_data(

@@ -9,6 +9,7 @@ use crate::{
         application::{self, Application, AsyncCreator},
         color, gl,
         input::KeyState,
+        web,
     },
     gltf::{self, core::Root},
 };
@@ -56,7 +57,7 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let root = gltf::load(
+        let root = gltf::load::load(
             context,
             &khronos_sample("TriangleWithoutIndices", Default::default()),
         )
@@ -70,6 +71,9 @@ impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {
+        let canvas = web::get_canvas(context).unwrap();
+        let size = web::canvas_size(&canvas);
+        context.viewport(0, 0, size.0 as i32, size.1 as i32);
         gl::set_clear_color(context, &color::black());
         context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
         self.root.render(context);
