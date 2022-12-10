@@ -128,7 +128,7 @@ fn load_scenes(scenes: &[data::Scene], nodes: &[Rc<Node>]) -> Vec<Scene> {
                     .nodes
                     .iter()
                     .flatten()
-                    .map(|index| self::get_rc_u32(&nodes, *index))
+                    .map(|index| self::get_rc_u32(nodes, *index))
                     .collect(),
             )
         })
