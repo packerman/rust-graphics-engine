@@ -4,15 +4,17 @@ use anyhow::Result;
 use url::Url;
 use web_sys::WebGl2RenderingContext;
 
+use crate::core::material::Material;
+
 use super::{
     core::{Accessor, Buffer, BufferView, Mesh, Node, Primitive, Root, Scene},
-    data, material,
+    data, fetch, material,
 };
 
 pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
-    let gltf = super::fetch::fetch_gltf(uri).await?;
+    let gltf = fetch::fetch_gltf(uri).await?;
     let base_uri = Url::parse(uri)?;
-    let buffers = super::fetch::fetch_buffers(&base_uri, &gltf.buffers.unwrap_or_default()).await?;
+    let buffers = fetch::fetch_buffers(&base_uri, &gltf.buffers.unwrap_or_default()).await?;
     let buffer_views =
         self::load_buffer_views(context, &gltf.buffer_views.unwrap_or_default(), &buffers)?;
     let accessors = self::load_accessors(&gltf.accessors.unwrap_or_default(), &buffer_views);
@@ -87,16 +89,25 @@ fn load_meshes(
     meshes
         .iter()
         .map(|mesh| {
-            let primitives: Result<Vec<_>> = mesh
-                .primitives
-                .iter()
-                .map(|primitive| {
-                    let attributes = self::load_attributes(&primitive.attributes, accessors);
-                    Primitive::new(context, attributes, Rc::clone(&material), primitive.mode)
-                })
-                .collect();
-            let mesh = Mesh::new(primitives?);
+            let primitives =
+                self::load_primitives(context, &mesh.primitives, accessors, &material)?;
+            let mesh = Mesh::new(primitives);
             Ok(Rc::new(mesh))
+        })
+        .collect()
+}
+
+fn load_primitives(
+    context: &WebGl2RenderingContext,
+    primitives: &[data::Primitive],
+    accessors: &[Rc<Accessor>],
+    material: &Rc<Material>,
+) -> Result<Vec<Primitive>> {
+    primitives
+        .iter()
+        .map(|primitive| {
+            let attributes = self::load_attributes(&primitive.attributes, accessors);
+            Primitive::new(context, attributes, Rc::clone(material), primitive.mode)
         })
         .collect()
 }
