@@ -6,6 +6,8 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
 use crate::core::convert::FromWithContext;
 
+use super::level::Level;
+
 #[derive(Debug, Clone)]
 struct Uniform {
     pub location: WebGlUniformLocation,
@@ -13,7 +15,17 @@ struct Uniform {
 }
 
 pub trait UpdateUniform {
-    fn update_uniform(&self, context: &WebGl2RenderingContext, name: &str, program: &Program);
+    fn update_uniform(&self, context: &WebGl2RenderingContext, name: &str, program: &Program) {
+        self.update_uniform_with_level(context, name, program, Level::Ignore);
+    }
+
+    fn update_uniform_with_level(
+        &self,
+        context: &WebGl2RenderingContext,
+        name: &str,
+        program: &Program,
+        level: Level,
+    );
 }
 
 pub trait UpdateUniformValue {
@@ -23,20 +35,29 @@ pub trait UpdateUniformValue {
         location: Option<&WebGlUniformLocation>,
     );
 
-    fn uniform_type(&self) -> u32;
+    fn value_type(&self) -> u32;
 }
 
 impl<U: UpdateUniformValue> UpdateUniform for U {
-    fn update_uniform(&self, context: &WebGl2RenderingContext, name: &str, program: &Program) {
+    fn update_uniform_with_level(
+        &self,
+        context: &WebGl2RenderingContext,
+        name: &str,
+        program: &Program,
+        level: Level,
+    ) {
         if let Some(uniform) = program.get_uniform(name) {
-            assert!(
-                uniform.uniform_type == self.uniform_type(),
-                "Incopatible types of uniform value '{}': uniform type = {}, value_type = {}",
-                name,
-                uniform.uniform_type,
-                self.uniform_type()
-            );
+            level.assert(uniform.uniform_type == self.value_type(), || {
+                format!(
+                    "Incompatible types of uniform value '{}': uniform type = {}, value_type = {}",
+                    name,
+                    uniform.uniform_type,
+                    self.value_type(),
+                )
+            });
             self.update_uniform_value(context, Some(&uniform.location));
+        } else {
+            level.error(|| format!("Uniform '{}' not found", name));
         }
     }
 }
@@ -50,7 +71,7 @@ impl UpdateUniformValue for Mat4 {
         context.uniform_matrix4fv_with_f32_array(location, false, self.into());
     }
 
-    fn uniform_type(&self) -> u32 {
+    fn value_type(&self) -> u32 {
         WebGl2RenderingContext::FLOAT_MAT4
     }
 }

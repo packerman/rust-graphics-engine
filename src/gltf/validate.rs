@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use anyhow::{Error, Result};
 
-pub fn check_condition<E>(condition: bool, error: E) -> Result<()>
+pub fn assert<E>(condition: bool, error: E) -> Result<()>
 where
     E: Fn() -> Error,
 {
@@ -29,5 +29,5 @@ where
     T: PartialEq + Debug,
     F: Fn(&T) -> Error,
 {
-    self::check_condition(array.contains(value), || error(value))
+    self::assert(array.contains(value), || error(value))
 }
