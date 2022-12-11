@@ -242,6 +242,10 @@ impl Primitive {
     fn render(&self, context: &WebGl2RenderingContext, model_matrix: &Mat4) {
         self.program.use_program(context);
         model_matrix.update_uniform(context, "u_ModelMatrix", &self.program);
+        self.draw(context);
+    }
+
+    fn draw(&self, context: &WebGl2RenderingContext) {
         context.bind_vertex_array(Some(&self.vertex_array));
         if let Some(indices) = &self.indices {
             context.draw_elements_with_i32(
