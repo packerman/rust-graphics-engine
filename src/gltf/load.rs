@@ -4,10 +4,7 @@ use anyhow::{anyhow, Result};
 use url::Url;
 use web_sys::WebGl2RenderingContext;
 
-use crate::{
-    core::{material::Material, math::matrix},
-    gltf::data::GltfStatistics,
-};
+use crate::{core::math::matrix, gltf::data::GltfStatistics};
 
 use super::{
     core::{Accessor, Buffer, BufferView, Mesh, Node, Primitive, Root, Scene},

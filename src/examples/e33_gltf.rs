@@ -55,7 +55,7 @@ struct Example {
     root: Root,
 }
 
-const EXAMPLE_NAMES: [&str; 2] = ["TriangleWithoutIndices", "Triangle"];
+const EXAMPLE_NAMES: [&str; 3] = ["TriangleWithoutIndices", "Triangle", "SimpleMeshes"];
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
@@ -63,7 +63,7 @@ impl AsyncCreator for Example {
         debug!("{:#?}", GlDiagnostics::collect(context)?);
         let root = gltf::load::load(
             context,
-            &khronos_sample(EXAMPLE_NAMES[1], Default::default()),
+            &khronos_sample(EXAMPLE_NAMES[2], Default::default()),
         )
         .await?;
         Ok(Box::new(Example { root }))

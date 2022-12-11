@@ -9,7 +9,7 @@ use crate::core::convert::FromWithContext;
 use super::level::Level;
 
 #[derive(Debug, Clone)]
-struct Uniform {
+pub struct Uniform {
     pub location: WebGlUniformLocation,
     pub uniform_type: u32,
 }

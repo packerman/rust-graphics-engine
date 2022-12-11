@@ -5,9 +5,12 @@ use glm::Mat4;
 use js_sys::{ArrayBuffer, DataView};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlVertexArrayObject};
 
-use crate::core::{gl, material::Material};
+use crate::core::gl;
 
-use super::{program::Program, validate};
+use super::{
+    program::{Program, UpdateUniform},
+    validate,
+};
 
 #[derive(Debug, Clone)]
 pub struct Buffer {
@@ -236,8 +239,9 @@ impl Primitive {
         BufferView::unbind(context, self.indices.is_some());
     }
 
-    fn render(&self, context: &WebGl2RenderingContext) {
+    fn render(&self, context: &WebGl2RenderingContext, model_matrix: &Mat4) {
         self.program.use_program(context);
+        model_matrix.update_uniform(context, "u_ModelMatrix", &self.program);
         context.bind_vertex_array(Some(&self.vertex_array));
         if let Some(indices) = &self.indices {
             context.draw_elements_with_i32(
@@ -280,9 +284,9 @@ impl Mesh {
         Self { primitives }
     }
 
-    pub fn render(&self, context: &WebGl2RenderingContext) {
+    pub fn render(&self, context: &WebGl2RenderingContext, model_matrix: &Mat4) {
         for primitive in self.primitives.iter() {
-            primitive.render(context);
+            primitive.render(context, model_matrix);
         }
     }
 }
@@ -300,7 +304,7 @@ impl Node {
 
     pub fn render(&self, context: &WebGl2RenderingContext) {
         if let Some(mesh) = &self.mesh {
-            mesh.render(context);
+            mesh.render(context, &self.matrix);
         }
     }
 }

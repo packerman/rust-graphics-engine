@@ -8,7 +8,7 @@ use crate::{
     core::{
         application::{self, Application, AsyncCreator},
         camera::Camera,
-        color::{self},
+        color,
         convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
