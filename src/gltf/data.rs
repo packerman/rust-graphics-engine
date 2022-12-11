@@ -14,8 +14,8 @@ pub struct Accessor {
     pub count: i32,
     #[serde(rename = "type")]
     pub accessor_type: String,
-    pub min: Option<Vec<f64>>,
-    pub max: Option<Vec<f64>>,
+    pub min: Option<Vec<f32>>,
+    pub max: Option<Vec<f32>>,
     #[serde(default)]
     pub normalized: bool,
 }
@@ -78,6 +78,7 @@ impl Primitive {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Node {
     pub mesh: Option<u32>,
+    pub translation: Option<[f32; 3]>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

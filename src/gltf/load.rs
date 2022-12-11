@@ -4,11 +4,15 @@ use anyhow::{anyhow, Result};
 use url::Url;
 use web_sys::WebGl2RenderingContext;
 
-use crate::{core::material::Material, gltf::data::GltfStatistics};
+use crate::{
+    core::{material::Material, math::matrix},
+    gltf::data::GltfStatistics,
+};
 
 use super::{
     core::{Accessor, Buffer, BufferView, Mesh, Node, Primitive, Root, Scene},
     data, fetch, material,
+    program::Program,
 };
 
 pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
@@ -104,7 +108,7 @@ fn load_primitives(
     context: &WebGl2RenderingContext,
     primitives: &[data::Primitive],
     accessors: &[Rc<Accessor>],
-    material: &Rc<Material>,
+    material: &Rc<Program>,
 ) -> Result<Vec<Primitive>> {
     primitives
         .iter()
@@ -134,10 +138,19 @@ fn load_attributes(
         .collect()
 }
 
+const DEFAULT_TRANSLATION: [f32; 3] = [0.0, 0.0, 0.0];
+
 fn load_nodes(nodes: &[data::Node], meshes: &[Rc<Mesh>]) -> Vec<Rc<Node>> {
     nodes
         .iter()
-        .map(|node| Node::new(node.mesh.map(|index| self::get_rc_u32(meshes, index))))
+        .map(|node| {
+            let translation = node.translation.unwrap_or(DEFAULT_TRANSLATION);
+            let matrix = matrix::translation(translation[0], translation[1], translation[2]);
+            Node::new(
+                matrix,
+                node.mesh.map(|index| self::get_rc_u32(meshes, index)),
+            )
+        })
         .map(Rc::new)
         .collect()
 }

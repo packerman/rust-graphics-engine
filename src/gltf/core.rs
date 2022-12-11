@@ -1,12 +1,13 @@
 use std::{collections::HashMap, rc::Rc};
 
 use anyhow::{anyhow, Result};
+use glm::Mat4;
 use js_sys::{ArrayBuffer, DataView};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlVertexArrayObject};
 
 use crate::core::{gl, material::Material};
 
-use super::validate;
+use super::{program::Program, validate};
 
 #[derive(Debug, Clone)]
 pub struct Buffer {
@@ -116,8 +117,8 @@ pub struct Accessor {
     component_type: u32,
     count: i32,
     size: i32,
-    min: Option<Vec<f64>>,
-    max: Option<Vec<f64>>,
+    min: Option<Vec<f32>>,
+    max: Option<Vec<f32>>,
     pub normalized: bool,
 }
 
@@ -137,8 +138,8 @@ impl Accessor {
         component_type: u32,
         count: i32,
         size: i32,
-        min: Option<Vec<f64>>,
-        max: Option<Vec<f64>>,
+        min: Option<Vec<f32>>,
+        max: Option<Vec<f32>>,
         normalized: bool,
     ) -> Result<Self> {
         validate::contains(&component_type, &Self::COMPONENT_TYPES, |value| {
@@ -177,7 +178,7 @@ pub struct Primitive {
     vertex_array: WebGlVertexArrayObject,
     attributes: HashMap<String, Rc<Accessor>>,
     indices: Option<Rc<Accessor>>,
-    material: Rc<Material>,
+    program: Rc<Program>,
     mode: u32,
     count: i32,
 }
@@ -197,7 +198,7 @@ impl Primitive {
         context: &WebGl2RenderingContext,
         attributes: HashMap<String, Rc<Accessor>>,
         indices: Option<Rc<Accessor>>,
-        material: Rc<Material>,
+        program: Rc<Program>,
         mode: u32,
     ) -> Result<Self> {
         validate::contains(&mode, &Self::MODES, |value| {
@@ -209,7 +210,7 @@ impl Primitive {
             vertex_array,
             attributes,
             indices,
-            material,
+            program,
             mode,
             count,
         };
@@ -218,14 +219,12 @@ impl Primitive {
     }
 
     pub fn set_vertex_array(&self, context: &WebGl2RenderingContext) {
-        self.material.use_program(context);
+        self.program.use_program(context);
         context.bind_vertex_array(Some(&self.vertex_array));
         for (attribute, accessor) in self.attributes.iter() {
             let attribute = format!("a_{}", attribute.to_lowercase());
-            if let Some(location) =
-                gl::get_attrib_location(context, self.material.program(), &attribute)
-            {
-                accessor.set_vertex_attribute(context, location);
+            if let Some(location) = self.program.get_attribute_location(&attribute) {
+                accessor.set_vertex_attribute(context, *location);
             }
         }
         if let Some(indices) = &self.indices {
@@ -238,9 +237,8 @@ impl Primitive {
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.material.use_program(context);
+        self.program.use_program(context);
         context.bind_vertex_array(Some(&self.vertex_array));
-        self.material.upload_uniform_data(context);
         if let Some(indices) = &self.indices {
             context.draw_elements_with_i32(
                 self.mode,
@@ -291,12 +289,13 @@ impl Mesh {
 
 #[derive(Debug, Clone)]
 pub struct Node {
+    matrix: Mat4,
     mesh: Option<Rc<Mesh>>,
 }
 
 impl Node {
-    pub fn new(mesh: Option<Rc<Mesh>>) -> Self {
-        Self { mesh }
+    pub fn new(matrix: Mat4, mesh: Option<Rc<Mesh>>) -> Self {
+        Self { matrix, mesh }
     }
 
     pub fn render(&self, context: &WebGl2RenderingContext) {
