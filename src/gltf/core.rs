@@ -1,4 +1,9 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    borrow::{Borrow, BorrowMut},
+    cell::RefCell,
+    collections::HashMap,
+    rc::{Rc, Weak},
+};
 
 use anyhow::{anyhow, Result};
 use glm::Mat4;
@@ -297,18 +302,40 @@ impl Mesh {
 
 #[derive(Debug, Clone)]
 pub struct Node {
-    matrix: Mat4,
+    me: Weak<Node>,
+    children: RefCell<Vec<Rc<Node>>>,
+    local_transform: RefCell<Mat4>,
     mesh: Option<Rc<Mesh>>,
+    parent: RefCell<Weak<Node>>,
 }
 
 impl Node {
-    pub fn new(matrix: Mat4, mesh: Option<Rc<Mesh>>) -> Self {
-        Self { matrix, mesh }
+    pub fn new(local_transform: Mat4, mesh: Option<Rc<Mesh>>) -> Rc<Self> {
+        Rc::new_cyclic(|me| Self {
+            me: Weak::clone(&me),
+            children: RefCell::new(vec![]),
+            local_transform: RefCell::new(local_transform),
+            mesh,
+            parent: RefCell::new(Weak::new()),
+        })
     }
 
     pub fn render(&self, context: &WebGl2RenderingContext) {
         if let Some(mesh) = &self.mesh {
-            mesh.render(context, &self.matrix);
+            mesh.render(context, &self.global_transform());
+        }
+    }
+
+    pub fn add_child(&self, node: Rc<Node>) {
+        *node.parent.borrow_mut() = Weak::clone(&self.me);
+        self.children.borrow_mut().push(node);
+    }
+
+    pub fn global_transform(&self) -> Mat4 {
+        if let Some(parent) = self.parent.borrow().upgrade() {
+            parent.global_transform() * *self.local_transform.borrow()
+        } else {
+            *self.local_transform.borrow()
         }
     }
 }

@@ -77,6 +77,7 @@ impl Primitive {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Node {
+    pub children: Option<Vec<u32>>,
     pub mesh: Option<u32>,
     pub translation: Option<[f32; 3]>,
 }

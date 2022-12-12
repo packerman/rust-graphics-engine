@@ -137,8 +137,8 @@ fn load_attributes(
 
 const DEFAULT_TRANSLATION: [f32; 3] = [0.0, 0.0, 0.0];
 
-fn load_nodes(nodes: &[data::Node], meshes: &[Rc<Mesh>]) -> Vec<Rc<Node>> {
-    nodes
+fn load_nodes(gltf_nodes: &[data::Node], meshes: &[Rc<Mesh>]) -> Vec<Rc<Node>> {
+    let nodes: Vec<_> = gltf_nodes
         .iter()
         .map(|node| {
             let translation = node.translation.unwrap_or(DEFAULT_TRANSLATION);
@@ -148,8 +148,15 @@ fn load_nodes(nodes: &[data::Node], meshes: &[Rc<Mesh>]) -> Vec<Rc<Node>> {
                 node.mesh.map(|index| self::get_rc_u32(meshes, index)),
             )
         })
-        .map(Rc::new)
-        .collect()
+        .collect();
+    for (i, data_node) in gltf_nodes.iter().enumerate() {
+        for child_index in data_node.children.iter().flatten() {
+            let node = &nodes[i];
+            let child = self::get_rc_u32(&nodes, *child_index);
+            node.add_child(child);
+        }
+    }
+    nodes
 }
 
 fn load_scenes(scenes: &[data::Scene], nodes: &[Rc<Node>]) -> Vec<Scene> {
