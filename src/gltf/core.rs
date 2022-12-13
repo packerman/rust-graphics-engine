@@ -1,5 +1,4 @@
 use std::{
-    borrow::{Borrow, BorrowMut},
     cell::RefCell,
     collections::HashMap,
     rc::{Rc, Weak},
@@ -31,23 +30,8 @@ impl Buffer {
         }
     }
 
-    pub fn copy_data(
-        &self,
-        context: &WebGl2RenderingContext,
-        target: u32,
-        byte_offset: u32,
-        byte_length: u32,
-    ) {
-        let data_view = DataView::new(
-            &self.array_buffer,
-            byte_offset as usize,
-            byte_length as usize,
-        );
-        context.buffer_data_with_array_buffer_view(
-            target,
-            &data_view,
-            WebGl2RenderingContext::STATIC_DRAW,
-        );
+    pub fn get_data_view(&self, byte_offset: usize, byte_length: usize) -> DataView {
+        DataView::new(&self.array_buffer, byte_offset, byte_length)
     }
 }
 
@@ -80,20 +64,19 @@ impl BufferView {
                 anyhow!("Unknown target: {}", value)
             })
         })?;
-        let me = Self {
-            gl_buffer: if target.is_some() {
-                Some(gl::create_buffer(context)?)
-            } else {
-                None
-            },
+        let gl_buffer = if target.is_some() {
+            Some(gl::create_buffer(context)?)
+        } else {
+            None
+        };
+        Ok(Self {
+            gl_buffer,
             data_buffer: buffer,
             byte_offset,
             byte_length,
             target,
             byte_stride: byte_stride.unwrap_or_default(),
-        };
-        me.copy_data(context);
-        Ok(me)
+        })
     }
 
     pub fn bind(&self, context: &WebGl2RenderingContext) {
@@ -102,11 +85,21 @@ impl BufferView {
         }
     }
 
-    pub fn copy_data(&self, context: &WebGl2RenderingContext) {
+    pub fn get_data_view(&self, byte_offset: u32) -> DataView {
+        self.data_buffer.get_data_view(
+            (self.byte_offset + byte_offset) as usize,
+            self.byte_length as usize,
+        )
+    }
+
+    pub fn buffer_data(&self, context: &WebGl2RenderingContext, data: &js_sys::Object) {
         if let Some(target) = self.target {
             context.bind_buffer(target, self.gl_buffer.as_ref());
-            self.data_buffer
-                .copy_data(context, target, self.byte_offset, self.byte_length);
+            context.buffer_data_with_array_buffer_view(
+                target,
+                &data,
+                WebGl2RenderingContext::STATIC_DRAW,
+            );
         }
     }
 
@@ -167,16 +160,25 @@ impl Accessor {
 
     pub fn set_vertex_attribute(&self, context: &WebGl2RenderingContext, location: u32) {
         if let Some(buffer_view) = &self.buffer_view {
-            buffer_view.bind(context);
+            let data_view = buffer_view.get_data_view(self.byte_offset as u32);
+            buffer_view.buffer_data(context, &data_view);
             context.vertex_attrib_pointer_with_i32(
                 location,
                 self.size,
                 self.component_type,
                 self.normalized,
                 buffer_view.byte_stride,
-                self.byte_offset,
+                0,
             );
             context.enable_vertex_attrib_array(location);
+        }
+    }
+
+    pub fn set_indices(&self, context: &WebGl2RenderingContext) {
+        if let Some(buffer_view) = &self.buffer_view {
+            let data_view = buffer_view.get_data_view(self.byte_offset as u32);
+            buffer_view.buffer_data(context, &data_view);
+            buffer_view.bind(context);
         }
     }
 }
@@ -236,9 +238,7 @@ impl Primitive {
             }
         }
         if let Some(indices) = &self.indices {
-            if let Some(buffer_view) = &indices.buffer_view {
-                buffer_view.bind(context);
-            }
+            indices.set_indices(context);
         }
         context.bind_vertex_array(None);
         BufferView::unbind(context, self.indices.is_some());
@@ -253,12 +253,7 @@ impl Primitive {
     fn draw(&self, context: &WebGl2RenderingContext) {
         context.bind_vertex_array(Some(&self.vertex_array));
         if let Some(indices) = &self.indices {
-            context.draw_elements_with_i32(
-                self.mode,
-                self.count,
-                indices.component_type,
-                indices.byte_offset,
-            )
+            context.draw_elements_with_i32(self.mode, self.count, indices.component_type, 0)
         } else {
             context.draw_arrays(self.mode, 0, self.count);
         }

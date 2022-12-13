@@ -142,15 +142,15 @@ fn load_nodes(gltf_nodes: &[data::Node], meshes: &[Rc<Mesh>]) -> Vec<Rc<Node>> {
         .iter()
         .map(|node| {
             let translation = node.translation.unwrap_or(DEFAULT_TRANSLATION);
-            let matrix = matrix::translation(translation[0], translation[1], translation[2]);
+            let transform = matrix::translation(translation[0], translation[1], translation[2]);
             Node::new(
-                matrix,
+                transform,
                 node.mesh.map(|index| self::get_rc_u32(meshes, index)),
             )
         })
         .collect();
-    for (i, data_node) in gltf_nodes.iter().enumerate() {
-        for child_index in data_node.children.iter().flatten() {
+    for (i, gltf_node) in gltf_nodes.iter().enumerate() {
+        for child_index in gltf_node.children.iter().flatten() {
             let node = &nodes[i];
             let child = self::get_rc_u32(&nodes, *child_index);
             node.add_child(child);
