@@ -97,7 +97,7 @@ impl BufferView {
             context.bind_buffer(target, self.gl_buffer.as_ref());
             context.buffer_data_with_array_buffer_view(
                 target,
-                &data,
+                data,
                 WebGl2RenderingContext::STATIC_DRAW,
             );
         }
@@ -237,8 +237,8 @@ impl Primitive {
                 accessor.set_vertex_attribute(context, *location);
             }
         }
-        if let Some(indices) = &self.indices {
-            indices.set_indices(context);
+        if let Some(accessor) = &self.indices {
+            accessor.set_indices(context);
         }
         context.bind_vertex_array(None);
         BufferView::unbind(context, self.indices.is_some());
@@ -307,7 +307,7 @@ pub struct Node {
 impl Node {
     pub fn new(local_transform: Mat4, mesh: Option<Rc<Mesh>>) -> Rc<Self> {
         Rc::new_cyclic(|me| Self {
-            me: Weak::clone(&me),
+            me: Weak::clone(me),
             children: RefCell::new(vec![]),
             local_transform: RefCell::new(local_transform),
             mesh,
