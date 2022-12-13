@@ -1,6 +1,7 @@
 use std::{collections::HashMap, rc::Rc};
 
 use anyhow::{anyhow, Result};
+use js_sys::ArrayBuffer;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
@@ -18,7 +19,16 @@ use crate::{
 
 use super::data;
 
-pub fn load_buffer_views(
+pub fn build_buffers(buffers: &[data::Buffer], array_buffers: Vec<ArrayBuffer>) -> Vec<Rc<Buffer>> {
+    buffers
+        .iter()
+        .enumerate()
+        .map(|(i, buffer)| Buffer::new(array_buffers[i].to_owned(), buffer.byte_length))
+        .map(Rc::new)
+        .collect()
+}
+
+pub fn build_buffer_views(
     context: &WebGl2RenderingContext,
     buffer_views: &[data::BufferView],
     buffers: &[Rc<Buffer>],
@@ -40,7 +50,7 @@ pub fn load_buffer_views(
         .collect()
 }
 
-pub fn load_accessors(
+pub fn build_accessors(
     accessors: &[data::Accessor],
     buffer_views: &[Rc<BufferView>],
 ) -> Result<Vec<Rc<Accessor>>> {
@@ -75,7 +85,7 @@ fn get_size(accessor_type: &str) -> Result<i32> {
     }
 }
 
-pub fn load_meshes(
+pub fn build_meshes(
     context: &WebGl2RenderingContext,
     meshes: &[data::Mesh],
     accessors: &[Rc<Accessor>],
@@ -85,14 +95,14 @@ pub fn load_meshes(
         .iter()
         .map(|mesh| {
             let primitives =
-                self::load_primitives(context, &mesh.primitives, accessors, &material)?;
+                self::build_primitives(context, &mesh.primitives, accessors, &material)?;
             let mesh = Mesh::new(primitives);
             Ok(Rc::new(mesh))
         })
         .collect()
 }
 
-fn load_primitives(
+fn build_primitives(
     context: &WebGl2RenderingContext,
     primitives: &[data::Primitive],
     accessors: &[Rc<Accessor>],
@@ -101,7 +111,7 @@ fn load_primitives(
     primitives
         .iter()
         .map(|primitive| {
-            let attributes = self::load_attributes(&primitive.attributes, accessors);
+            let attributes = self::build_attributes(&primitive.attributes, accessors);
             let indices = primitive
                 .indices
                 .map(|index| self::get_rc_u32(accessors, index));
@@ -116,7 +126,7 @@ fn load_primitives(
         .collect()
 }
 
-fn load_attributes(
+fn build_attributes(
     attributes: &HashMap<String, u32>,
     accessors: &[Rc<Accessor>],
 ) -> HashMap<String, Rc<Accessor>> {
@@ -128,7 +138,7 @@ fn load_attributes(
 
 const DEFAULT_TRANSLATION: [f32; 3] = [0.0, 0.0, 0.0];
 
-pub fn load_nodes(gltf_nodes: &[data::Node], meshes: &[Rc<Mesh>]) -> Vec<Rc<Node>> {
+pub fn build_nodes(gltf_nodes: &[data::Node], meshes: &[Rc<Mesh>]) -> Vec<Rc<Node>> {
     let nodes: Vec<_> = gltf_nodes
         .iter()
         .map(|node| {
@@ -150,7 +160,7 @@ pub fn load_nodes(gltf_nodes: &[data::Node], meshes: &[Rc<Mesh>]) -> Vec<Rc<Node
     nodes
 }
 
-pub fn load_scenes(scenes: &[data::Scene], nodes: &[Rc<Node>]) -> Vec<Scene> {
+pub fn build_scenes(scenes: &[data::Scene], nodes: &[Rc<Node>]) -> Vec<Scene> {
     scenes
         .iter()
         .map(|scene| {
