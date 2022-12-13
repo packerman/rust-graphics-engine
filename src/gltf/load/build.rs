@@ -1,33 +1,24 @@
 use std::{collections::HashMap, rc::Rc};
 
 use anyhow::{anyhow, Result};
-use url::Url;
 use web_sys::WebGl2RenderingContext;
 
-use crate::{core::math::matrix, gltf::data::GltfStatistics};
-
-use super::{
-    core::{Accessor, Buffer, BufferView, Mesh, Node, Primitive, Root, Scene},
-    data, fetch, material,
-    program::Program,
+use crate::{
+    core::math::matrix,
+    gltf::{
+        core::{
+            geometry::{Mesh, Primitive},
+            scene::{Node, Scene},
+            storage::{Accessor, Buffer, BufferView},
+        },
+        material,
+        program::Program,
+    },
 };
 
-pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
-    let gltf = fetch::fetch_gltf(uri).await?;
-    debug!("{:#?}", gltf.asset);
-    debug!("{:#?}", GltfStatistics::from(&gltf));
-    let base_uri = Url::parse(uri)?;
-    let buffers = fetch::fetch_buffers(&base_uri, &gltf.buffers.unwrap_or_default()).await?;
-    let buffer_views =
-        self::load_buffer_views(context, &gltf.buffer_views.unwrap_or_default(), &buffers)?;
-    let accessors = self::load_accessors(&gltf.accessors.unwrap_or_default(), &buffer_views)?;
-    let meshes = self::load_meshes(context, &gltf.meshes.unwrap_or_default(), &accessors)?;
-    let nodes = self::load_nodes(&gltf.nodes.unwrap_or_default(), &meshes);
-    let scenes = self::load_scenes(&gltf.scenes.unwrap_or_default(), &nodes);
-    Ok(Root::new(scenes, gltf.scene.map(|index| index as usize)))
-}
+use super::data;
 
-fn load_buffer_views(
+pub fn load_buffer_views(
     context: &WebGl2RenderingContext,
     buffer_views: &[data::BufferView],
     buffers: &[Rc<Buffer>],
@@ -49,7 +40,7 @@ fn load_buffer_views(
         .collect()
 }
 
-fn load_accessors(
+pub fn load_accessors(
     accessors: &[data::Accessor],
     buffer_views: &[Rc<BufferView>],
 ) -> Result<Vec<Rc<Accessor>>> {
@@ -84,7 +75,7 @@ fn get_size(accessor_type: &str) -> Result<i32> {
     }
 }
 
-fn load_meshes(
+pub fn load_meshes(
     context: &WebGl2RenderingContext,
     meshes: &[data::Mesh],
     accessors: &[Rc<Accessor>],
@@ -137,7 +128,7 @@ fn load_attributes(
 
 const DEFAULT_TRANSLATION: [f32; 3] = [0.0, 0.0, 0.0];
 
-fn load_nodes(gltf_nodes: &[data::Node], meshes: &[Rc<Mesh>]) -> Vec<Rc<Node>> {
+pub fn load_nodes(gltf_nodes: &[data::Node], meshes: &[Rc<Mesh>]) -> Vec<Rc<Node>> {
     let nodes: Vec<_> = gltf_nodes
         .iter()
         .map(|node| {
@@ -159,7 +150,7 @@ fn load_nodes(gltf_nodes: &[data::Node], meshes: &[Rc<Mesh>]) -> Vec<Rc<Node>> {
     nodes
 }
 
-fn load_scenes(scenes: &[data::Scene], nodes: &[Rc<Node>]) -> Vec<Scene> {
+pub fn load_scenes(scenes: &[data::Scene], nodes: &[Rc<Node>]) -> Vec<Scene> {
     scenes
         .iter()
         .map(|scene| {

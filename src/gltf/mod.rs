@@ -1,6 +1,5 @@
 pub mod core;
-pub mod data;
-pub mod fetch;
+
 pub mod level;
 pub mod load;
 pub mod material;

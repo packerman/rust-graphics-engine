@@ -4,12 +4,9 @@ use anyhow::{anyhow, Result};
 
 use url::Url;
 
-use crate::core::web;
+use crate::{core::web, gltf::core::storage::Buffer};
 
-use super::{
-    core::Buffer,
-    data::{self, Gltf},
-};
+use super::data::{self, Gltf};
 
 pub async fn fetch_gltf(uri: &str) -> Result<Gltf> {
     serde_wasm_bindgen::from_value(web::fetch_json(uri).await?)
