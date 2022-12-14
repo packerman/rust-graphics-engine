@@ -6,26 +6,36 @@ use std::{
 use glm::Mat4;
 use web_sys::WebGl2RenderingContext;
 
-use super::geometry::Mesh;
+use super::{camera::Camera, geometry::Mesh};
 
 #[derive(Debug, Clone)]
 pub struct Node {
     me: Weak<Node>,
     children: RefCell<Vec<Rc<Node>>>,
     local_transform: RefCell<Mat4>,
+    camera: Option<Rc<RefCell<Camera>>>,
     mesh: Option<Rc<Mesh>>,
     parent: RefCell<Weak<Node>>,
 }
 
 impl Node {
-    pub fn new(local_transform: Mat4, mesh: Option<Rc<Mesh>>) -> Rc<Self> {
-        Rc::new_cyclic(|me| Self {
+    pub fn new(
+        local_transform: Mat4,
+        mesh: Option<Rc<Mesh>>,
+        camera: Option<Rc<RefCell<Camera>>>,
+    ) -> Rc<Self> {
+        let node = Rc::new_cyclic(|me| Self {
             me: Weak::clone(me),
+            camera: camera.clone(),
             children: RefCell::new(vec![]),
             local_transform: RefCell::new(local_transform),
             mesh,
             parent: RefCell::new(Weak::new()),
-        })
+        });
+        if let Some(camera) = camera {
+            camera.borrow_mut().set_node(&node.me);
+        }
+        node
     }
 
     pub fn render(&self, context: &WebGl2RenderingContext) {

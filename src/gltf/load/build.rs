@@ -1,29 +1,28 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use anyhow::{anyhow, Result};
+use glm::{Qua, Vec3};
 use js_sys::ArrayBuffer;
 use web_sys::WebGl2RenderingContext;
 
-use crate::{
-    core::math::matrix,
-    gltf::{
-        core::{
-            geometry::{Mesh, Primitive},
-            scene::{Node, Scene},
-            storage::{Accessor, Buffer, BufferView},
-        },
-        material,
-        program::Program,
+use crate::gltf::{
+    core::{
+        camera::Camera,
+        geometry::{Mesh, Primitive},
+        scene::{Node, Scene},
+        storage::{Accessor, Buffer, BufferView},
     },
+    material,
+    program::Program,
 };
 
 use super::data;
 
 pub fn build_buffers(buffers: &[data::Buffer], array_buffers: Vec<ArrayBuffer>) -> Vec<Rc<Buffer>> {
-    buffers
-        .iter()
+    array_buffers
+        .into_iter()
         .enumerate()
-        .map(|(i, buffer)| Buffer::new(array_buffers[i].to_owned(), buffer.byte_length))
+        .map(|(i, array_buffer)| Buffer::new(array_buffer, buffers[i].byte_length))
         .map(Rc::new)
         .collect()
 }
@@ -85,6 +84,43 @@ fn get_size(accessor_type: &str) -> Result<i32> {
     }
 }
 
+pub fn build_cameras(cameras: &[data::Camera]) -> Vec<Rc<RefCell<Camera>>> {
+    cameras
+        .iter()
+        .map(|camera| match camera.camera_type.as_str() {
+            "perspective" => {
+                let perspective = camera
+                    .perspective
+                    .as_ref()
+                    .expect("Missing perspective camera structure");
+                Camera::perspective(
+                    perspective.aspect_ratio.unwrap_or(1.0),
+                    perspective.y_fov,
+                    perspective.z_near,
+                    perspective.z_far,
+                    camera.name.clone(),
+                )
+            }
+            "orthographic" => {
+                let orthographic = camera
+                    .orthographic
+                    .as_ref()
+                    .expect("Missing orthographic camera structure");
+                Camera::orthographic(
+                    orthographic.x_mag,
+                    orthographic.y_mag,
+                    orthographic.z_near,
+                    orthographic.z_far,
+                    camera.name.clone(),
+                )
+            }
+            _ => panic!("Unknown camera type: {}", camera.camera_type),
+        })
+        .map(RefCell::new)
+        .map(Rc::new)
+        .collect()
+}
+
 pub fn build_meshes(
     context: &WebGl2RenderingContext,
     meshes: &[data::Mesh],
@@ -137,16 +173,25 @@ fn build_attributes(
 }
 
 const DEFAULT_TRANSLATION: [f32; 3] = [0.0, 0.0, 0.0];
+const DEFAULT_ROTATION: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
-pub fn build_nodes(gltf_nodes: &[data::Node], meshes: &[Rc<Mesh>]) -> Vec<Rc<Node>> {
+pub fn build_nodes(
+    gltf_nodes: &[data::Node],
+    meshes: &[Rc<Mesh>],
+    cameras: &[Rc<RefCell<Camera>>],
+) -> Vec<Rc<Node>> {
     let nodes: Vec<_> = gltf_nodes
         .iter()
         .map(|node| {
             let translation = node.translation.unwrap_or(DEFAULT_TRANSLATION);
-            let transform = matrix::translation(translation[0], translation[1], translation[2]);
+            let translation = glm::translation(&Vec3::from(translation));
+            let rotation = node.rotation.unwrap_or(DEFAULT_ROTATION);
+            let rotation = glm::quat_to_mat4(&Qua::from(rotation));
+            let transform = translation * rotation;
             Node::new(
                 transform,
                 node.mesh.map(|index| self::get_rc_u32(meshes, index)),
+                node.camera.map(|index| self::get_rc_u32(cameras, index)),
             )
         })
         .collect();

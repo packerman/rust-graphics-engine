@@ -44,12 +44,46 @@ pub struct BufferView {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct Camera {
+    pub orthographic: Option<Orthographic>,
+    pub perspective: Option<Perspective>,
+    #[serde(rename = "type")]
+    pub camera_type: String,
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct Orthographic {
+    #[serde(rename = "xmag")]
+    pub x_mag: f32,
+    #[serde(rename = "ymag")]
+    pub y_mag: f32,
+    #[serde(rename = "zfar")]
+    pub z_far: f32,
+    #[serde(rename = "znear")]
+    pub z_near: f32,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct Perspective {
+    #[serde(rename = "aspectRatio")]
+    pub aspect_ratio: Option<f32>,
+    #[serde(rename = "yfov")]
+    pub y_fov: f32,
+    #[serde(rename = "zfar")]
+    pub z_far: Option<f32>,
+    #[serde(rename = "znear")]
+    pub z_near: f32,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Gltf {
     pub asset: Asset,
     pub accessors: Option<Vec<Accessor>>,
     pub buffers: Option<Vec<Buffer>>,
     pub buffer_views: Option<Vec<BufferView>>,
+    pub cameras: Option<Vec<Camera>>,
     pub meshes: Option<Vec<Mesh>>,
     pub nodes: Option<Vec<Node>>,
     pub scene: Option<u32>,
@@ -77,49 +111,14 @@ impl Primitive {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Node {
+    pub camera: Option<u32>,
     pub children: Option<Vec<u32>>,
     pub mesh: Option<u32>,
     pub translation: Option<[f32; 3]>,
+    pub rotation: Option<[f32; 4]>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Scene {
     pub nodes: Option<Vec<u32>>,
-}
-
-#[derive(Debug, Clone)]
-pub struct GltfStatistics {
-    pub accessor_count: usize,
-    pub buffer_count: usize,
-    pub buffer_byte_length: u32,
-    pub buffer_view_count: usize,
-    pub mesh_count: usize,
-    pub primitive_count: usize,
-    pub node_count: usize,
-    pub scene_count: usize,
-}
-
-impl From<&Gltf> for GltfStatistics {
-    fn from(gltf: &Gltf) -> Self {
-        GltfStatistics {
-            accessor_count: gltf.accessors.as_ref().map(Vec::len).unwrap_or_default(),
-            buffer_count: gltf.buffers.as_ref().map(Vec::len).unwrap_or_default(),
-            buffer_byte_length: gltf
-                .buffers
-                .iter()
-                .flatten()
-                .map(|buffer| buffer.byte_length)
-                .sum(),
-            buffer_view_count: gltf.buffer_views.as_ref().map(Vec::len).unwrap_or_default(),
-            mesh_count: gltf.meshes.as_ref().map(Vec::len).unwrap_or_default(),
-            primitive_count: gltf
-                .meshes
-                .iter()
-                .flatten()
-                .map(|mesh| mesh.primitives.len())
-                .sum(),
-            node_count: gltf.nodes.as_ref().map(Vec::len).unwrap_or_default(),
-            scene_count: gltf.scenes.as_ref().map(Vec::len).unwrap_or_default(),
-        }
-    }
 }
