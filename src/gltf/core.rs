@@ -49,7 +49,7 @@ impl Root {
         camera_index: usize,
     ) {
         let camera = &self.cameras[camera_index];
-        self.scenes[scene_index].render(context, &camera);
+        self.scenes[scene_index].render(context, camera);
     }
 
     fn find_camera_for_scene(&self, scene: &Scene) -> Option<usize> {

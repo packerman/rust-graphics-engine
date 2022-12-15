@@ -34,6 +34,6 @@ pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
 }
 
 async fn load_buffers(base_uri: &Url, buffers: &[data::Buffer]) -> Result<Vec<Rc<Buffer>>> {
-    let array_buffers = fetch::fetch_buffers(&base_uri, buffers).await?;
+    let array_buffers = fetch::fetch_buffers(base_uri, buffers).await?;
     Ok(build::build_buffers(buffers, array_buffers))
 }
