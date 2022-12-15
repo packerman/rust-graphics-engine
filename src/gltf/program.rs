@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Debug};
 
 use anyhow::Result;
-use glm::Mat4;
+use glm::{Mat4, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
-use crate::core::convert::FromWithContext;
+use crate::core::{convert::FromWithContext, gl};
 
 use super::level::Level;
 
@@ -12,6 +12,14 @@ use super::level::Level;
 pub struct Uniform {
     pub location: WebGlUniformLocation,
     pub uniform_type: u32,
+}
+
+pub trait UpdateUniforms: Debug {
+    fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program);
+
+    fn vertex_shader(&self) -> &str;
+
+    fn fragment_shader(&self) -> &str;
 }
 
 pub trait UpdateUniform {
@@ -62,6 +70,20 @@ impl<U: UpdateUniformValue> UpdateUniform for U {
     }
 }
 
+impl UpdateUniformValue for Vec4 {
+    fn update_uniform_value(
+        &self,
+        context: &WebGl2RenderingContext,
+        location: Option<&WebGlUniformLocation>,
+    ) {
+        context.uniform4f(location, self.x, self.y, self.z, self.w)
+    }
+
+    fn value_type(&self) -> u32 {
+        WebGl2RenderingContext::FLOAT_VEC4
+    }
+}
+
 impl UpdateUniformValue for Mat4 {
     fn update_uniform_value(
         &self,
@@ -84,6 +106,15 @@ pub struct Program {
 }
 
 impl Program {
+    pub fn initialize(
+        context: &WebGl2RenderingContext,
+        vertex_shader: &str,
+        fragment_shader: &str,
+    ) -> Result<Self> {
+        let program = gl::build_program(context, vertex_shader, fragment_shader)?;
+        Program::from_with_context(context, program)
+    }
+
     pub fn use_program(&self, context: &WebGl2RenderingContext) {
         context.use_program(Some(&self.program));
     }

@@ -22,6 +22,7 @@ pub struct Accessor {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Asset {
+    pub generator: Option<String>,
     pub version: String,
 }
 
@@ -84,10 +85,49 @@ pub struct Gltf {
     pub buffers: Option<Vec<Buffer>>,
     pub buffer_views: Option<Vec<BufferView>>,
     pub cameras: Option<Vec<Camera>>,
+    pub materials: Option<Vec<Material>>,
     pub meshes: Option<Vec<Mesh>>,
     pub nodes: Option<Vec<Node>>,
     pub scene: Option<u32>,
     pub scenes: Option<Vec<Scene>>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Material {
+    pub name: Option<String>,
+    #[serde(default)]
+    pub pbr_metallic_roughness: PbrMetallicRoughness,
+    #[serde(default)]
+    pub double_sided: bool,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PbrMetallicRoughness {
+    #[serde(default = "PbrMetallicRoughness::default_base_color_factor")]
+    pub base_color_factor: [f32; 4],
+    #[serde(default = "PbrMetallicRoughness::default_metallic_factor")]
+    pub metallic_factor: f32,
+}
+
+impl PbrMetallicRoughness {
+    pub fn default_base_color_factor() -> [f32; 4] {
+        [1.0, 1.0, 1.0, 1.0]
+    }
+
+    pub fn default_metallic_factor() -> f32 {
+        1.0
+    }
+}
+
+impl Default for PbrMetallicRoughness {
+    fn default() -> Self {
+        Self {
+            base_color_factor: Self::default_base_color_factor(),
+            metallic_factor: Self::default_metallic_factor(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -99,6 +139,7 @@ pub struct Mesh {
 pub struct Primitive {
     pub attributes: HashMap<String, u32>,
     pub indices: Option<u32>,
+    pub material: Option<u32>,
     #[serde(default = "Primitive::default_mode")]
     pub mode: u32,
 }
@@ -113,6 +154,7 @@ impl Primitive {
 pub struct Node {
     pub camera: Option<u32>,
     pub children: Option<Vec<u32>>,
+    pub matrix: Option<[f32; 16]>,
     pub mesh: Option<u32>,
     pub translation: Option<[f32; 3]>,
     pub rotation: Option<[f32; 4]>,

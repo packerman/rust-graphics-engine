@@ -13,6 +13,7 @@ use crate::{
 };
 
 use super::{
+    material::Material,
     scene::Node,
     storage::{Accessor, BufferView},
 };
@@ -22,9 +23,9 @@ pub struct Primitive {
     vertex_array: WebGlVertexArrayObject,
     attributes: HashMap<String, Rc<Accessor>>,
     indices: Option<Rc<Accessor>>,
-    program: Rc<Program>,
+    material: Rc<Material>,
     mode: u32,
-    count: i32,
+    vertex_count: i32,
 }
 
 impl Primitive {
@@ -42,7 +43,7 @@ impl Primitive {
         context: &WebGl2RenderingContext,
         attributes: HashMap<String, Rc<Accessor>>,
         indices: Option<Rc<Accessor>>,
-        program: Rc<Program>,
+        material: Rc<Material>,
         mode: u32,
     ) -> Result<Self> {
         validate::contains(&mode, &Self::MODES, |value| {
@@ -58,20 +59,21 @@ impl Primitive {
             vertex_array,
             attributes,
             indices,
-            program,
+            material,
             mode,
-            count,
+            vertex_count: count,
         };
         me.set_vertex_array(context);
         Ok(me)
     }
 
     pub fn set_vertex_array(&self, context: &WebGl2RenderingContext) {
-        self.program.use_program(context);
+        let program = self.material.program();
+        program.use_program(context);
         context.bind_vertex_array(Some(&self.vertex_array));
         for (attribute, accessor) in self.attributes.iter() {
             let attribute = format!("a_{}", attribute.to_lowercase());
-            if let Some(location) = self.program.get_attribute_location(&attribute) {
+            if let Some(location) = program.get_attribute_location(&attribute) {
                 accessor.set_vertex_attribute(context, *location);
             }
         }
@@ -83,19 +85,20 @@ impl Primitive {
     }
 
     fn render(&self, context: &WebGl2RenderingContext, node: &Node, view_projection_matrix: &Mat4) {
-        self.program.use_program(context);
-        view_projection_matrix.update_uniform(context, "u_ViewProjectionMatrix", &self.program);
+        let program = self.material.program();
+        program.use_program(context);
+        view_projection_matrix.update_uniform(context, "u_ViewProjectionMatrix", program);
         node.global_transform()
-            .update_uniform(context, "u_ModelMatrix", &self.program);
+            .update_uniform(context, "u_ModelMatrix", program);
         self.draw(context);
     }
 
     fn draw(&self, context: &WebGl2RenderingContext) {
         context.bind_vertex_array(Some(&self.vertex_array));
         if let Some(indices) = &self.indices {
-            context.draw_elements_with_i32(self.mode, self.count, indices.component_type, 0)
+            context.draw_elements_with_i32(self.mode, self.vertex_count, indices.component_type, 0)
         } else {
-            context.draw_arrays(self.mode, 0, self.count);
+            context.draw_arrays(self.mode, 0, self.vertex_count);
         }
         context.bind_vertex_array(None);
     }

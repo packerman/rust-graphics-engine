@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use anyhow::{anyhow, Result};
-use glm::{Qua, Vec3};
+use glm::{Mat4, Qua, Vec3, Vec4};
 use js_sys::ArrayBuffer;
 use web_sys::WebGl2RenderingContext;
 
@@ -9,10 +9,11 @@ use crate::gltf::{
     core::{
         camera::Camera,
         geometry::{Mesh, Primitive},
+        material::Material,
         scene::{Node, Scene},
         storage::{Accessor, Buffer, BufferView},
     },
-    material,
+    material::{self, TestMaterial},
     program::Program,
 };
 
@@ -121,17 +122,39 @@ pub fn build_cameras(cameras: &[data::Camera]) -> Vec<Rc<RefCell<Camera>>> {
         .collect()
 }
 
+pub fn build_materials(
+    context: &WebGl2RenderingContext,
+    materials: &[data::Material],
+) -> Result<Vec<Rc<Material>>> {
+    materials
+        .iter()
+        .map(|material| {
+            Material::initialize(
+                context,
+                material.name.clone(),
+                material.double_sided,
+                Rc::new(TestMaterial {
+                    base_color_factor: Vec4::from(
+                        material.pbr_metallic_roughness.base_color_factor,
+                    ),
+                }),
+            )
+            .map(Rc::new)
+        })
+        .collect()
+}
+
 pub fn build_meshes(
     context: &WebGl2RenderingContext,
     meshes: &[data::Mesh],
     accessors: &[Rc<Accessor>],
+    materials: &[Rc<Material>],
 ) -> Result<Vec<Rc<Mesh>>> {
-    let material = Rc::new(material::basic(context)?);
     meshes
         .iter()
         .map(|mesh| {
             let primitives =
-                self::build_primitives(context, &mesh.primitives, accessors, &material)?;
+                self::build_primitives(context, &mesh.primitives, accessors, materials)?;
             let mesh = Mesh::new(primitives);
             Ok(Rc::new(mesh))
         })
@@ -142,7 +165,7 @@ fn build_primitives(
     context: &WebGl2RenderingContext,
     primitives: &[data::Primitive],
     accessors: &[Rc<Accessor>],
-    material: &Rc<Program>,
+    materials: &[Rc<Material>],
 ) -> Result<Vec<Primitive>> {
     primitives
         .iter()
@@ -155,7 +178,11 @@ fn build_primitives(
                 context,
                 attributes,
                 indices,
-                Rc::clone(material),
+                if let Some(index) = primitive.material {
+                    self::get_rc_u32(materials, index)
+                } else {
+                    self::default_material(context)?
+                },
                 primitive.mode,
             )
         })
@@ -183,11 +210,15 @@ pub fn build_nodes(
     let nodes: Vec<_> = gltf_nodes
         .iter()
         .map(|node| {
-            let translation = node.translation.unwrap_or(DEFAULT_TRANSLATION);
-            let translation = glm::translation(&Vec3::from(translation));
-            let rotation = node.rotation.unwrap_or(DEFAULT_ROTATION);
-            let rotation = glm::quat_to_mat4(&Qua::from(rotation));
-            let transform = translation * rotation;
+            let transform = if let Some(matrix) = node.matrix {
+                glm::make_mat4(&matrix)
+            } else {
+                let translation = node.translation.unwrap_or(DEFAULT_TRANSLATION);
+                let translation = glm::translation(&Vec3::from(translation));
+                let rotation = node.rotation.unwrap_or(DEFAULT_ROTATION);
+                let rotation = glm::quat_to_mat4(&Qua::from(rotation));
+                translation * rotation
+            };
             Node::new(
                 transform,
                 node.mesh.map(|index| self::get_rc_u32(meshes, index)),
@@ -219,6 +250,18 @@ pub fn build_scenes(scenes: &[data::Scene], nodes: &[Rc<Node>]) -> Vec<Scene> {
             )
         })
         .collect()
+}
+
+fn default_material(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
+    Material::initialize(
+        context,
+        None,
+        false,
+        Rc::new(TestMaterial {
+            base_color_factor: Vec4::from(data::PbrMetallicRoughness::default_base_color_factor()),
+        }),
+    )
+    .map(Rc::new)
 }
 
 fn get_rc_u32<T>(slice: &[Rc<T>], index: u32) -> Rc<T> {

@@ -23,7 +23,13 @@ pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
         build::build_buffer_views(context, &gltf.buffer_views.unwrap_or_default(), &buffers)?;
     let accessors = build::build_accessors(&gltf.accessors.unwrap_or_default(), &buffer_views)?;
     let cameras = build::build_cameras(&gltf.cameras.unwrap_or_default());
-    let meshes = build::build_meshes(context, &gltf.meshes.unwrap_or_default(), &accessors)?;
+    let materials = build::build_materials(context, &gltf.materials.unwrap_or_default())?;
+    let meshes = build::build_meshes(
+        context,
+        &gltf.meshes.unwrap_or_default(),
+        &accessors,
+        &materials,
+    )?;
     let nodes = build::build_nodes(&gltf.nodes.unwrap_or_default(), &meshes, &cameras);
     let scenes = build::build_scenes(&gltf.scenes.unwrap_or_default(), &nodes);
     Ok(Root::new(

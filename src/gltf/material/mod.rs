@@ -1,15 +1,27 @@
-use anyhow::Result;
+use glm::Vec4;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{convert::FromWithContext, gl};
+use super::{
+    core::material::Material,
+    program::{Program, UpdateUniform, UpdateUniforms},
+};
 
-use super::program::Program;
+#[derive(Debug)]
+pub struct TestMaterial {
+    pub base_color_factor: Vec4,
+}
 
-pub fn basic(context: &WebGl2RenderingContext) -> Result<Program> {
-    gl::build_program(
-        context,
-        include_str!("basic.vert"),
-        include_str!("basic.frag"),
-    )
-    .and_then(|program| Program::from_with_context(context, program))
+impl UpdateUniforms for TestMaterial {
+    fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        self.base_color_factor
+            .update_uniform(context, "u_BaseColorFactor", program)
+    }
+
+    fn vertex_shader(&self) -> &str {
+        include_str!("test.vert")
+    }
+
+    fn fragment_shader(&self) -> &str {
+        include_str!("test.frag")
+    }
 }
