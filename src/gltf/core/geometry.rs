@@ -49,7 +49,11 @@ impl Primitive {
             anyhow!("Unknown mode: {}", value)
         })?;
         let vertex_array = gl::create_vertex_array(context)?;
-        let count = Self::get_count(&attributes)?;
+        let count = if let Some(accessor) = indices.as_ref() {
+            accessor.count
+        } else {
+            Self::get_vertex_count(&attributes)?
+        };
         let me = Self {
             vertex_array,
             attributes,
@@ -96,7 +100,7 @@ impl Primitive {
         context.bind_vertex_array(None);
     }
 
-    fn get_count(atttributes: &HashMap<String, Rc<Accessor>>) -> Result<i32> {
+    fn get_vertex_count(atttributes: &HashMap<String, Rc<Accessor>>) -> Result<i32> {
         let counts: Vec<_> = atttributes
             .values()
             .map(|accessor| accessor.count)

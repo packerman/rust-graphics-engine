@@ -29,20 +29,20 @@ impl Root {
         }
     }
 
-    pub fn render_scene(&self, context: &WebGl2RenderingContext) {
+    pub fn render(&self, context: &WebGl2RenderingContext) {
         if let Some(scene) = self.scene {
-            self.render_scene_with_index(context, scene);
+            self.render_with_index(context, scene);
         }
     }
 
-    pub fn render_scene_with_index(&self, context: &WebGl2RenderingContext, scene_index: usize) {
+    pub fn render_with_index(&self, context: &WebGl2RenderingContext, scene_index: usize) {
         let scene = &self.scenes[scene_index];
         if let Some(camera_index) = self.find_camera_for_scene(scene) {
-            self.render_scene_with_index_and_camera(context, scene_index, camera_index);
+            self.render_with_index_and_camera(context, scene_index, camera_index);
         }
     }
 
-    pub fn render_scene_with_index_and_camera(
+    pub fn render_with_index_and_camera(
         &self,
         context: &WebGl2RenderingContext,
         scene_index: usize,

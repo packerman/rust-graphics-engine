@@ -85,7 +85,7 @@ impl Application for Example {
         context.viewport(0, 0, size.0 as i32, size.1 as i32);
         gl::set_clear_color(context, &color::black());
         context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
-        self.root.render_scene(context);
+        self.root.render(context);
     }
 }
 
