@@ -1,4 +1,7 @@
-use std::{cell::RefCell, rc::Weak};
+use std::{
+    cell::RefCell,
+    rc::{Rc, Weak},
+};
 
 use glm::Mat4;
 
@@ -89,6 +92,10 @@ impl Camera {
         } else {
             glm::identity()
         }
+    }
+
+    pub fn node(&self) -> Option<Rc<Node>> {
+        self.node.borrow().upgrade()
     }
 
     pub fn set_node(&self, node: &Weak<Node>) {

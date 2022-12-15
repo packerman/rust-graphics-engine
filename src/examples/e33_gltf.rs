@@ -55,7 +55,12 @@ struct Example {
     root: Root,
 }
 
-const EXAMPLE_NAMES: [&str; 3] = ["TriangleWithoutIndices", "Triangle", "SimpleMeshes"];
+const EXAMPLE_NAMES: [&str; 4] = [
+    "TriangleWithoutIndices",
+    "Triangle",
+    "SimpleMeshes",
+    "Cameras",
+];
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
@@ -63,7 +68,7 @@ impl AsyncCreator for Example {
         debug!("{:#?}", GlDiagnostics::collect(context)?);
         let root = gltf::load::load(
             context,
-            &khronos_sample(EXAMPLE_NAMES[2], Default::default()),
+            &khronos_sample(EXAMPLE_NAMES[3], Default::default()),
         )
         .await?;
         log!("{:#?}", root);
@@ -80,7 +85,7 @@ impl Application for Example {
         context.viewport(0, 0, size.0 as i32, size.1 as i32);
         gl::set_clear_color(context, &color::black());
         context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
-        self.root.render(context);
+        self.root.render_scene(context);
     }
 }
 

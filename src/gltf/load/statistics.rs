@@ -6,6 +6,7 @@ pub struct GltfStatistics {
     pub buffer_count: usize,
     pub buffer_byte_length: u32,
     pub buffer_view_count: usize,
+    pub camera_count: usize,
     pub mesh_count: usize,
     pub primitive_count: usize,
     pub node_count: usize,
@@ -24,6 +25,7 @@ impl From<&Gltf> for GltfStatistics {
                 .map(|buffer| buffer.byte_length)
                 .sum(),
             buffer_view_count: gltf.buffer_views.as_ref().map(Vec::len).unwrap_or_default(),
+            camera_count: gltf.cameras.as_ref().map(Vec::len).unwrap_or_default(),
             mesh_count: gltf.meshes.as_ref().map(Vec::len).unwrap_or_default(),
             primitive_count: gltf
                 .meshes

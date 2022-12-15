@@ -26,7 +26,11 @@ pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
     let meshes = build::build_meshes(context, &gltf.meshes.unwrap_or_default(), &accessors)?;
     let nodes = build::build_nodes(&gltf.nodes.unwrap_or_default(), &meshes, &cameras);
     let scenes = build::build_scenes(&gltf.scenes.unwrap_or_default(), &nodes);
-    Ok(Root::new(scenes, gltf.scene.map(|index| index as usize)))
+    Ok(Root::new(
+        cameras,
+        scenes,
+        gltf.scene.map(|index| index as usize),
+    ))
 }
 
 async fn load_buffers(base_uri: &Url, buffers: &[data::Buffer]) -> Result<Vec<Rc<Buffer>>> {

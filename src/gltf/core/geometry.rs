@@ -12,7 +12,10 @@ use crate::{
     },
 };
 
-use super::storage::{Accessor, BufferView};
+use super::{
+    scene::Node,
+    storage::{Accessor, BufferView},
+};
 
 #[derive(Debug, Clone)]
 pub struct Primitive {
@@ -75,9 +78,11 @@ impl Primitive {
         BufferView::unbind(context, self.indices.is_some());
     }
 
-    fn render(&self, context: &WebGl2RenderingContext, model_matrix: &Mat4) {
+    fn render(&self, context: &WebGl2RenderingContext, node: &Node, view_projection_matrix: &Mat4) {
         self.program.use_program(context);
-        model_matrix.update_uniform(context, "u_ModelMatrix", &self.program);
+        view_projection_matrix.update_uniform(context, "u_ViewProjectionMatrix", &self.program);
+        node.global_transform()
+            .update_uniform(context, "u_ModelMatrix", &self.program);
         self.draw(context);
     }
 
@@ -119,9 +124,14 @@ impl Mesh {
         Self { primitives }
     }
 
-    pub fn render(&self, context: &WebGl2RenderingContext, model_matrix: &Mat4) {
+    pub fn render(
+        &self,
+        context: &WebGl2RenderingContext,
+        node: &Node,
+        view_projection_matrix: &Mat4,
+    ) {
         for primitive in self.primitives.iter() {
-            primitive.render(context, model_matrix);
+            primitive.render(context, node, view_projection_matrix);
         }
     }
 }
