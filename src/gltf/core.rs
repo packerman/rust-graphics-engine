@@ -1,6 +1,9 @@
 use web_sys::WebGl2RenderingContext;
 
-use self::{camera::Camera, scene::Scene};
+use self::{
+    camera::Camera,
+    scene::{Node, Scene},
+};
 
 use super::util::shared_ref::SharedRef;
 
@@ -18,7 +21,14 @@ pub struct Root {
 }
 
 impl Root {
-    pub fn new(cameras: Vec<SharedRef<Camera>>, scenes: Vec<Scene>, scene: Option<usize>) -> Self {
+    pub fn new(
+        mut cameras: Vec<SharedRef<Camera>>,
+        mut scenes: Vec<Scene>,
+        scene: Option<usize>,
+    ) -> Self {
+        scenes
+            .iter_mut()
+            .for_each(|scene| Self::ensure_camera_for_scene(scene, &mut cameras));
         Self {
             cameras,
             scenes,
@@ -53,5 +63,14 @@ impl Root {
         self.cameras
             .iter()
             .position(|camera| scene.contains_camera(camera))
+    }
+
+    fn ensure_camera_for_scene(scene: &mut Scene, cameras: &mut Vec<SharedRef<Camera>>) {
+        if !scene.has_some_camera() {
+            let camera: SharedRef<Camera> = Default::default();
+            let node = Node::new(glm::identity(), None, camera.clone().into());
+            scene.add_root_node(node);
+            cameras.push(camera);
+        }
     }
 }

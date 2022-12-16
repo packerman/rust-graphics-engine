@@ -77,6 +77,14 @@ impl Node {
                 .any(|child| child.borrow().is_ancestor_of(node))
     }
 
+    pub fn has_some_camera(&self) -> bool {
+        self.camera.is_some()
+            || self
+                .children
+                .iter()
+                .any(|child| child.borrow().has_some_camera())
+    }
+
     fn set_parent(&mut self, parent: &WeakRef<Node>) {
         self.parent = Weak::clone(parent);
         self.reset_transforms();
@@ -117,10 +125,20 @@ impl Scene {
             .any(|root| root.borrow().is_ancestor_of(node))
     }
 
+    pub fn add_root_node(&mut self, node: SharedRef<Node>) {
+        self.nodes.push(node)
+    }
+
     pub fn contains_camera(&self, camera: &RefCell<Camera>) -> bool {
         camera
             .borrow()
             .node()
             .map_or(false, |node| self.contains_node(&node))
+    }
+
+    pub fn has_some_camera(&self) -> bool {
+        self.nodes
+            .iter()
+            .any(|node| node.borrow().has_some_camera())
     }
 }

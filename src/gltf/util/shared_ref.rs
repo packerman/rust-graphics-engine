@@ -4,7 +4,7 @@ use std::{
     rc::{Rc, Weak},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct SharedRef<T>(Rc<RefCell<T>>);
 
 impl<T> SharedRef<T> {
