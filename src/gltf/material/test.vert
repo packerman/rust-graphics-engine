@@ -12,5 +12,5 @@ out vec3 v_Light;
 void main() {
     gl_Position = u_ViewProjectionMatrix * u_ModelMatrix * vec4(a_position, 1.0);
     v_Normal = a_normal;
-    v_Light = normalize(vec4(-1.0, -1.0, -1.0));
+    v_Light = normalize(vec3(-1.0, -1.0, -1.0));
 }

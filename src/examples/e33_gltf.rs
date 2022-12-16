@@ -55,12 +55,15 @@ struct Example {
     root: Root,
 }
 
-const EXAMPLE_NAMES: [&str; 4] = [
-    "TriangleWithoutIndices",
-    "Triangle",
-    "SimpleMeshes",
-    "Cameras",
-];
+fn example_names<'a>() -> Vec<&'a str> {
+    vec![
+        "TriangleWithoutIndices",
+        "Triangle",
+        "SimpleMeshes",
+        "Cameras",
+        "Box",
+    ]
+}
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
@@ -68,7 +71,7 @@ impl AsyncCreator for Example {
         debug!("{:#?}", GlDiagnostics::collect(context)?);
         let root = gltf::load::load(
             context,
-            &khronos_sample(EXAMPLE_NAMES[3], Default::default()),
+            &khronos_sample(example_names()[4], Default::default()),
         )
         .await?;
         log!("{:#?}", root);
