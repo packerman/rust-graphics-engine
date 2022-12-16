@@ -1,7 +1,7 @@
 use std::{mem::size_of, rc::Rc};
 
 use anyhow::{anyhow, Result};
-use js_sys::{ArrayBuffer, DataView, Float32Array, Uint16Array};
+use js_sys::{ArrayBuffer, Float32Array, Uint16Array};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer};
 
 use crate::{core::gl, gltf::util::validate};
