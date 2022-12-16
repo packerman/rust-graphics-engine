@@ -4,10 +4,7 @@ use anyhow::{anyhow, Result};
 use js_sys::{ArrayBuffer, DataView, Float32Array, Uint16Array};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer};
 
-use crate::{
-    core::gl,
-    gltf::util::{cache::Cached, validate},
-};
+use crate::{core::gl, gltf::util::validate};
 
 #[derive(Debug, Clone)]
 pub struct Buffer {
@@ -21,10 +18,6 @@ impl Buffer {
             array_buffer,
             byte_length,
         }
-    }
-
-    pub fn get_data_view(&self, byte_offset: usize, byte_length: usize) -> DataView {
-        DataView::new(&self.array_buffer, byte_offset, byte_length)
     }
 
     pub fn get_float32_array(&self, byte_offset: u32, length: u32) -> Float32Array {
@@ -84,13 +77,6 @@ impl BufferView {
         if let Some(target) = self.target {
             context.bind_buffer(target, self.gl_buffer.as_ref());
         }
-    }
-
-    pub fn get_data_view(&self, byte_offset: u32) -> DataView {
-        self.data_buffer.get_data_view(
-            (self.byte_offset + byte_offset) as usize,
-            self.byte_length as usize,
-        )
     }
 
     pub fn get_float32_array(&self, byte_offset: u32, length: u32) -> Float32Array {
