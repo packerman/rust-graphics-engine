@@ -4,16 +4,16 @@ use anyhow::{anyhow, Result};
 use js_sys::{ArrayBuffer, DataView};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer};
 
-use crate::{core::gl, gltf::validate};
+use crate::{core::gl, gltf::util::validate};
 
 #[derive(Debug, Clone)]
 pub struct Buffer {
     array_buffer: ArrayBuffer,
-    byte_length: u32,
+    byte_length: usize,
 }
 
 impl Buffer {
-    pub fn new(array_buffer: ArrayBuffer, byte_length: u32) -> Self {
+    pub fn new(array_buffer: ArrayBuffer, byte_length: usize) -> Self {
         Self {
             array_buffer,
             byte_length,
@@ -21,6 +21,7 @@ impl Buffer {
     }
 
     pub fn get_data_view(&self, byte_offset: usize, byte_length: usize) -> DataView {
+        let byte_length = usize::min(byte_length, self.byte_length - byte_offset);
         DataView::new(&self.array_buffer, byte_offset, byte_length)
     }
 }
@@ -101,13 +102,36 @@ impl BufferView {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum AccessorType {
+    Vec { size: i32 },
+    Scalar,
+}
+
+impl AccessorType {
+    pub fn vec(size: i32) -> AccessorType {
+        Self::Vec { size }
+    }
+
+    pub fn scalar() -> AccessorType {
+        Self::Scalar
+    }
+
+    pub fn size(&self) -> i32 {
+        match self {
+            Self::Vec { size } => *size,
+            Self::Scalar => 1,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Accessor {
     buffer_view: Option<Rc<BufferView>>,
     byte_offset: i32,
     pub component_type: u32,
     pub count: i32,
-    size: i32,
+    accessor_type: AccessorType,
     min: Option<Vec<f32>>,
     max: Option<Vec<f32>>,
     pub normalized: bool,
@@ -128,7 +152,7 @@ impl Accessor {
         byte_offset: i32,
         component_type: u32,
         count: i32,
-        size: i32,
+        accessor_type: AccessorType,
         min: Option<Vec<f32>>,
         max: Option<Vec<f32>>,
         normalized: bool,
@@ -141,7 +165,7 @@ impl Accessor {
             byte_offset,
             component_type,
             count,
-            size,
+            accessor_type,
             min,
             max,
             normalized,
@@ -154,7 +178,7 @@ impl Accessor {
             buffer_view.buffer_data(context, &data_view);
             context.vertex_attrib_pointer_with_i32(
                 location,
-                self.size,
+                self.accessor_type.size(),
                 self.component_type,
                 self.normalized,
                 buffer_view.byte_stride,

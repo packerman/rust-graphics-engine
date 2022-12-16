@@ -6,7 +6,7 @@ use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
 use crate::{
     core::gl,
-    gltf::{program::UpdateUniform, validate},
+    gltf::{program::UpdateUniform, util::validate},
 };
 
 use super::{

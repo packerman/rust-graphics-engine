@@ -6,6 +6,8 @@ use std::{
 use glm::Mat4;
 use web_sys::WebGl2RenderingContext;
 
+use crate::gltf::util::cache::Cached;
+
 use super::{camera::Camera, geometry::Mesh};
 
 #[derive(Debug, Clone)]
@@ -16,7 +18,7 @@ pub struct Node {
     camera: Option<Rc<RefCell<Camera>>>,
     mesh: Option<Rc<Mesh>>,
     parent: RefCell<Weak<Node>>,
-    cached_transform: RefCell<Option<Mat4>>,
+    global_transform: Cached<Mat4>,
 }
 
 impl Node {
@@ -32,7 +34,7 @@ impl Node {
             local_transform: RefCell::new(local_transform),
             mesh,
             parent: RefCell::new(Weak::new()),
-            cached_transform: RefCell::new(None),
+            global_transform: Cached::new(),
         });
         if let Some(camera) = camera {
             camera.borrow().set_node(&node.me);
@@ -52,7 +54,7 @@ impl Node {
     }
 
     pub fn global_transform(&self) -> Mat4 {
-        *self.cached_transform.borrow_mut().get_or_insert_with(|| {
+        self.global_transform.get(|| {
             if let Some(parent) = self.parent.borrow().upgrade() {
                 parent.global_transform() * *self.local_transform.borrow()
             } else {
@@ -76,8 +78,8 @@ impl Node {
     }
 
     fn reset_transforms(&self) {
-        let taken = self.cached_transform.borrow_mut().take();
-        if taken.is_some() {
+        let was_present = self.global_transform.clear();
+        if was_present {
             self.children
                 .borrow()
                 .iter()

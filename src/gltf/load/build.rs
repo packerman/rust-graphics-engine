@@ -11,7 +11,7 @@ use crate::gltf::{
         geometry::{Mesh, Primitive},
         material::Material,
         scene::{Node, Scene},
-        storage::{Accessor, Buffer, BufferView},
+        storage::{Accessor, AccessorType, Buffer, BufferView},
     },
     material::TestMaterial,
 };
@@ -22,7 +22,7 @@ pub fn build_buffers(buffers: &[data::Buffer], array_buffers: Vec<ArrayBuffer>) 
     array_buffers
         .into_iter()
         .enumerate()
-        .map(|(i, array_buffer)| Buffer::new(array_buffer, buffers[i].byte_length))
+        .map(|(i, array_buffer)| Buffer::new(array_buffer, buffers[i].byte_length as usize))
         .map(Rc::new)
         .collect()
 }
@@ -76,10 +76,10 @@ pub fn build_accessors(
         .collect()
 }
 
-fn get_size(accessor_type: &str) -> Result<i32> {
+fn get_size(accessor_type: &str) -> Result<AccessorType> {
     match accessor_type {
-        "VEC3" => Ok(3),
-        "SCALAR" => Ok(1),
+        "VEC3" => Ok(AccessorType::vec(3)),
+        "SCALAR" => Ok(AccessorType::scalar()),
         _ => Err(anyhow!("Unknown type: {}", accessor_type)),
     }
 }
