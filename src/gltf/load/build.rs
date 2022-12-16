@@ -36,7 +36,7 @@ pub fn build_buffer_views(
     buffer_views
         .iter()
         .map(|buffer_view| {
-            let buffer = self::get_rc_u32(buffers, buffer_view.buffer);
+            let buffer = self::get_rc_by_u32(buffers, buffer_view.buffer);
             BufferView::new(
                 context,
                 buffer,
@@ -59,7 +59,7 @@ pub fn build_accessors(
         .map(|accessor| {
             let buffer_view = accessor
                 .buffer_view
-                .map(|index| self::get_rc_u32(buffer_views, index));
+                .map(|index| self::get_rc_by_u32(buffer_views, index));
             let min = &accessor.min;
             let max = &accessor.max;
             Accessor::new(
@@ -174,13 +174,13 @@ fn build_primitives(
             let attributes = self::build_attributes(&primitive.attributes, accessors);
             let indices = primitive
                 .indices
-                .map(|index| self::get_rc_u32(accessors, index));
+                .map(|index| self::get_rc_by_u32(accessors, index));
             Primitive::new(
                 context,
                 attributes,
                 indices,
                 if let Some(index) = primitive.material {
-                    self::get_rc_u32(materials, index)
+                    self::get_rc_by_u32(materials, index)
                 } else {
                     self::default_material(context)?
                 },
@@ -196,7 +196,12 @@ fn build_attributes(
 ) -> HashMap<String, Rc<Accessor>> {
     attributes
         .iter()
-        .map(|(attribute, index)| (String::from(attribute), self::get_rc_u32(accessors, *index)))
+        .map(|(attribute, index)| {
+            (
+                String::from(attribute),
+                self::get_rc_by_u32(accessors, *index),
+            )
+        })
         .collect()
 }
 
@@ -207,7 +212,7 @@ pub fn build_nodes(
     gltf_nodes: &[data::Node],
     meshes: &[Rc<Mesh>],
     cameras: &[SharedRef<Camera>],
-) -> Vec<Rc<Node>> {
+) -> Vec<SharedRef<Node>> {
     let nodes: Vec<_> = gltf_nodes
         .iter()
         .map(|node| {
@@ -222,22 +227,23 @@ pub fn build_nodes(
             };
             Node::new(
                 transform,
-                node.mesh.map(|index| self::get_rc_u32(meshes, index)),
-                node.camera.map(|index| self::get_ref_u32(cameras, index)),
+                node.mesh.map(|index| self::get_rc_by_u32(meshes, index)),
+                node.camera
+                    .map(|index| self::get_cloned_by_u32(cameras, index)),
             )
         })
         .collect();
     for (i, gltf_node) in gltf_nodes.iter().enumerate() {
         for child_index in gltf_node.children.iter().flatten() {
             let node = &nodes[i];
-            let child = self::get_rc_u32(&nodes, *child_index);
-            node.add_child(child);
+            let child = self::get_cloned_by_u32(&nodes, *child_index);
+            node.borrow_mut().add_child(child);
         }
     }
     nodes
 }
 
-pub fn build_scenes(scenes: &[data::Scene], nodes: &[Rc<Node>]) -> Vec<Scene> {
+pub fn build_scenes(scenes: &[data::Scene], nodes: &[SharedRef<Node>]) -> Vec<Scene> {
     scenes
         .iter()
         .map(|scene| {
@@ -246,7 +252,7 @@ pub fn build_scenes(scenes: &[data::Scene], nodes: &[Rc<Node>]) -> Vec<Scene> {
                     .nodes
                     .iter()
                     .flatten()
-                    .map(|index| self::get_rc_u32(nodes, *index))
+                    .map(|index| self::get_cloned_by_u32(nodes, *index))
                     .collect(),
             )
         })
@@ -265,10 +271,10 @@ fn default_material(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
     .map(Rc::new)
 }
 
-fn get_rc_u32<T>(slice: &[Rc<T>], index: u32) -> Rc<T> {
+fn get_rc_by_u32<T>(slice: &[Rc<T>], index: u32) -> Rc<T> {
     Rc::clone(&slice[index as usize])
 }
 
-fn get_ref_u32<T: Clone>(slice: &[T], index: u32) -> T {
+fn get_cloned_by_u32<T: Clone>(slice: &[T], index: u32) -> T {
     slice[index as usize].clone()
 }

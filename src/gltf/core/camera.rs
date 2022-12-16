@@ -1,9 +1,8 @@
-use std::{
-    cell::RefCell,
-    rc::{Rc, Weak},
-};
+use std::rc::Weak;
 
 use glm::Mat4;
+
+use crate::gltf::util::shared_ref::{SharedRef, WeakRef};
 
 use super::scene::Node;
 
@@ -11,7 +10,7 @@ use super::scene::Node;
 pub struct Camera {
     camera_type: CameraType,
     name: Option<String>,
-    node: RefCell<Weak<Node>>,
+    node: WeakRef<Node>,
 }
 
 impl Camera {
@@ -30,7 +29,7 @@ impl Camera {
                 z_far,
                 z_near,
             }),
-            node: RefCell::new(Weak::new()),
+            node: Weak::new(),
         }
     }
 
@@ -49,7 +48,7 @@ impl Camera {
                 z_far,
                 z_near,
             }),
-            node: RefCell::new(Weak::new()),
+            node: Weak::new(),
         }
     }
 
@@ -83,8 +82,8 @@ impl Camera {
     }
 
     pub fn view_matrix(&self) -> Mat4 {
-        if let Some(node) = self.node.borrow().upgrade() {
-            if let Some(inverse) = node.global_transform().try_inverse() {
+        if let Some(node) = self.node.upgrade() {
+            if let Some(inverse) = node.borrow().global_transform().try_inverse() {
                 inverse
             } else {
                 glm::identity()
@@ -94,12 +93,12 @@ impl Camera {
         }
     }
 
-    pub fn node(&self) -> Option<Rc<Node>> {
-        self.node.borrow().upgrade()
+    pub fn node(&self) -> Option<SharedRef<Node>> {
+        SharedRef::upgrade(&self.node)
     }
 
-    pub fn set_node(&self, node: &Weak<Node>) {
-        *self.node.borrow_mut() = Weak::clone(node);
+    pub fn set_node(&mut self, node: &WeakRef<Node>) {
+        self.node = Weak::clone(node);
     }
 }
 
