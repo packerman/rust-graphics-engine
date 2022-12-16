@@ -4,6 +4,8 @@ use web_sys::WebGl2RenderingContext;
 
 use self::{camera::Camera, scene::Scene};
 
+use super::util::shared_ref::SharedRef;
+
 pub mod camera;
 pub mod geometry;
 pub mod material;
@@ -12,17 +14,13 @@ pub mod storage;
 
 #[derive(Debug, Clone)]
 pub struct Root {
-    cameras: Vec<Rc<RefCell<Camera>>>,
+    cameras: Vec<SharedRef<Camera>>,
     scenes: Vec<Scene>,
     scene: Option<usize>,
 }
 
 impl Root {
-    pub fn new(
-        cameras: Vec<Rc<RefCell<Camera>>>,
-        scenes: Vec<Scene>,
-        scene: Option<usize>,
-    ) -> Self {
+    pub fn new(cameras: Vec<SharedRef<Camera>>, scenes: Vec<Scene>, scene: Option<usize>) -> Self {
         Self {
             cameras,
             scenes,

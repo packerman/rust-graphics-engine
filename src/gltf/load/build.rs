@@ -14,6 +14,7 @@ use crate::gltf::{
         storage::{Accessor, AccessorType, Buffer, BufferView},
     },
     material::TestMaterial,
+    util::shared_ref::SharedRef,
 };
 
 use super::data;
@@ -84,7 +85,7 @@ fn get_size(accessor_type: &str) -> Result<AccessorType> {
     }
 }
 
-pub fn build_cameras(cameras: &[data::Camera]) -> Vec<Rc<RefCell<Camera>>> {
+pub fn build_cameras(cameras: &[data::Camera]) -> Vec<SharedRef<Camera>> {
     cameras
         .iter()
         .map(|camera| match camera.camera_type.as_str() {
@@ -116,8 +117,7 @@ pub fn build_cameras(cameras: &[data::Camera]) -> Vec<Rc<RefCell<Camera>>> {
             }
             _ => panic!("Unknown camera type: {}", camera.camera_type),
         })
-        .map(RefCell::new)
-        .map(Rc::new)
+        .map(SharedRef::new)
         .collect()
 }
 
@@ -204,7 +204,7 @@ const DEFAULT_ROTATION: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 pub fn build_nodes(
     gltf_nodes: &[data::Node],
     meshes: &[Rc<Mesh>],
-    cameras: &[Rc<RefCell<Camera>>],
+    cameras: &[SharedRef<Camera>],
 ) -> Vec<Rc<Node>> {
     let nodes: Vec<_> = gltf_nodes
         .iter()
@@ -221,7 +221,7 @@ pub fn build_nodes(
             Node::new(
                 transform,
                 node.mesh.map(|index| self::get_rc_u32(meshes, index)),
-                node.camera.map(|index| self::get_rc_u32(cameras, index)),
+                node.camera.map(|index| self::get_ref_u32(cameras, index)),
             )
         })
         .collect();
@@ -265,4 +265,8 @@ fn default_material(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
 
 fn get_rc_u32<T>(slice: &[Rc<T>], index: u32) -> Rc<T> {
     Rc::clone(&slice[index as usize])
+}
+
+fn get_ref_u32<T: Clone>(slice: &[T], index: u32) -> T {
+    slice[index as usize].clone()
 }
