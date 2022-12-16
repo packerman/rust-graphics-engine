@@ -1,10 +1,13 @@
-use std::rc::Rc;
+use std::{mem::size_of, rc::Rc};
 
 use anyhow::{anyhow, Result};
-use js_sys::{ArrayBuffer, DataView};
+use js_sys::{ArrayBuffer, DataView, Float32Array, Uint16Array};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer};
 
-use crate::{core::gl, gltf::util::validate};
+use crate::{
+    core::gl,
+    gltf::util::{cache::Cached, validate},
+};
 
 #[derive(Debug, Clone)]
 pub struct Buffer {
@@ -21,8 +24,15 @@ impl Buffer {
     }
 
     pub fn get_data_view(&self, byte_offset: usize, byte_length: usize) -> DataView {
-        let byte_length = usize::min(byte_length, self.byte_length - byte_offset);
         DataView::new(&self.array_buffer, byte_offset, byte_length)
+    }
+
+    pub fn get_float32_array(&self, byte_offset: u32, length: u32) -> Float32Array {
+        Float32Array::new_with_byte_offset_and_length(&self.array_buffer, byte_offset, length)
+    }
+
+    pub fn get_uint16_array(&self, byte_offset: u32, length: u32) -> Uint16Array {
+        Uint16Array::new_with_byte_offset_and_length(&self.array_buffer, byte_offset, length)
     }
 }
 
@@ -83,6 +93,16 @@ impl BufferView {
         )
     }
 
+    pub fn get_float32_array(&self, byte_offset: u32, length: u32) -> Float32Array {
+        self.data_buffer
+            .get_float32_array(self.byte_offset + byte_offset, length)
+    }
+
+    pub fn get_uint16_array(&self, byte_offset: u32, length: u32) -> Uint16Array {
+        self.data_buffer
+            .get_uint16_array(self.byte_offset + byte_offset, length)
+    }
+
     pub fn buffer_data(&self, context: &WebGl2RenderingContext, data: &js_sys::Object) {
         if let Some(target) = self.target {
             context.bind_buffer(target, self.gl_buffer.as_ref());
@@ -127,7 +147,7 @@ impl AccessorType {
 
 #[derive(Debug, Clone)]
 pub struct AccessorProperties {
-    pub byte_offset: i32,
+    pub byte_offset: u32,
     pub component_type: u32,
     pub count: i32,
     pub accessor_type: AccessorType,
@@ -139,7 +159,7 @@ pub struct AccessorProperties {
 #[derive(Debug, Clone)]
 pub struct Accessor {
     buffer_view: Option<Rc<BufferView>>,
-    byte_offset: i32,
+    byte_offset: u32,
     pub component_type: u32,
     pub count: i32,
     accessor_type: AccessorType,
@@ -181,8 +201,7 @@ impl Accessor {
 
     pub fn set_vertex_attribute(&self, context: &WebGl2RenderingContext, location: u32) {
         if let Some(buffer_view) = &self.buffer_view {
-            let data_view = buffer_view.get_data_view(self.byte_offset as u32);
-            buffer_view.buffer_data(context, &data_view);
+            self.buffer_data(context, buffer_view);
             context.vertex_attrib_pointer_with_i32(
                 location,
                 self.accessor_type.size(),
@@ -197,8 +216,44 @@ impl Accessor {
 
     pub fn set_indices(&self, context: &WebGl2RenderingContext) {
         if let Some(buffer_view) = &self.buffer_view {
-            let data_view = buffer_view.get_data_view(self.byte_offset as u32);
-            buffer_view.buffer_data(context, &data_view);
+            self.buffer_data(context, buffer_view);
+        }
+    }
+
+    fn buffer_data(&self, context: &WebGl2RenderingContext, buffer_view: &BufferView) {
+        let array_length = self.get_array_length(buffer_view);
+        match self.component_type {
+            WebGl2RenderingContext::UNSIGNED_SHORT => {
+                let view = buffer_view.get_uint16_array(self.byte_offset, array_length as u32);
+                buffer_view.buffer_data(context, &view);
+            }
+            WebGl2RenderingContext::FLOAT => {
+                let view = buffer_view.get_float32_array(self.byte_offset, array_length as u32);
+                buffer_view.buffer_data(context, &view);
+            }
+            _ => panic!("Unknown accessor component type: {}", self.component_type),
+        }
+    }
+
+    fn get_array_length(&self, buffer_view: &BufferView) -> i32 {
+        let size = self.accessor_type.size();
+        if buffer_view.byte_stride > 0 {
+            buffer_view.byte_stride / (self.component_byte_length() as i32) * (self.count - 1)
+                + size
+        } else {
+            self.count * size
+        }
+    }
+
+    fn component_byte_length(&self) -> usize {
+        match self.component_type {
+            WebGl2RenderingContext::BYTE => size_of::<i8>(),
+            WebGl2RenderingContext::UNSIGNED_BYTE => size_of::<u8>(),
+            WebGl2RenderingContext::SHORT => size_of::<i16>(),
+            WebGl2RenderingContext::UNSIGNED_SHORT => size_of::<u16>(),
+            WebGl2RenderingContext::UNSIGNED_INT => size_of::<u32>(),
+            WebGl2RenderingContext::FLOAT => size_of::<f32>(),
+            _ => panic!("Unknown accessor component type: {}", self.component_type),
         }
     }
 }

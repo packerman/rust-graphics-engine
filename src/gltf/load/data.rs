@@ -9,7 +9,7 @@ use web_sys::WebGl2RenderingContext;
 pub struct Accessor {
     pub buffer_view: Option<u32>,
     #[serde(default)]
-    pub byte_offset: i32,
+    pub byte_offset: u32,
     pub component_type: u32,
     pub count: i32,
     #[serde(rename = "type")]
