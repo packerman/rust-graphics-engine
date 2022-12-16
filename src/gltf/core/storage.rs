@@ -126,6 +126,17 @@ impl AccessorType {
 }
 
 #[derive(Debug, Clone)]
+pub struct AccessorProperties {
+    pub byte_offset: i32,
+    pub component_type: u32,
+    pub count: i32,
+    pub accessor_type: AccessorType,
+    pub min: Option<Vec<f32>>,
+    pub max: Option<Vec<f32>>,
+    pub normalized: bool,
+}
+
+#[derive(Debug, Clone)]
 pub struct Accessor {
     buffer_view: Option<Rc<BufferView>>,
     byte_offset: i32,
@@ -149,26 +160,22 @@ impl Accessor {
 
     pub fn new(
         buffer_view: Option<Rc<BufferView>>,
-        byte_offset: i32,
-        component_type: u32,
-        count: i32,
-        accessor_type: AccessorType,
-        min: Option<Vec<f32>>,
-        max: Option<Vec<f32>>,
-        normalized: bool,
+        properties: AccessorProperties,
     ) -> Result<Self> {
-        validate::contains(&component_type, &Self::COMPONENT_TYPES, |value| {
-            anyhow!("Unknown component type: {}", value)
-        })?;
+        validate::contains(
+            &properties.component_type,
+            &Self::COMPONENT_TYPES,
+            |value| anyhow!("Unknown component type: {}", value),
+        )?;
         Ok(Self {
             buffer_view,
-            byte_offset,
-            component_type,
-            count,
-            accessor_type,
-            min,
-            max,
-            normalized,
+            byte_offset: properties.byte_offset,
+            component_type: properties.component_type,
+            count: properties.count,
+            accessor_type: properties.accessor_type,
+            min: properties.min,
+            max: properties.max,
+            normalized: properties.normalized,
         })
     }
 

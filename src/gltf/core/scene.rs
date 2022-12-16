@@ -27,16 +27,14 @@ impl Node {
         mesh: Option<Rc<Mesh>>,
         camera: Option<SharedRef<Camera>>,
     ) -> Rc<Self> {
-        let node = Rc::new_cyclic(|me| {
-            Self(
-                Weak::clone(me),
-                camera.clone(),
-                RefCell::new(vec![]),
-                RefCell::new(local_transform),
-                mesh,
-                RefCell::new(Weak::new()),
-                Cached::new(),
-            )
+        let node = Rc::new_cyclic(|me| Self {
+            me: Weak::clone(me),
+            camera: camera.clone(),
+            children: RefCell::new(vec![]),
+            local_transform: RefCell::new(local_transform),
+            mesh,
+            parent: RefCell::new(Weak::new()),
+            global_transform: Cached::new(),
         });
         if let Some(camera) = camera {
             camera.borrow().set_node(&node.me);

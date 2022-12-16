@@ -5,9 +5,7 @@ pub struct Cached<T>(RefCell<Option<T>>);
 
 impl<T> Cached<T> {
     pub fn new() -> Self {
-        Self {
-            0: RefCell::new(None),
-        }
+        Self(RefCell::new(None))
     }
 
     pub fn clear(&self) -> bool {

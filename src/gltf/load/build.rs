@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{collections::HashMap, rc::Rc};
 
 use anyhow::{anyhow, Result};
 use glm::{Qua, Vec3, Vec4};
@@ -11,7 +11,7 @@ use crate::gltf::{
         geometry::{Mesh, Primitive},
         material::Material,
         scene::{Node, Scene},
-        storage::{Accessor, AccessorType, Buffer, BufferView},
+        storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
     },
     material::TestMaterial,
     util::shared_ref::SharedRef,
@@ -64,13 +64,15 @@ pub fn build_accessors(
             let max = &accessor.max;
             Accessor::new(
                 buffer_view,
-                accessor.byte_offset,
-                accessor.component_type,
-                accessor.count,
-                get_size(&accessor.accessor_type)?,
-                min.clone(),
-                max.clone(),
-                accessor.normalized,
+                AccessorProperties {
+                    byte_offset: accessor.byte_offset,
+                    component_type: accessor.component_type,
+                    count: accessor.count,
+                    accessor_type: get_size(&accessor.accessor_type)?,
+                    min: min.clone(),
+                    max: max.clone(),
+                    normalized: accessor.normalized,
+                },
             )
             .map(Rc::new)
         })

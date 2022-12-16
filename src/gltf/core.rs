@@ -1,5 +1,3 @@
-use std::{cell::RefCell, rc::Rc};
-
 use web_sys::WebGl2RenderingContext;
 
 use self::{camera::Camera, scene::Scene};
