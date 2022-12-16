@@ -1,10 +1,7 @@
 use glm::Vec4;
 use web_sys::WebGl2RenderingContext;
 
-use super::{
-    core::material::Material,
-    program::{Program, UpdateUniform, UpdateUniforms},
-};
+use super::program::{Program, UpdateUniform, UpdateUniforms};
 
 #[derive(Debug)]
 pub struct TestMaterial {

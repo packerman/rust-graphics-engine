@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use anyhow::{anyhow, Result};
-use glm::{Mat4, Qua, Vec3, Vec4};
+use glm::{Qua, Vec3, Vec4};
 use js_sys::ArrayBuffer;
 use web_sys::WebGl2RenderingContext;
 
@@ -13,8 +13,7 @@ use crate::gltf::{
         scene::{Node, Scene},
         storage::{Accessor, Buffer, BufferView},
     },
-    material::{self, TestMaterial},
-    program::Program,
+    material::TestMaterial,
 };
 
 use super::data;

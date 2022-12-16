@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
 use anyhow::Result;
-use glm::Vec4;
 use web_sys::WebGl2RenderingContext;
 
 use crate::gltf::program::{Program, UpdateUniforms};

@@ -6,10 +6,7 @@ use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
 use crate::{
     core::gl,
-    gltf::{
-        program::{Program, UpdateUniform},
-        validate,
-    },
+    gltf::{program::UpdateUniform, validate},
 };
 
 use super::{
@@ -87,6 +84,7 @@ impl Primitive {
     fn render(&self, context: &WebGl2RenderingContext, node: &Node, view_projection_matrix: &Mat4) {
         let program = self.material.program();
         program.use_program(context);
+        self.material.update(context);
         view_projection_matrix.update_uniform(context, "u_ViewProjectionMatrix", program);
         node.global_transform()
             .update_uniform(context, "u_ModelMatrix", program);

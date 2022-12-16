@@ -7,7 +7,7 @@ pub struct GltfStatistics {
     pub buffer_byte_length: u32,
     pub buffer_view_count: usize,
     pub camera_count: usize,
-    material_count: usize,
+    pub material_count: usize,
     pub mesh_count: usize,
     pub primitive_count: usize,
     pub node_count: usize,
