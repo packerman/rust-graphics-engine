@@ -47,18 +47,14 @@ impl Primitive {
             anyhow!("Unknown mode: {}", value)
         })?;
         let vertex_array = gl::create_vertex_array(context)?;
-        let count = if let Some(accessor) = indices.as_ref() {
-            accessor.count
-        } else {
-            Self::get_vertex_count(&attributes)?
-        };
+        let vertex_count = Self::get_vertex_count(&attributes)?;
         let me = Self {
             vertex_array,
             attributes,
             indices,
             material,
             mode,
-            vertex_count: count,
+            vertex_count,
         };
         me.set_vertex_array(context);
         Ok(me)
@@ -94,7 +90,7 @@ impl Primitive {
     fn draw(&self, context: &WebGl2RenderingContext) {
         context.bind_vertex_array(Some(&self.vertex_array));
         if let Some(indices) = &self.indices {
-            context.draw_elements_with_i32(self.mode, self.vertex_count, indices.component_type, 0)
+            context.draw_elements_with_i32(self.mode, indices.count, indices.component_type, 0)
         } else {
             context.draw_arrays(self.mode, 0, self.vertex_count);
         }
