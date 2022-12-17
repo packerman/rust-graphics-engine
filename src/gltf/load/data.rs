@@ -133,6 +133,7 @@ impl Default for PbrMetallicRoughness {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Mesh {
     pub primitives: Vec<Primitive>,
+    pub name: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

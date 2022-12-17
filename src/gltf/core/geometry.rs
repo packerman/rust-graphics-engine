@@ -120,11 +120,13 @@ impl Primitive {
 #[derive(Debug, Clone)]
 pub struct Mesh {
     primitives: Vec<Primitive>,
+    #[allow(dead_code)]
+    name: Option<String>,
 }
 
 impl Mesh {
-    pub fn new(primitives: Vec<Primitive>) -> Self {
-        Self { primitives }
+    pub fn new(primitives: Vec<Primitive>, name: Option<String>) -> Self {
+        Self { primitives, name }
     }
 
     pub fn render(

@@ -160,7 +160,7 @@ pub fn build_meshes(
         .map(|mesh| {
             let primitives =
                 self::build_primitives(context, &mesh.primitives, accessors, materials)?;
-            let mesh = Mesh::new(primitives);
+            let mesh = Mesh::new(primitives, mesh.name.as_ref().map(String::from));
             Ok(Rc::new(mesh))
         })
         .collect()
