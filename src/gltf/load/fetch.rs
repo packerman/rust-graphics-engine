@@ -12,7 +12,7 @@ pub async fn fetch_gltf(uri: &str) -> Result<Gltf> {
         .map_err(|error| anyhow!("Error while fetching glTF from {}: {:#?}", uri, error))
 }
 
-pub async fn fetch_buffers(base_url: &Url, buffers: &[data::Buffer]) -> Result<Vec<ArrayBuffer>> {
+pub async fn fetch_buffers(base_url: &Url, buffers: &[&data::Buffer]) -> Result<Vec<ArrayBuffer>> {
     let mut result = Vec::with_capacity(buffers.len());
     for (i, buffer) in buffers.iter().enumerate() {
         let relative_uri = buffer

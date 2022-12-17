@@ -2,6 +2,7 @@ use web_sys::WebGl2RenderingContext;
 
 use self::{
     camera::Camera,
+    renderer::Renderer,
     scene::{Node, Scene},
 };
 
@@ -10,6 +11,7 @@ use super::util::shared_ref::SharedRef;
 pub mod camera;
 pub mod geometry;
 pub mod material;
+pub mod renderer;
 pub mod scene;
 pub mod storage;
 
@@ -18,6 +20,7 @@ pub struct Root {
     cameras: Vec<SharedRef<Camera>>,
     scenes: Vec<Scene>,
     scene: Option<usize>,
+    renderer: Renderer,
 }
 
 impl Root {
@@ -25,6 +28,7 @@ impl Root {
         mut cameras: Vec<SharedRef<Camera>>,
         mut scenes: Vec<Scene>,
         scene: Option<usize>,
+        renderer: Renderer,
     ) -> Self {
         scenes
             .iter_mut()
@@ -37,6 +41,7 @@ impl Root {
             cameras,
             scenes,
             scene,
+            renderer,
         }
     }
 
@@ -60,7 +65,8 @@ impl Root {
         camera_index: usize,
     ) {
         let camera = &self.cameras[camera_index];
-        self.scenes[scene_index].render(context, camera);
+        let scene = &self.scenes[scene_index];
+        self.renderer.render(context, scene, camera);
     }
 
     fn find_camera_for_scene(&self, scene: &Scene) -> Option<usize> {

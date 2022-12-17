@@ -19,7 +19,10 @@ use crate::gltf::{
 
 use super::data;
 
-pub fn build_buffers(buffers: &[data::Buffer], array_buffers: Vec<ArrayBuffer>) -> Vec<Rc<Buffer>> {
+pub fn build_buffers(
+    buffers: Vec<&data::Buffer>,
+    array_buffers: Vec<ArrayBuffer>,
+) -> Vec<Rc<Buffer>> {
     array_buffers
         .into_iter()
         .enumerate()
@@ -29,11 +32,11 @@ pub fn build_buffers(buffers: &[data::Buffer], array_buffers: Vec<ArrayBuffer>) 
 }
 
 pub fn build_buffer_views(
-    buffer_views: &[data::BufferView],
+    buffer_views: Vec<&data::BufferView>,
     buffers: &[Rc<Buffer>],
 ) -> Result<Vec<Rc<BufferView>>> {
     buffer_views
-        .iter()
+        .into_iter()
         .map(|buffer_view| {
             let buffer = self::get_rc_by_u32(buffers, buffer_view.buffer);
             BufferView::new(
@@ -50,11 +53,11 @@ pub fn build_buffer_views(
 
 pub fn build_accessors(
     context: &WebGl2RenderingContext,
-    accessors: &[data::Accessor],
+    accessors: Vec<&data::Accessor>,
     buffer_views: &[Rc<BufferView>],
 ) -> Result<Vec<Rc<Accessor>>> {
     accessors
-        .iter()
+        .into_iter()
         .map(|accessor| {
             let buffer_view = accessor
                 .buffer_view
@@ -87,9 +90,9 @@ fn get_size(accessor_type: &str) -> Result<AccessorType> {
     }
 }
 
-pub fn build_cameras(cameras: &[data::Camera]) -> Vec<SharedRef<Camera>> {
+pub fn build_cameras(cameras: Vec<&data::Camera>) -> Vec<SharedRef<Camera>> {
     cameras
-        .iter()
+        .into_iter()
         .map(|camera| match camera.camera_type.as_str() {
             "perspective" => {
                 let perspective = camera
@@ -125,10 +128,10 @@ pub fn build_cameras(cameras: &[data::Camera]) -> Vec<SharedRef<Camera>> {
 
 pub fn build_materials(
     context: &WebGl2RenderingContext,
-    materials: &[data::Material],
+    materials: Vec<&data::Material>,
 ) -> Result<Vec<Rc<Material>>> {
     materials
-        .iter()
+        .into_iter()
         .map(|material| {
             Material::initialize(
                 context,
@@ -148,12 +151,12 @@ pub fn build_materials(
 
 pub fn build_meshes(
     context: &WebGl2RenderingContext,
-    meshes: &[data::Mesh],
+    meshes: Vec<&data::Mesh>,
     accessors: &[Rc<Accessor>],
     materials: &[Rc<Material>],
 ) -> Result<Vec<Rc<Mesh>>> {
     meshes
-        .iter()
+        .into_iter()
         .map(|mesh| {
             let primitives =
                 self::build_primitives(context, &mesh.primitives, accessors, materials)?;
@@ -210,7 +213,7 @@ const DEFAULT_TRANSLATION: [f32; 3] = [0.0, 0.0, 0.0];
 const DEFAULT_ROTATION: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 pub fn build_nodes(
-    gltf_nodes: &[data::Node],
+    gltf_nodes: Vec<&data::Node>,
     meshes: &[Rc<Mesh>],
     cameras: &[SharedRef<Camera>],
 ) -> Vec<SharedRef<Node>> {
@@ -245,9 +248,9 @@ pub fn build_nodes(
     nodes
 }
 
-pub fn build_scenes(scenes: &[data::Scene], nodes: &[SharedRef<Node>]) -> Vec<Scene> {
+pub fn build_scenes(scenes: Vec<&data::Scene>, nodes: &[SharedRef<Node>]) -> Vec<Scene> {
     scenes
-        .iter()
+        .into_iter()
         .map(|scene| {
             Scene::new(
                 scene

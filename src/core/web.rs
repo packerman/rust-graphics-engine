@@ -116,28 +116,8 @@ where
     Ok(request_id)
 }
 
-pub fn window_inner_size(window: &Window) -> Result<(f64, f64)> {
-    Ok((
-        window
-            .inner_width()
-            .map_err(|err| anyhow!("Error when getting window inner width: {:#?}", err))?
-            .as_f64()
-            .ok_or_else(|| anyhow!("Cannot cast width to f64"))?,
-        window
-            .inner_height()
-            .map_err(|err| anyhow!("Error when getting window inner height: {:#?}", err))?
-            .as_f64()
-            .ok_or_else(|| anyhow!("Cannot cast width to f64"))?,
-    ))
-}
-
 pub fn canvas_size(canvas: &HtmlCanvasElement) -> (u32, u32) {
     (canvas.width(), canvas.height())
-}
-
-pub fn set_canvas_size(canvas: &HtmlCanvasElement, size: (u32, u32)) {
-    canvas.set_width(size.0);
-    canvas.set_height(size.1);
 }
 
 pub fn get_canvas(context: &WebGl2RenderingContext) -> Result<HtmlCanvasElement> {

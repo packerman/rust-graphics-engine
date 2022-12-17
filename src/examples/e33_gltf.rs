@@ -7,10 +7,8 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     core::{
         application::{self, Application, AsyncCreator},
-        color,
-        gl::{self, diagnostic::GlDiagnostics},
+        gl::diagnostic::GlDiagnostics,
         input::KeyState,
-        web,
     },
     gltf::{self, core::Root},
 };
@@ -69,7 +67,6 @@ fn example_names<'a>() -> Vec<&'a str> {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        context.enable(WebGl2RenderingContext::DEPTH_TEST);
         debug!("{:#?}", GlDiagnostics::collect(context)?);
         let root = gltf::load::load(
             context,
@@ -85,13 +82,6 @@ impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        let canvas = web::get_canvas(context).unwrap();
-        let size = web::canvas_size(&canvas);
-        context.viewport(0, 0, size.0 as i32, size.1 as i32);
-        gl::set_clear_color(context, &color::gray());
-        context.clear(
-            WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT,
-        );
         self.root.render(context);
     }
 }
