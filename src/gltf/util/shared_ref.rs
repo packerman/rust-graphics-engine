@@ -34,4 +34,10 @@ impl<T> Deref for SharedRef<T> {
     }
 }
 
+impl<T> From<T> for SharedRef<T> {
+    fn from(value: T) -> Self {
+        Self::new(value)
+    }
+}
+
 pub type WeakRef<T> = Weak<RefCell<T>>;

@@ -11,5 +11,6 @@ out vec4 fragColor;
 
 void main() {
     float factor = max(dot(normalize(v_Normal), v_Light), 0.1);
-    fragColor = factor * u_BaseColorFactor;
+    fragColor = vec4(factor, factor, factor, 1.0) * u_BaseColorFactor;
+    fragColor = u_BaseColorFactor;
 }

@@ -102,12 +102,6 @@ impl Camera {
     }
 }
 
-impl Default for Camera {
-    fn default() -> Self {
-        Self::orthographic(1.0, 1.0, 1.0, -1.0, Some("Default camera".into()))
-    }
-}
-
 #[derive(Debug, Clone)]
 pub enum CameraType {
     Orthographic(Orthographic),

@@ -67,9 +67,9 @@ impl Root {
 
     fn ensure_camera_for_scene(scene: &mut Scene, cameras: &mut Vec<SharedRef<Camera>>) {
         if !scene.has_some_camera() {
-            let camera: SharedRef<Camera> = Default::default();
+            let camera = Self::default_camera();
             let node = Node::new(
-                glm::identity(),
+                glm::translation(&glm::vec3(0.5, 0.5, 3.0)),
                 None,
                 camera.clone().into(),
                 Some("Default camera".into()),
@@ -77,5 +77,9 @@ impl Root {
             scene.add_root_node(node);
             cameras.push(camera);
         }
+    }
+
+    fn default_camera() -> SharedRef<Camera> {
+        Camera::perspective(1.0, 0.7, 0.01, Some(100.0), Some("Default camera".into())).into()
     }
 }
