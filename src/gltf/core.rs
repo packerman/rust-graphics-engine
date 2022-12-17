@@ -29,6 +29,10 @@ impl Root {
         scenes
             .iter_mut()
             .for_each(|scene| Self::ensure_camera_for_scene(scene, &mut cameras));
+        debug!(
+            "Scene depths: {:#?}",
+            scenes.iter().map(|scene| scene.depth()).collect::<Vec<_>>()
+        );
         Self {
             cameras,
             scenes,

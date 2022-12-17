@@ -1,5 +1,5 @@
 use std::{
-    cell::RefCell,
+    cell::{Ref, RefCell},
     ptr,
     rc::{Rc, Weak},
 };
@@ -92,6 +92,21 @@ impl Node {
                 .any(|child| child.borrow().has_some_camera())
     }
 
+    pub fn depth(&self) -> usize {
+        Self::max_by_key(&self.children, |child| child.depth() + 1)
+    }
+
+    pub fn max_by_key<K>(nodes: &[SharedRef<Node>], key: K) -> usize
+    where
+        K: Fn(Ref<Node>) -> usize,
+    {
+        nodes
+            .iter()
+            .map(|node| key(node.borrow()))
+            .max()
+            .unwrap_or_default()
+    }
+
     fn set_parent(&mut self, parent: &WeakRef<Node>) {
         self.parent = Weak::clone(parent);
         self.reset_transforms();
@@ -147,5 +162,9 @@ impl Scene {
         self.nodes
             .iter()
             .any(|node| node.borrow().has_some_camera())
+    }
+
+    pub fn depth(&self) -> usize {
+        Node::max_by_key(&self.nodes, |node| node.depth())
     }
 }
