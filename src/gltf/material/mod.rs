@@ -16,7 +16,7 @@ impl Default for TestMaterial {
     fn default() -> Self {
         Self {
             base_color_factor: color::white(),
-            min_factor: 0.1,
+            min_factor: 0.2,
             light: glm::vec3(1.0, 1.0, 1.0),
         }
     }

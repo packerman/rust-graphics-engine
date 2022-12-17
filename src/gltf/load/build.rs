@@ -29,7 +29,6 @@ pub fn build_buffers(buffers: &[data::Buffer], array_buffers: Vec<ArrayBuffer>) 
 }
 
 pub fn build_buffer_views(
-    context: &WebGl2RenderingContext,
     buffer_views: &[data::BufferView],
     buffers: &[Rc<Buffer>],
 ) -> Result<Vec<Rc<BufferView>>> {

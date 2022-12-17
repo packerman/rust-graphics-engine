@@ -1,4 +1,4 @@
-use std::cell::{Ref, RefCell};
+use std::cell::RefCell;
 
 #[derive(Debug, Clone)]
 pub struct Cached<T>(RefCell<Option<T>>);

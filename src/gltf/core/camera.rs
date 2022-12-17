@@ -9,6 +9,7 @@ use super::scene::Node;
 #[derive(Debug, Clone)]
 pub struct Camera {
     camera_type: CameraType,
+    #[allow(dead_code)]
     name: Option<String>,
     node: WeakRef<Node>,
 }

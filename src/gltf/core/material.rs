@@ -7,6 +7,7 @@ use crate::gltf::program::{Program, UpdateUniforms};
 
 #[derive(Debug, Clone)]
 pub struct Material {
+    #[allow(dead_code)]
     name: Option<String>,
     double_sided: bool,
     program: Program,

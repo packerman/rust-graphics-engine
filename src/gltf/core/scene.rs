@@ -23,6 +23,7 @@ pub struct Node {
     mesh: Option<Rc<Mesh>>,
     parent: WeakRef<Node>,
     global_transform: Cached<Mat4>,
+    #[allow(dead_code)]
     name: Option<String>,
 }
 

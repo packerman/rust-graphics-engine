@@ -15,8 +15,8 @@ impl<const N: usize> BoundecBox<N> {
 
     pub fn update_bounds(&mut self, point: &[f32]) {
         for (i, item) in point.iter().enumerate().take(N) {
-            self.min[i] = self.min[i].min(point[i]);
-            self.max[i] = self.max[i].max(point[i]);
+            self.min[i] = self.min[i].min(*item);
+            self.max[i] = self.max[i].max(*item);
         }
     }
 

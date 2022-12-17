@@ -19,8 +19,7 @@ pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
     debug!("{:#?}", GltfStatistics::from(&gltf));
     let base_uri = Url::parse(uri)?;
     let buffers = self::load_buffers(&base_uri, &gltf.buffers.unwrap_or_default()).await?;
-    let buffer_views =
-        build::build_buffer_views(context, &gltf.buffer_views.unwrap_or_default(), &buffers)?;
+    let buffer_views = build::build_buffer_views(&gltf.buffer_views.unwrap_or_default(), &buffers)?;
     let accessors =
         build::build_accessors(context, &gltf.accessors.unwrap_or_default(), &buffer_views)?;
     let cameras = build::build_cameras(&gltf.cameras.unwrap_or_default());
