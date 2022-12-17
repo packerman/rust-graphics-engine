@@ -4,7 +4,7 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
     color::{self, Color},
-    gl,
+    gl, web,
 };
 
 use super::{camera::Camera, scene::Scene};
@@ -36,6 +36,10 @@ impl Renderer {
         context.clear(
             WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT,
         );
+        let canvas = web::get_canvas(context).expect("Canvas not found");
+        camera
+            .borrow_mut()
+            .set_aspect_ratio(canvas.client_width() as f32 / canvas.client_height() as f32);
         scene.render(context, camera)
     }
 }

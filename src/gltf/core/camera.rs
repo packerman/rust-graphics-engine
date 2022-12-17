@@ -101,6 +101,12 @@ impl Camera {
     pub fn set_node(&mut self, node: &WeakRef<Node>) {
         self.node = Weak::clone(node);
     }
+
+    pub fn set_aspect_ratio(&mut self, aspect_ratio: f32) {
+        if let CameraType::Perspective(perspective) = &mut self.camera_type {
+            perspective.aspect_ratio = aspect_ratio;
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
