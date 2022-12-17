@@ -158,6 +158,7 @@ pub struct Node {
     pub mesh: Option<u32>,
     pub translation: Option<[f32; 3]>,
     pub rotation: Option<[f32; 4]>,
+    pub name: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

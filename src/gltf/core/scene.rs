@@ -23,6 +23,7 @@ pub struct Node {
     mesh: Option<Rc<Mesh>>,
     parent: WeakRef<Node>,
     global_transform: Cached<Mat4>,
+    name: Option<String>,
 }
 
 impl Node {
@@ -30,6 +31,7 @@ impl Node {
         local_transform: Mat4,
         mesh: Option<Rc<Mesh>>,
         camera: Option<SharedRef<Camera>>,
+        name: Option<String>,
     ) -> SharedRef<Self> {
         let node = SharedRef::new_cyclic(|me| Self {
             me: Weak::clone(me),
@@ -39,6 +41,7 @@ impl Node {
             mesh,
             parent: Weak::new(),
             global_transform: Cached::new(),
+            name,
         });
         if let Some(camera) = camera {
             camera.borrow_mut().set_node(&node.borrow().me);

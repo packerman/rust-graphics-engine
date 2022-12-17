@@ -230,6 +230,7 @@ pub fn build_nodes(
                 node.mesh.map(|index| self::get_rc_by_u32(meshes, index)),
                 node.camera
                     .map(|index| self::get_cloned_by_u32(cameras, index)),
+                node.name.clone(),
             )
         })
         .collect();

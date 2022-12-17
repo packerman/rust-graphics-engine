@@ -68,7 +68,12 @@ impl Root {
     fn ensure_camera_for_scene(scene: &mut Scene, cameras: &mut Vec<SharedRef<Camera>>) {
         if !scene.has_some_camera() {
             let camera: SharedRef<Camera> = Default::default();
-            let node = Node::new(glm::identity(), None, camera.clone().into());
+            let node = Node::new(
+                glm::identity(),
+                None,
+                camera.clone().into(),
+                Some("Node for default camera".into()),
+            );
             scene.add_root_node(node);
             cameras.push(camera);
         }
