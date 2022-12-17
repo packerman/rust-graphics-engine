@@ -80,6 +80,13 @@ impl Root {
     }
 
     fn default_camera() -> SharedRef<Camera> {
-        Camera::perspective(1.0, 0.7, 0.01, Some(100.0), Some("Default camera".into())).into()
+        Camera::perspective(
+            1.0,
+            60_f32.to_radians(),
+            0.01,
+            Some(100.0),
+            Some("Default camera".into()),
+        )
+        .into()
     }
 }

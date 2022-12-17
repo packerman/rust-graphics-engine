@@ -4,7 +4,10 @@ use anyhow::{anyhow, Result};
 use js_sys::{ArrayBuffer, Float32Array, Uint16Array};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer};
 
-use crate::{core::gl, gltf::util::validate};
+use crate::{
+    core::gl,
+    gltf::util::{cache::Cached, validate},
+};
 
 #[derive(Debug, Clone)]
 pub struct Buffer {
@@ -31,11 +34,10 @@ impl Buffer {
 
 #[derive(Debug, Clone)]
 pub struct BufferView {
-    gl_buffer: Option<WebGlBuffer>,
-    data_buffer: Rc<Buffer>,
+    buffer: Rc<Buffer>,
     byte_offset: u32,
     byte_length: u32,
-    pub byte_stride: i32,
+    byte_stride: i32,
     target: Option<u32>,
 }
 
@@ -46,7 +48,6 @@ impl BufferView {
     ];
 
     pub fn new(
-        context: &WebGl2RenderingContext,
         buffer: Rc<Buffer>,
         byte_offset: u32,
         byte_length: u32,
@@ -58,14 +59,8 @@ impl BufferView {
                 anyhow!("Unknown target: {}", value)
             })
         })?;
-        let gl_buffer = if target.is_some() {
-            Some(gl::create_buffer(context)?)
-        } else {
-            None
-        };
         Ok(Self {
-            gl_buffer,
-            data_buffer: buffer,
+            buffer,
             byte_offset,
             byte_length,
             target,
@@ -73,31 +68,14 @@ impl BufferView {
         })
     }
 
-    pub fn bind(&self, context: &WebGl2RenderingContext) {
-        if let Some(target) = self.target {
-            context.bind_buffer(target, self.gl_buffer.as_ref());
-        }
-    }
-
     pub fn get_float32_array(&self, byte_offset: u32, length: u32) -> Float32Array {
-        self.data_buffer
+        self.buffer
             .get_float32_array(self.byte_offset + byte_offset, length)
     }
 
     pub fn get_uint16_array(&self, byte_offset: u32, length: u32) -> Uint16Array {
-        self.data_buffer
+        self.buffer
             .get_uint16_array(self.byte_offset + byte_offset, length)
-    }
-
-    pub fn buffer_data(&self, context: &WebGl2RenderingContext, data: &js_sys::Object) {
-        if let Some(target) = self.target {
-            context.bind_buffer(target, self.gl_buffer.as_ref());
-            context.buffer_data_with_array_buffer_view(
-                target,
-                data,
-                WebGl2RenderingContext::STATIC_DRAW,
-            );
-        }
     }
 
     pub fn unbind(context: &WebGl2RenderingContext, has_indices: bool) {
@@ -152,6 +130,8 @@ pub struct Accessor {
     min: Option<Vec<f32>>,
     max: Option<Vec<f32>>,
     pub normalized: bool,
+    gl_buffer: WebGlBuffer,
+    typed_view_cached: Cached<TypedView>,
 }
 
 impl Accessor {
@@ -164,7 +144,8 @@ impl Accessor {
         WebGl2RenderingContext::FLOAT,
     ];
 
-    pub fn new(
+    pub fn initialize(
+        context: &WebGl2RenderingContext,
         buffer_view: Option<Rc<BufferView>>,
         properties: AccessorProperties,
     ) -> Result<Self> {
@@ -182,6 +163,8 @@ impl Accessor {
             min: properties.min,
             max: properties.max,
             normalized: properties.normalized,
+            gl_buffer: gl::create_buffer(context)?,
+            typed_view_cached: Cached::new(),
         })
     }
 
@@ -207,16 +190,34 @@ impl Accessor {
     }
 
     fn buffer_data(&self, context: &WebGl2RenderingContext, buffer_view: &BufferView) {
+        self.typed_view_cached.with_cached_ref(
+            || self.get_typed_view(buffer_view),
+            |typed_view| {
+                if let Some(target) = buffer_view.target {
+                    context.bind_buffer(target, self.gl_buffer());
+                    context.buffer_data_with_array_buffer_view(
+                        target,
+                        typed_view.as_object(),
+                        WebGl2RenderingContext::STATIC_DRAW,
+                    );
+                }
+            },
+        )
+    }
+
+    fn gl_buffer(&self) -> Option<&WebGlBuffer> {
+        Some(&self.gl_buffer)
+    }
+
+    fn get_typed_view(&self, buffer_view: &BufferView) -> TypedView {
         let array_length = self.get_array_length(buffer_view);
         match self.component_type {
             WebGl2RenderingContext::UNSIGNED_SHORT => {
-                let view = buffer_view.get_uint16_array(self.byte_offset, array_length as u32);
-                buffer_view.buffer_data(context, &view);
+                TypedView::from(buffer_view.get_uint16_array(self.byte_offset, array_length as u32))
             }
-            WebGl2RenderingContext::FLOAT => {
-                let view = buffer_view.get_float32_array(self.byte_offset, array_length as u32);
-                buffer_view.buffer_data(context, &view);
-            }
+            WebGl2RenderingContext::FLOAT => TypedView::from(
+                buffer_view.get_float32_array(self.byte_offset, array_length as u32),
+            ),
             _ => panic!("Unknown accessor component type: {}", self.component_type),
         }
     }
@@ -241,5 +242,32 @@ impl Accessor {
             WebGl2RenderingContext::FLOAT => size_of::<f32>(),
             _ => panic!("Unknown accessor component type: {}", self.component_type),
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum TypedView {
+    Uint16(Uint16Array),
+    Float32(Float32Array),
+}
+
+impl TypedView {
+    pub fn as_object(&self) -> &js_sys::Object {
+        match self {
+            Self::Uint16(array) => array,
+            Self::Float32(array) => array,
+        }
+    }
+}
+
+impl From<Uint16Array> for TypedView {
+    fn from(array: Uint16Array) -> Self {
+        Self::Uint16(array)
+    }
+}
+
+impl From<Float32Array> for TypedView {
+    fn from(array: Float32Array) -> Self {
+        Self::Float32(array)
     }
 }

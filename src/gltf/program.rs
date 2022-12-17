@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fmt::Debug};
 
 use anyhow::Result;
-use glm::{Mat4, Vec4};
+use glm::{Mat4, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
 use crate::core::{convert::FromWithContext, gl};
@@ -67,6 +67,34 @@ impl<U: UpdateUniformValue> UpdateUniform for U {
         } else {
             level.error(|| format!("Uniform '{}' not found", name));
         }
+    }
+}
+
+impl UpdateUniformValue for f32 {
+    fn update_uniform_value(
+        &self,
+        context: &WebGl2RenderingContext,
+        location: Option<&WebGlUniformLocation>,
+    ) {
+        context.uniform1f(location, *self)
+    }
+
+    fn value_type(&self) -> u32 {
+        WebGl2RenderingContext::FLOAT
+    }
+}
+
+impl UpdateUniformValue for Vec3 {
+    fn update_uniform_value(
+        &self,
+        context: &WebGl2RenderingContext,
+        location: Option<&WebGlUniformLocation>,
+    ) {
+        context.uniform3f(location, self.x, self.y, self.z)
+    }
+
+    fn value_type(&self) -> u32 {
+        WebGl2RenderingContext::FLOAT_VEC3
     }
 }
 

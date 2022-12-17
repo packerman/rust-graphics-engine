@@ -62,6 +62,7 @@ fn example_names<'a>() -> Vec<&'a str> {
         "SimpleMeshes",
         "Cameras",
         "Box",
+        "Buggy",
     ]
 }
 
@@ -87,7 +88,7 @@ impl Application for Example {
         let canvas = web::get_canvas(context).unwrap();
         let size = web::canvas_size(&canvas);
         context.viewport(0, 0, size.0 as i32, size.1 as i32);
-        gl::set_clear_color(context, &color::black());
+        gl::set_clear_color(context, &color::gray());
         context.clear(
             WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT,
         );

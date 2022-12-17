@@ -21,7 +21,8 @@ pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
     let buffers = self::load_buffers(&base_uri, &gltf.buffers.unwrap_or_default()).await?;
     let buffer_views =
         build::build_buffer_views(context, &gltf.buffer_views.unwrap_or_default(), &buffers)?;
-    let accessors = build::build_accessors(&gltf.accessors.unwrap_or_default(), &buffer_views)?;
+    let accessors =
+        build::build_accessors(context, &gltf.accessors.unwrap_or_default(), &buffer_views)?;
     let cameras = build::build_cameras(&gltf.cameras.unwrap_or_default());
     let materials = build::build_materials(context, &gltf.materials.unwrap_or_default())?;
     let meshes = build::build_meshes(

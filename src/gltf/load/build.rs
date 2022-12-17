@@ -38,7 +38,6 @@ pub fn build_buffer_views(
         .map(|buffer_view| {
             let buffer = self::get_rc_by_u32(buffers, buffer_view.buffer);
             BufferView::new(
-                context,
                 buffer,
                 buffer_view.byte_offset,
                 buffer_view.byte_length,
@@ -51,6 +50,7 @@ pub fn build_buffer_views(
 }
 
 pub fn build_accessors(
+    context: &WebGl2RenderingContext,
     accessors: &[data::Accessor],
     buffer_views: &[Rc<BufferView>],
 ) -> Result<Vec<Rc<Accessor>>> {
@@ -62,7 +62,8 @@ pub fn build_accessors(
                 .map(|index| self::get_rc_by_u32(buffer_views, index));
             let min = &accessor.min;
             let max = &accessor.max;
-            Accessor::new(
+            Accessor::initialize(
+                context,
                 buffer_view,
                 AccessorProperties {
                     byte_offset: accessor.byte_offset,
@@ -138,6 +139,7 @@ pub fn build_materials(
                     base_color_factor: Vec4::from(
                         material.pbr_metallic_roughness.base_color_factor,
                     ),
+                    ..Default::default()
                 }),
             )
             .map(Rc::new)
@@ -261,15 +263,7 @@ pub fn build_scenes(scenes: &[data::Scene], nodes: &[SharedRef<Node>]) -> Vec<Sc
 }
 
 fn default_material(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
-    Material::initialize(
-        context,
-        None,
-        false,
-        Rc::new(TestMaterial {
-            base_color_factor: Vec4::from(data::PbrMetallicRoughness::default_base_color_factor()),
-        }),
-    )
-    .map(Rc::new)
+    Material::initialize(context, None, false, Rc::<TestMaterial>::default()).map(Rc::new)
 }
 
 fn get_rc_by_u32<T>(slice: &[Rc<T>], index: u32) -> Rc<T> {

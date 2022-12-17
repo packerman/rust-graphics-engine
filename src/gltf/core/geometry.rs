@@ -26,6 +26,8 @@ pub struct Primitive {
 }
 
 impl Primitive {
+    const POSITION_NAME: &str = "POSITION";
+
     const MODES: [u32; 7] = [
         WebGl2RenderingContext::POINTS,
         WebGl2RenderingContext::LINES,
@@ -90,7 +92,7 @@ impl Primitive {
     fn draw(&self, context: &WebGl2RenderingContext) {
         context.bind_vertex_array(Some(&self.vertex_array));
         if let Some(indices) = &self.indices {
-            context.draw_elements_with_i32(self.mode, indices.count, indices.component_type, 0)
+            context.draw_elements_with_i32(self.mode, indices.count, indices.component_type, 0);
         } else {
             context.draw_arrays(self.mode, 0, self.vertex_count);
         }
