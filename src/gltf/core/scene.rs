@@ -53,6 +53,9 @@ impl Node {
         if let Some(mesh) = &self.mesh {
             mesh.render(context, self, view_projection_matrix);
         }
+        for child in self.children.iter() {
+            child.borrow().render(context, view_projection_matrix)
+        }
     }
 
     pub fn add_child(&mut self, node: SharedRef<Node>) {
