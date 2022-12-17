@@ -72,7 +72,7 @@ impl Root {
                 glm::identity(),
                 None,
                 camera.clone().into(),
-                Some("Node for default camera".into()),
+                Some("Default camera".into()),
             );
             scene.add_root_node(node);
             cameras.push(camera);
