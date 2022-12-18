@@ -26,6 +26,7 @@ pub struct Node {
     mesh: Option<Rc<Mesh>>,
     parent: WeakRef<Node>,
     global_transform: Cached<Mat4>,
+    normal_transform: Cached<Mat4>,
     #[allow(dead_code)]
     name: Option<String>,
 }
@@ -45,6 +46,7 @@ impl Node {
             mesh,
             parent: Weak::new(),
             global_transform: Cached::new(),
+            normal_transform: Cached::new(),
             name,
         });
         if let Some(camera) = camera {
@@ -95,6 +97,11 @@ impl Node {
                 self.local_transform
             }
         })
+    }
+
+    pub fn normal_transform(&self) -> Mat4 {
+        self.normal_transform
+            .get(|| self.global_transform().try_inverse().unwrap().transpose())
     }
 
     pub fn is_ancestor_of(&self, node: &RefCell<Node>) -> bool {
@@ -152,6 +159,7 @@ impl Node {
     }
 
     fn reset_transforms(&self) {
+        self.normal_transform.clear();
         let was_present = self.global_transform.clear();
         if was_present {
             self.children
