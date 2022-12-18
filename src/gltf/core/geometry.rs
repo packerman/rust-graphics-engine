@@ -87,7 +87,7 @@ impl Primitive {
         context: &WebGl2RenderingContext,
         node: &Node,
         view_projection_matrix: &Mat4,
-        global_uniform_updater: &Box<dyn UpdateUniforms>,
+        global_uniform_updater: &dyn UpdateUniforms,
     ) {
         let program = self.material.program();
         program.use_program(context);
@@ -144,7 +144,7 @@ impl Mesh {
         context: &WebGl2RenderingContext,
         node: &Node,
         view_projection_matrix: &Mat4,
-        global_uniform_updater: &Box<dyn UpdateUniforms>,
+        global_uniform_updater: &dyn UpdateUniforms,
     ) {
         for primitive in self.primitives.iter() {
             primitive.render(

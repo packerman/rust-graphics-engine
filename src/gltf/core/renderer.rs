@@ -64,7 +64,7 @@ impl Renderer {
         camera
             .borrow_mut()
             .set_aspect_ratio(canvas.client_width() as f32 / canvas.client_height() as f32);
-        scene.render(context, camera, &self.global_uniform_updater)
+        scene.render(context, camera, self.global_uniform_updater.as_ref())
     }
 }
 

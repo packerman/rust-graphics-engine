@@ -65,7 +65,7 @@ impl Node {
         &self,
         context: &WebGl2RenderingContext,
         view_projection_matrix: &Mat4,
-        global_uniform_updater: &Box<dyn UpdateUniforms>,
+        global_uniform_updater: &dyn UpdateUniforms,
     ) {
         if let Some(mesh) = &self.mesh {
             mesh.render(
@@ -175,7 +175,7 @@ impl Scene {
         &self,
         context: &WebGl2RenderingContext,
         camera: &RefCell<Camera>,
-        global_uniform_updater: &Box<dyn UpdateUniforms>,
+        global_uniform_updater: &dyn UpdateUniforms,
     ) {
         let projection_matrix = camera.borrow().projection_matrix();
         let view_matrix = camera.borrow().view_matrix();
