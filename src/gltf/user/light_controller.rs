@@ -43,7 +43,7 @@ impl LightController {
         let alpha = self.alpha.to_radians();
         let beta = self.beta.to_radians();
         glm::vec3(
-            alpha.cos() * beta.sin(),
+            beta.sin(),
             -alpha.cos() * beta.cos(),
             alpha.sin() * beta.cos(),
         )
