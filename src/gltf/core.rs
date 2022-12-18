@@ -10,7 +10,7 @@ use self::{
 
 use super::{
     program::{Program, UpdateUniform, UpdateUniforms},
-    user::{light_controller::LightController, movement_rig::MovementRig},
+    user::{camera_controller::CameraController, light_controller::LightController},
     util::shared_ref::SharedRef,
 };
 
@@ -29,7 +29,7 @@ pub struct Root {
     renderer: Renderer,
     current_scene_index: Option<usize>,
     current_camera_index: Option<usize>,
-    movement_rig: Option<MovementRig>,
+    camera_controller: Option<CameraController>,
     light_controller: SharedRef<LightController>,
 }
 
@@ -60,7 +60,7 @@ impl Root {
             renderer,
             current_scene_index: None,
             current_camera_index: None,
-            movement_rig: None,
+            camera_controller: None,
             light_controller,
         };
         root.set_default_scene();
@@ -73,8 +73,8 @@ impl Root {
 
     pub fn set_camera_by_index(&mut self, camera_index: Option<usize>) {
         self.current_camera_index = camera_index;
-        self.movement_rig =
-            camera_index.and_then(|index| MovementRig::make_for_camera(&self.cameras[index]))
+        self.camera_controller =
+            camera_index.and_then(|index| CameraController::make_for_camera(&self.cameras[index]))
     }
 
     pub fn set_scene_by_index(&mut self, scene_index: Option<usize>) {
@@ -93,8 +93,8 @@ impl Root {
 
     pub fn update(&self, key_state: &KeyState) {
         self.light_controller.borrow_mut().update(key_state);
-        if let Some(movement_rig) = &self.movement_rig {
-            movement_rig.update(key_state);
+        if let Some(camera_controller) = &self.camera_controller {
+            camera_controller.update(key_state);
         }
     }
 

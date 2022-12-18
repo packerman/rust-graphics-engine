@@ -1,2 +1,2 @@
+pub mod camera_controller;
 pub mod light_controller;
-pub mod movement_rig;

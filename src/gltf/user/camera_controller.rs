@@ -48,13 +48,13 @@ impl Default for Properties {
 }
 
 #[derive(Debug, Clone)]
-pub struct MovementRig {
+pub struct CameraController {
     properties: Properties,
     node: SharedRef<Node>,
     attachment: SharedRef<Node>,
 }
 
-impl MovementRig {
+impl CameraController {
     pub fn new(properties: Properties, node: SharedRef<Node>, attachment: SharedRef<Node>) -> Self {
         Self {
             properties,
