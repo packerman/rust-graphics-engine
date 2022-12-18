@@ -60,6 +60,10 @@ fn example_names<'a>() -> Vec<&'a str> {
         "SimpleMeshes",
         "Cameras",
         "Box",
+        "BoxInterleaved",
+        "2CylinderEngine",
+        "ReciprocatingSaw",
+        "GearboxAssy",
         "Buggy",
     ]
 }
