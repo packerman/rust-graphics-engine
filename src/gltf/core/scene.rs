@@ -50,6 +50,14 @@ impl Node {
         node
     }
 
+    pub fn with_name(name: &str) -> SharedRef<Self> {
+        Self::new(glm::identity(), None, None, Some(String::from(name)))
+    }
+
+    pub fn with_camera_and_name(camera: SharedRef<Camera>, name: &str) -> SharedRef<Self> {
+        Self::new(glm::identity(), None, camera.into(), Some(name.into()))
+    }
+
     pub fn render(&self, context: &WebGl2RenderingContext, view_projection_matrix: &Mat4) {
         if let Some(mesh) = &self.mesh {
             mesh.render(context, self, view_projection_matrix);
@@ -94,6 +102,22 @@ impl Node {
 
     pub fn depth(&self) -> usize {
         Self::max_by_key(&self.children, |child| child.depth() + 1)
+    }
+
+    pub fn apply_transform(&mut self, transform: &Mat4) {
+        self.local_transform *= transform;
+        self.reset_transforms()
+    }
+
+    pub fn transfer_camera(&mut self, destination: &RefCell<Self>) {
+        if let Some(camera) = self.camera.take() {
+            destination.borrow_mut().attach_camera(camera)
+        }
+    }
+
+    pub fn attach_camera(&mut self, camera: SharedRef<Camera>) {
+        let camera = self.camera.insert(camera);
+        camera.borrow_mut().set_node(&self.me);
     }
 
     pub fn max_by_key<K>(nodes: &[SharedRef<Node>], key: K) -> usize

@@ -83,7 +83,9 @@ impl AsyncCreator for Example {
 }
 
 impl Application for Example {
-    fn update(&mut self, _key_state: &KeyState) {}
+    fn update(&mut self, key_state: &KeyState) {
+        self.root.update(key_state)
+    }
 
     fn render(&self, context: &WebGl2RenderingContext) {
         self.root.render(context);

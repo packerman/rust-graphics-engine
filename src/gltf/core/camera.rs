@@ -53,6 +53,12 @@ impl Camera {
         }
     }
 
+    pub fn default_with_name(name: &str) -> Self {
+        let mut camera = Self::default();
+        camera.name = Some(name.into());
+        camera
+    }
+
     pub fn projection_matrix(&self) -> Mat4 {
         match &self.camera_type {
             CameraType::Perspective(perspective) => {
@@ -106,6 +112,12 @@ impl Camera {
         if let CameraType::Perspective(perspective) = &mut self.camera_type {
             perspective.aspect_ratio = aspect_ratio;
         }
+    }
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Camera::orthographic(1.0, 1.0, 1.0, -1.0, None)
     }
 }
 

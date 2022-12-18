@@ -16,7 +16,7 @@ pub mod data;
 pub mod fetch;
 pub mod statistics;
 
-pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
+pub async fn load<'a>(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
     let gltf = fetch::fetch_gltf(uri).await?;
     debug!("{:#?}", gltf.asset);
     debug!("{:#?}", GltfStatistics::from(&gltf));
@@ -26,7 +26,7 @@ pub async fn load(context: &WebGl2RenderingContext, uri: &str) -> Result<Root> {
     let cameras = build::build_cameras(coll::flatten_optional_vector(&gltf.cameras));
     let scenes = self::load_scenes(context, &gltf, &buffers, &cameras)?;
     let renderer = Renderer::initialize(context);
-    Ok(Root::new(
+    Ok(Root::initialize(
         cameras,
         scenes,
         gltf.scene.map(|index| index as usize),
