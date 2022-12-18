@@ -1,17 +1,17 @@
-use std::{
-    cell::RefCell,
-    rc::{Rc, Weak},
-};
+use std::rc::Weak;
 
 use glm::Mat4;
+
+use crate::gltf::util::shared_ref::{SharedRef, WeakRef};
 
 use super::scene::Node;
 
 #[derive(Debug, Clone)]
 pub struct Camera {
     camera_type: CameraType,
+    #[allow(dead_code)]
     name: Option<String>,
-    node: RefCell<Weak<Node>>,
+    node: WeakRef<Node>,
 }
 
 impl Camera {
@@ -30,7 +30,7 @@ impl Camera {
                 z_far,
                 z_near,
             }),
-            node: RefCell::new(Weak::new()),
+            node: Weak::new(),
         }
     }
 
@@ -49,7 +49,7 @@ impl Camera {
                 z_far,
                 z_near,
             }),
-            node: RefCell::new(Weak::new()),
+            node: Weak::new(),
         }
     }
 
@@ -83,8 +83,8 @@ impl Camera {
     }
 
     pub fn view_matrix(&self) -> Mat4 {
-        if let Some(node) = self.node.borrow().upgrade() {
-            if let Some(inverse) = node.global_transform().try_inverse() {
+        if let Some(node) = self.node.upgrade() {
+            if let Some(inverse) = node.borrow().global_transform().try_inverse() {
                 inverse
             } else {
                 glm::identity()
@@ -94,12 +94,24 @@ impl Camera {
         }
     }
 
-    pub fn node(&self) -> Option<Rc<Node>> {
-        self.node.borrow().upgrade()
+    pub fn node(&self) -> Option<SharedRef<Node>> {
+        SharedRef::upgrade(&self.node)
     }
 
-    pub fn set_node(&self, node: &Weak<Node>) {
-        *self.node.borrow_mut() = Weak::clone(node);
+    pub fn set_node(&mut self, node: &WeakRef<Node>) {
+        self.node = Weak::clone(node);
+    }
+
+    pub fn set_aspect_ratio(&mut self, aspect_ratio: f32) {
+        if let CameraType::Perspective(perspective) = &mut self.camera_type {
+            perspective.aspect_ratio = aspect_ratio;
+        }
+    }
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Camera::orthographic(1.0, 1.0, 1.0, -1.0, None)
     }
 }
 

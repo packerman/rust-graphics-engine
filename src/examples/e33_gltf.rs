@@ -7,10 +7,8 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     core::{
         application::{self, Application, AsyncCreator},
-        color,
-        gl::{self, diagnostic::GlDiagnostics},
+        gl::diagnostic::GlDiagnostics,
         input::KeyState,
-        web,
     },
     gltf::{self, core::Root},
 };
@@ -55,12 +53,20 @@ struct Example {
     root: Root,
 }
 
-const EXAMPLE_NAMES: [&str; 4] = [
-    "TriangleWithoutIndices",
-    "Triangle",
-    "SimpleMeshes",
-    "Cameras",
-];
+fn example_names<'a>() -> Vec<&'a str> {
+    vec![
+        "TriangleWithoutIndices",
+        "Triangle",
+        "SimpleMeshes",
+        "Cameras",
+        "Box",
+        "BoxInterleaved",
+        "2CylinderEngine",
+        "ReciprocatingSaw",
+        "GearboxAssy",
+        "Buggy",
+    ]
+}
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
@@ -68,7 +74,7 @@ impl AsyncCreator for Example {
         debug!("{:#?}", GlDiagnostics::collect(context)?);
         let root = gltf::load::load(
             context,
-            &khronos_sample(EXAMPLE_NAMES[3], Default::default()),
+            &khronos_sample(example_names()[5], Default::default()),
         )
         .await?;
         log!("{:#?}", root);
@@ -77,14 +83,11 @@ impl AsyncCreator for Example {
 }
 
 impl Application for Example {
-    fn update(&mut self, _key_state: &KeyState) {}
+    fn update(&mut self, key_state: &KeyState) {
+        self.root.update(key_state)
+    }
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        let canvas = web::get_canvas(context).unwrap();
-        let size = web::canvas_size(&canvas);
-        context.viewport(0, 0, size.0 as i32, size.1 as i32);
-        gl::set_clear_color(context, &color::black());
-        context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
         self.root.render(context);
     }
 }

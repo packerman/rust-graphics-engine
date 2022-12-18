@@ -7,12 +7,13 @@ use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 use crate::{
     core::gl,
     gltf::{
-        program::{Program, UpdateUniform},
-        validate,
+        program::{UpdateUniform, UpdateUniforms},
+        util::validate,
     },
 };
 
 use super::{
+    material::Material,
     scene::Node,
     storage::{Accessor, BufferView},
 };
@@ -22,12 +23,14 @@ pub struct Primitive {
     vertex_array: WebGlVertexArrayObject,
     attributes: HashMap<String, Rc<Accessor>>,
     indices: Option<Rc<Accessor>>,
-    program: Rc<Program>,
+    material: Rc<Material>,
     mode: u32,
-    count: i32,
+    vertex_count: i32,
 }
 
 impl Primitive {
+    const POSITION_NAME: &str = "POSITION";
+
     const MODES: [u32; 7] = [
         WebGl2RenderingContext::POINTS,
         WebGl2RenderingContext::LINES,
@@ -42,36 +45,33 @@ impl Primitive {
         context: &WebGl2RenderingContext,
         attributes: HashMap<String, Rc<Accessor>>,
         indices: Option<Rc<Accessor>>,
-        program: Rc<Program>,
+        material: Rc<Material>,
         mode: u32,
     ) -> Result<Self> {
         validate::contains(&mode, &Self::MODES, |value| {
             anyhow!("Unknown mode: {}", value)
         })?;
         let vertex_array = gl::create_vertex_array(context)?;
-        let count = if let Some(accessor) = indices.as_ref() {
-            accessor.count
-        } else {
-            Self::get_vertex_count(&attributes)?
-        };
+        let vertex_count = Self::get_vertex_count(&attributes)?;
         let me = Self {
             vertex_array,
             attributes,
             indices,
-            program,
+            material,
             mode,
-            count,
+            vertex_count,
         };
         me.set_vertex_array(context);
         Ok(me)
     }
 
     pub fn set_vertex_array(&self, context: &WebGl2RenderingContext) {
-        self.program.use_program(context);
+        let program = self.material.program();
+        program.use_program(context);
         context.bind_vertex_array(Some(&self.vertex_array));
         for (attribute, accessor) in self.attributes.iter() {
             let attribute = format!("a_{}", attribute.to_lowercase());
-            if let Some(location) = self.program.get_attribute_location(&attribute) {
+            if let Some(location) = program.get_attribute_location(&attribute) {
                 accessor.set_vertex_attribute(context, *location);
             }
         }
@@ -82,20 +82,29 @@ impl Primitive {
         BufferView::unbind(context, self.indices.is_some());
     }
 
-    fn render(&self, context: &WebGl2RenderingContext, node: &Node, view_projection_matrix: &Mat4) {
-        self.program.use_program(context);
-        view_projection_matrix.update_uniform(context, "u_ViewProjectionMatrix", &self.program);
+    fn render(
+        &self,
+        context: &WebGl2RenderingContext,
+        node: &Node,
+        view_projection_matrix: &Mat4,
+        global_uniform_updater: &dyn UpdateUniforms,
+    ) {
+        let program = self.material.program();
+        program.use_program(context);
+        global_uniform_updater.update_uniforms(context, program);
+        self.material.update(context);
+        view_projection_matrix.update_uniform(context, "u_ViewProjectionMatrix", program);
         node.global_transform()
-            .update_uniform(context, "u_ModelMatrix", &self.program);
+            .update_uniform(context, "u_ModelMatrix", program);
         self.draw(context);
     }
 
     fn draw(&self, context: &WebGl2RenderingContext) {
         context.bind_vertex_array(Some(&self.vertex_array));
         if let Some(indices) = &self.indices {
-            context.draw_elements_with_i32(self.mode, self.count, indices.component_type, 0)
+            context.draw_elements_with_i32(self.mode, indices.count, indices.component_type, 0);
         } else {
-            context.draw_arrays(self.mode, 0, self.count);
+            context.draw_arrays(self.mode, 0, self.vertex_count);
         }
         context.bind_vertex_array(None);
     }
@@ -121,11 +130,13 @@ impl Primitive {
 #[derive(Debug, Clone)]
 pub struct Mesh {
     primitives: Vec<Primitive>,
+    #[allow(dead_code)]
+    name: Option<String>,
 }
 
 impl Mesh {
-    pub fn new(primitives: Vec<Primitive>) -> Self {
-        Self { primitives }
+    pub fn new(primitives: Vec<Primitive>, name: Option<String>) -> Self {
+        Self { primitives, name }
     }
 
     pub fn render(
@@ -133,9 +144,15 @@ impl Mesh {
         context: &WebGl2RenderingContext,
         node: &Node,
         view_projection_matrix: &Mat4,
+        global_uniform_updater: &dyn UpdateUniforms,
     ) {
         for primitive in self.primitives.iter() {
-            primitive.render(context, node, view_projection_matrix);
+            primitive.render(
+                context,
+                node,
+                view_projection_matrix,
+                global_uniform_updater,
+            );
         }
     }
 }
