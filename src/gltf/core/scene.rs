@@ -7,9 +7,12 @@ use std::{
 use glm::Mat4;
 use web_sys::WebGl2RenderingContext;
 
-use crate::gltf::util::{
-    cache::Cached,
-    shared_ref::{SharedRef, WeakRef},
+use crate::gltf::{
+    program::UpdateUniforms,
+    util::{
+        cache::Cached,
+        shared_ref::{SharedRef, WeakRef},
+    },
 };
 
 use super::{camera::Camera, geometry::Mesh};
@@ -58,12 +61,24 @@ impl Node {
         Self::new(glm::identity(), None, camera.into(), Some(name.into()))
     }
 
-    pub fn render(&self, context: &WebGl2RenderingContext, view_projection_matrix: &Mat4) {
+    pub fn render(
+        &self,
+        context: &WebGl2RenderingContext,
+        view_projection_matrix: &Mat4,
+        global_uniform_updater: &Box<dyn UpdateUniforms>,
+    ) {
         if let Some(mesh) = &self.mesh {
-            mesh.render(context, self, view_projection_matrix);
+            mesh.render(
+                context,
+                self,
+                view_projection_matrix,
+                global_uniform_updater,
+            );
         }
         for child in self.children.iter() {
-            child.borrow().render(context, view_projection_matrix)
+            child
+                .borrow()
+                .render(context, view_projection_matrix, global_uniform_updater)
         }
     }
 
@@ -156,12 +171,18 @@ impl Scene {
         Self { nodes }
     }
 
-    pub fn render(&self, context: &WebGl2RenderingContext, camera: &RefCell<Camera>) {
+    pub fn render(
+        &self,
+        context: &WebGl2RenderingContext,
+        camera: &RefCell<Camera>,
+        global_uniform_updater: &Box<dyn UpdateUniforms>,
+    ) {
         let projection_matrix = camera.borrow().projection_matrix();
         let view_matrix = camera.borrow().view_matrix();
         let view_projection_matrix = projection_matrix * view_matrix;
         for node in self.nodes.iter() {
-            node.borrow().render(context, &view_projection_matrix);
+            node.borrow()
+                .render(context, &view_projection_matrix, global_uniform_updater);
         }
     }
 

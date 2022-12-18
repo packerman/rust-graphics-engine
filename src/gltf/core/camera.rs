@@ -53,12 +53,6 @@ impl Camera {
         }
     }
 
-    pub fn default_with_name(name: &str) -> Self {
-        let mut camera = Self::default();
-        camera.name = Some(name.into());
-        camera
-    }
-
     pub fn projection_matrix(&self) -> Mat4 {
         match &self.camera_type {
             CameraType::Perspective(perspective) => {

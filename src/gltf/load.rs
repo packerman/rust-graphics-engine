@@ -4,7 +4,7 @@ use anyhow::Result;
 use url::Url;
 use web_sys::WebGl2RenderingContext;
 
-use crate::gltf::{core::renderer::Renderer, load::statistics::GltfStatistics, util::coll};
+use crate::gltf::{load::statistics::GltfStatistics, util::coll};
 
 use super::{
     core::{camera::Camera, scene::Scene, storage::Buffer, Root},
@@ -25,12 +25,11 @@ pub async fn load<'a>(context: &WebGl2RenderingContext, uri: &str) -> Result<Roo
         self::load_buffers(&base_uri, coll::flatten_optional_vector(&gltf.buffers)).await?;
     let cameras = build::build_cameras(coll::flatten_optional_vector(&gltf.cameras));
     let scenes = self::load_scenes(context, &gltf, &buffers, &cameras)?;
-    let renderer = Renderer::initialize(context);
     Ok(Root::initialize(
+        context,
         cameras,
         scenes,
         gltf.scene.map(|index| index as usize),
-        renderer,
     ))
 }
 

@@ -5,13 +5,19 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::gltf::program::{Program, UpdateUniforms};
 
+pub trait MaterialLifecycle: UpdateUniforms {
+    fn vertex_shader(&self) -> &str;
+
+    fn fragment_shader(&self) -> &str;
+}
+
 #[derive(Debug, Clone)]
 pub struct Material {
     #[allow(dead_code)]
     name: Option<String>,
     double_sided: bool,
     program: Program,
-    uniform_updater: Rc<dyn UpdateUniforms>,
+    uniform_updater: Rc<dyn MaterialLifecycle>,
 }
 
 impl Material {
@@ -19,7 +25,7 @@ impl Material {
         context: &WebGl2RenderingContext,
         name: Option<String>,
         double_sided: bool,
-        uniform_updater: Rc<dyn UpdateUniforms>,
+        uniform_updater: Rc<dyn MaterialLifecycle>,
     ) -> Result<Self> {
         let program = Program::initialize(
             context,

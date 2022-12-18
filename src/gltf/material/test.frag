@@ -11,6 +11,6 @@ uniform float u_MinFactor;
 out vec4 fragColor;
 
 void main() {
-    float factor = max(dot(normalize(v_Normal), normalize(u_Light)), u_MinFactor);
+    float factor = max(dot(normalize(v_Normal), normalize(-u_Light)), u_MinFactor);
     fragColor = vec4(factor, factor, factor, 1.0) * u_BaseColorFactor;
 }

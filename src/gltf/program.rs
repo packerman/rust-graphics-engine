@@ -16,10 +16,6 @@ pub struct Uniform {
 
 pub trait UpdateUniforms: Debug {
     fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program);
-
-    fn vertex_shader(&self) -> &str;
-
-    fn fragment_shader(&self) -> &str;
 }
 
 pub trait UpdateUniform {

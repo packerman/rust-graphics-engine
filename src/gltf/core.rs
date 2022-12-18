@@ -8,7 +8,11 @@ use self::{
     scene::{Node, Scene},
 };
 
-use super::{user::MovementRig, util::shared_ref::SharedRef};
+use super::{
+    program::{Program, UpdateUniform, UpdateUniforms},
+    user::{light_controller::LightController, movement_rig::MovementRig},
+    util::shared_ref::SharedRef,
+};
 
 pub mod camera;
 pub mod geometry;
@@ -17,7 +21,7 @@ pub mod renderer;
 pub mod scene;
 pub mod storage;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Root {
     cameras: Vec<SharedRef<Camera>>,
     scenes: Vec<Scene>,
@@ -26,14 +30,15 @@ pub struct Root {
     current_scene_index: Option<usize>,
     current_camera_index: Option<usize>,
     movement_rig: Option<MovementRig>,
+    light_controller: SharedRef<LightController>,
 }
 
 impl Root {
     pub fn initialize(
+        context: &WebGl2RenderingContext,
         mut cameras: Vec<SharedRef<Camera>>,
         mut scenes: Vec<Scene>,
         scene: Option<usize>,
-        renderer: Renderer,
     ) -> Self {
         scenes
             .iter_mut()
@@ -41,6 +46,12 @@ impl Root {
         debug!(
             "Scene depths: {:#?}",
             scenes.iter().map(|scene| scene.depth()).collect::<Vec<_>>()
+        );
+        let light_controller = SharedRef::new(LightController::new(Default::default()));
+        let renderer = Renderer::initialize(
+            context,
+            Default::default(),
+            Box::new(GlobalUniformUpdater::new(light_controller.clone())),
         );
         let mut root = Self {
             cameras,
@@ -50,6 +61,7 @@ impl Root {
             current_scene_index: None,
             current_camera_index: None,
             movement_rig: None,
+            light_controller,
         };
         root.set_default_scene();
         root
@@ -80,6 +92,7 @@ impl Root {
     }
 
     pub fn update(&self, key_state: &KeyState) {
+        self.light_controller.borrow_mut().update(key_state);
         if let Some(movement_rig) = &self.movement_rig {
             movement_rig.update(key_state);
         }
@@ -123,5 +136,23 @@ impl Root {
             Some("Default camera".into()),
         )
         .into()
+    }
+}
+
+#[derive(Debug, Clone)]
+struct GlobalUniformUpdater {
+    light_controller: SharedRef<LightController>,
+}
+
+impl GlobalUniformUpdater {
+    fn new(light_controller: SharedRef<LightController>) -> Self {
+        Self { light_controller }
+    }
+}
+
+impl UpdateUniforms for GlobalUniformUpdater {
+    fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        let light_direction = self.light_controller.borrow().get_light_direction();
+        light_direction.update_uniform(context, "u_Light", program);
     }
 }

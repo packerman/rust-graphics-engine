@@ -6,7 +6,10 @@ use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
 use crate::{
     core::gl,
-    gltf::{program::UpdateUniform, util::validate},
+    gltf::{
+        program::{UpdateUniform, UpdateUniforms},
+        util::validate,
+    },
 };
 
 use super::{
@@ -79,9 +82,16 @@ impl Primitive {
         BufferView::unbind(context, self.indices.is_some());
     }
 
-    fn render(&self, context: &WebGl2RenderingContext, node: &Node, view_projection_matrix: &Mat4) {
+    fn render(
+        &self,
+        context: &WebGl2RenderingContext,
+        node: &Node,
+        view_projection_matrix: &Mat4,
+        global_uniform_updater: &Box<dyn UpdateUniforms>,
+    ) {
         let program = self.material.program();
         program.use_program(context);
+        global_uniform_updater.update_uniforms(context, program);
         self.material.update(context);
         view_projection_matrix.update_uniform(context, "u_ViewProjectionMatrix", program);
         node.global_transform()
@@ -134,9 +144,15 @@ impl Mesh {
         context: &WebGl2RenderingContext,
         node: &Node,
         view_projection_matrix: &Mat4,
+        global_uniform_updater: &Box<dyn UpdateUniforms>,
     ) {
         for primitive in self.primitives.iter() {
-            primitive.render(context, node, view_projection_matrix);
+            primitive.render(
+                context,
+                node,
+                view_projection_matrix,
+                global_uniform_updater,
+            );
         }
     }
 }
