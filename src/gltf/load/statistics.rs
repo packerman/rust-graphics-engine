@@ -39,8 +39,8 @@ impl From<&Gltf> for GltfStatistics {
                 .sum(),
             node_count: self::get_count(&gltf.nodes),
             scene_count: self::get_count(&gltf.scenes),
-            vertex_count: self::get_vertex_count(&gltf),
-            index_count: self::get_index_count(&gltf),
+            vertex_count: self::get_vertex_count(gltf),
+            index_count: self::get_index_count(gltf),
         }
     }
 }
