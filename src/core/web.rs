@@ -31,7 +31,7 @@ macro_rules! error {
 
 macro_rules! debug {
     ( $( $t:tt )* ) => {
-        web_sys::console::debug_1(&format!( $( $t )* ).into());
+        web_sys::console::debug_1(&format!( $( $t )* ).into())
     }
 }
 

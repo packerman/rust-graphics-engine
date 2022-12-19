@@ -96,6 +96,8 @@ impl Primitive {
         view_projection_matrix.update_uniform(context, "u_ViewProjectionMatrix", program);
         node.global_transform()
             .update_uniform(context, "u_ModelMatrix", program);
+        node.normal_transform()
+            .update_uniform(context, "u_NormalMatrix", program);
         self.draw(context);
     }
 
