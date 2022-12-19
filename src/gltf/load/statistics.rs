@@ -1,3 +1,5 @@
+use std::primitive;
+
 use super::data::Gltf;
 
 #[derive(Debug, Clone)]
@@ -12,6 +14,8 @@ pub struct GltfStatistics {
     pub primitive_count: usize,
     pub node_count: usize,
     pub scene_count: usize,
+    pub vertex_count: u32,
+    pub index_count: u32,
 }
 
 impl From<&Gltf> for GltfStatistics {
@@ -37,6 +41,42 @@ impl From<&Gltf> for GltfStatistics {
                 .sum(),
             node_count: gltf.nodes.as_ref().map(Vec::len).unwrap_or_default(),
             scene_count: gltf.scenes.as_ref().map(Vec::len).unwrap_or_default(),
+            vertex_count: gltf
+                .meshes
+                .iter()
+                .flatten()
+                .flat_map(|mesh| &mesh.primitives)
+                .map(|primitive| {
+                    primitive
+                        .attributes
+                        .get("POSITION")
+                        .cloned()
+                        .and_then(|index| {
+                            gltf.accessors
+                                .as_ref()
+                                .and_then(|accessors| accessors.get(index as usize))
+                        })
+                        .map(|accessor| accessor.count as u32)
+                        .unwrap_or_default()
+                })
+                .sum(),
+            index_count: gltf
+                .meshes
+                .iter()
+                .flatten()
+                .flat_map(|mesh| &mesh.primitives)
+                .map(|primitive| {
+                    primitive
+                        .indices
+                        .and_then(|index| {
+                            gltf.accessors
+                                .as_ref()
+                                .and_then(|accessors| accessors.get(index as usize))
+                                .map(|accessor| accessor.count as u32)
+                        })
+                        .unwrap_or_default()
+                })
+                .sum(),
         }
     }
 }
