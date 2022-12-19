@@ -77,7 +77,6 @@ impl AsyncCreator for Example {
             &khronos_sample(example_names()[5], Default::default()),
         )
         .await?;
-        log!("{:#?}", root);
         Ok(Box::new(Example { root }))
     }
 }
