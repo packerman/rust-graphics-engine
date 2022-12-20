@@ -6,7 +6,9 @@ use web_sys::{
     HtmlCanvasElement, HtmlImageElement, WebGl2RenderingContext, WebGlTexture, WebGlUniformLocation,
 };
 
-use super::{gl, math::resolution::Resolution, web};
+use crate::base::{gl, web};
+
+use super::math::resolution::Resolution;
 
 #[derive(Debug, Clone)]
 pub struct TextureProperties {

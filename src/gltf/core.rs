@@ -1,6 +1,6 @@
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::input::KeyState;
+use crate::base::input::KeyState;
 
 use self::{
     camera::Camera,

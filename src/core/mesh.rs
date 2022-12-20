@@ -4,7 +4,9 @@ use anyhow::Result;
 use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
-use super::{camera::Camera, geometry::Geometry, gl, material::Material};
+use crate::base::gl;
+
+use super::{camera::Camera, geometry::Geometry, material::Material};
 
 #[derive(Debug, Clone)]
 pub struct Mesh {

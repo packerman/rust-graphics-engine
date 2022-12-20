@@ -5,7 +5,7 @@ use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
 use crate::{
-    core::gl,
+    base::gl,
     gltf::{
         program::{UpdateUniform, UpdateUniforms},
         util::validate,

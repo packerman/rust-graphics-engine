@@ -5,20 +5,22 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
+    base::{
         application::{self, Application, AsyncCreator},
-        camera::Camera,
         color,
         convert::FromWithContext,
-        geometry::Geometry,
         input::KeyState,
+        web,
+    },
+    core::{
+        camera::Camera,
+        geometry::Geometry,
         light::Light,
         mesh::Mesh,
         node::Node,
         renderer::Renderer,
         texture::{Texture, TextureData, TextureUnit},
         uniform::data::Sampler2D,
-        web,
     },
     extras::light_helpers::{DirectionalLightHelper, PointLightHelper},
     geometry::parametric::Sphere,

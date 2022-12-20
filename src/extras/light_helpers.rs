@@ -4,9 +4,9 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    base::{color, convert::FromWithContext},
     core::{
-        attribute::AttributeData, color, convert::FromWithContext, geometry::Geometry,
-        light::Light, material::Material, mesh::Mesh,
+        attribute::AttributeData, geometry::Geometry, light::Light, material::Material, mesh::Mesh,
     },
     geometry::parametric::Sphere,
     material::basic::{BasicMaterial, SurfaceMaterial},

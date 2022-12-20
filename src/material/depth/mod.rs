@@ -3,9 +3,9 @@ use std::rc::Rc;
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    convert::FromWithContext,
-    material::{Material, MaterialSettings},
+use crate::{
+    base::convert::FromWithContext,
+    core::material::{Material, MaterialSettings},
 };
 
 pub fn create(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {

@@ -3,19 +3,21 @@ use std::{cell::RefCell, rc::Rc};
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    attribute::AttributeData,
-    camera::Camera,
-    convert::FromWithContext,
-    geometry::Geometry,
-    material::Material,
-    math::resolution::Resolution,
-    mesh::Mesh,
-    node::Node,
-    render_target::RenderTarget,
-    renderer::{self, Renderer},
-    texture::{Texture, TextureUnit},
-    uniform::data::Sampler2D,
+use crate::{
+    base::convert::FromWithContext,
+    core::{
+        attribute::AttributeData,
+        camera::Camera,
+        geometry::Geometry,
+        material::Material,
+        math::resolution::Resolution,
+        mesh::Mesh,
+        node::Node,
+        render_target::RenderTarget,
+        renderer::{self, Renderer},
+        texture::{Texture, TextureUnit},
+        uniform::data::Sampler2D,
+    },
 };
 
 pub type Effect = Material;

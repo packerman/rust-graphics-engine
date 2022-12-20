@@ -4,7 +4,7 @@ use anyhow::Result;
 use glm::{Mat4, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
-use crate::core::{convert::FromWithContext, gl};
+use crate::base::{convert::FromWithContext, gl};
 
 use super::level::Level;
 

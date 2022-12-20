@@ -1,7 +1,7 @@
 use glm::Vec4;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::color;
+use crate::base::color;
 
 use super::{
     core::material::MaterialLifecycle,

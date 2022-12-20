@@ -4,12 +4,16 @@ use anyhow::Result;
 use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    color::{self, Color},
-    convert::FromWithContext,
-    material::{Material, MaterialSettings, RenderSetting},
-    texture::{Texture, TextureUnit},
-    uniform::data::{Data, Sampler2D},
+use crate::{
+    base::{
+        color::{self, Color},
+        convert::FromWithContext,
+    },
+    core::{
+        material::{Material, MaterialSettings, RenderSetting},
+        texture::{Texture, TextureUnit},
+        uniform::data::{Data, Sampler2D},
+    },
 };
 
 pub struct TextureMaterial {

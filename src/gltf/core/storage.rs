@@ -5,7 +5,7 @@ use js_sys::{ArrayBuffer, Float32Array, Uint16Array};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer};
 
 use crate::{
-    core::gl,
+    base::gl,
     gltf::util::{cache::Cached, validate},
 };
 

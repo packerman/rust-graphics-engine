@@ -3,12 +3,16 @@ use std::{collections::HashMap, rc::Rc};
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    color::{self, Color},
-    convert::FromWithContext,
-    light::{shadow::Shadow, Light},
-    material::{Material, MaterialSettings, RenderSetting},
-    uniform::data::{CreateDataFromType, CreateDataFromValue, Data, Sampler2D},
+use crate::{
+    base::{
+        color::{self, Color},
+        convert::FromWithContext,
+    },
+    core::{
+        light::{shadow::Shadow, Light},
+        material::{Material, MaterialSettings, RenderSetting},
+        uniform::data::{CreateDataFromType, CreateDataFromValue, Data, Sampler2D},
+    },
 };
 
 pub struct PhongMaterial<'a> {

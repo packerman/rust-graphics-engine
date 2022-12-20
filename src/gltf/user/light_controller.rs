@@ -1,6 +1,6 @@
 use glm::Vec3;
 
-use crate::core::input::KeyState;
+use crate::base::input::KeyState;
 
 #[derive(Debug, Clone)]
 pub struct Properties {

@@ -6,12 +6,14 @@ use glm::Vec3;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
+    base::{
         application::{self, Application, AsyncCreator},
-        camera::Camera,
         convert::FromWithContext,
-        geometry::Geometry,
         input::KeyState,
+    },
+    core::{
+        camera::Camera,
+        geometry::Geometry,
         material::{Material, MaterialSettings},
         mesh::Mesh,
         node::Node,

@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
+    base::{
         application::{self, Application, AsyncCreator},
         gl::diagnostic::GlDiagnostics,
         input::KeyState,

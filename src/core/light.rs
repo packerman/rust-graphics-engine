@@ -4,8 +4,9 @@ use std::cell::RefCell;
 
 use glm::Vec3;
 
+use crate::base::color::{self, Color};
+
 use super::{
-    color::{self, Color},
     node::Node,
     uniform::{
         data::{CreateDataFromType, Data},

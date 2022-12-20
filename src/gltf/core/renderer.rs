@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
+    base::{
         color::{self, Color},
         gl, web,
     },

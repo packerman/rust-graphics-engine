@@ -1,11 +1,8 @@
 use std::cell::RefCell;
 
 use crate::{
-    core::{
-        application::Loop,
-        input::KeyState,
-        math::{angle::Angle, matrix},
-    },
+    base::{application::Loop, input::KeyState},
+    core::math::{angle::Angle, matrix},
     gltf::{
         core::{camera::Camera, scene::Node},
         util::shared_ref::SharedRef,

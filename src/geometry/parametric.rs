@@ -7,12 +7,13 @@ use anyhow::Result;
 use glm::Vec3;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    attribute::AttributeData,
-    color,
-    convert::FromWithContext,
-    geometry::Geometry,
-    math::{angle::Angle, matrix},
+use crate::{
+    base::{color, convert::FromWithContext},
+    core::{
+        attribute::AttributeData,
+        geometry::Geometry,
+        math::{angle::Angle, matrix},
+    },
 };
 
 use super::Polygon;

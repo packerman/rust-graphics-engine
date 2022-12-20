@@ -4,9 +4,10 @@ use anyhow::{anyhow, Result};
 use glm::Mat4;
 use web_sys::WebGl2RenderingContext;
 
+use crate::base::convert::FromWithContext;
+
 use super::{
     attribute::{Attribute, AttributeData},
-    convert::FromWithContext,
     math::matrix,
 };
 

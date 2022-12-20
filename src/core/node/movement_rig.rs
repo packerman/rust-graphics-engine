@@ -1,6 +1,9 @@
 use std::rc::Rc;
 
-use crate::core::{application::Loop, input::KeyState, math::angle::Angle, node::Node};
+use crate::{
+    base::{application::Loop, input::KeyState},
+    core::{math::angle::Angle, node::Node},
+};
 
 #[derive(Debug, Clone)]
 pub struct Properties {

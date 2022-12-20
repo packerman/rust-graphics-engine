@@ -4,11 +4,9 @@ use anyhow::{anyhow, Result};
 use glm::{Mat4, Vec3};
 use web_sys::{WebGl2RenderingContext, WebGlProgram};
 
-use super::{
-    convert::FromWithContext,
-    gl,
-    uniform::{data::Data, Uniform},
-};
+use crate::base::{convert::FromWithContext, gl};
+
+use super::uniform::{data::Data, Uniform};
 
 #[derive(Debug, Clone)]
 pub struct Material {

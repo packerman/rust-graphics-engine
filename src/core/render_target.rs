@@ -3,8 +3,9 @@ use std::rc::Rc;
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlFramebuffer};
 
+use crate::base::gl;
+
 use super::{
-    gl,
     math::resolution::Resolution,
     texture::{Texture, TextureData, TextureProperties},
 };

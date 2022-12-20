@@ -4,7 +4,7 @@ use js_sys::ArrayBuffer;
 use url::Url;
 use web_sys::HtmlImageElement;
 
-use crate::core::web;
+use crate::base::web;
 
 use super::data::{self, Gltf};
 
