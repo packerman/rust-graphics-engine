@@ -8,12 +8,12 @@ use glm::Vec3;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::{color, convert::FromWithContext},
-    core::{
-        attribute::AttributeData,
-        geometry::Geometry,
+    base::{
+        color,
+        convert::FromWithContext,
         math::{angle::Angle, matrix},
     },
+    core::{attribute::AttributeData, geometry::Geometry},
 };
 
 use super::Polygon;

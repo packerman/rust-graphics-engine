@@ -4,12 +4,9 @@ use anyhow::{anyhow, Result};
 use glm::Mat4;
 use web_sys::WebGl2RenderingContext;
 
-use crate::base::convert::FromWithContext;
+use crate::base::{convert::FromWithContext, math::matrix};
 
-use super::{
-    attribute::{Attribute, AttributeData},
-    math::matrix,
-};
+use super::attribute::{Attribute, AttributeData};
 
 #[derive(Debug, Clone)]
 pub struct Geometry {

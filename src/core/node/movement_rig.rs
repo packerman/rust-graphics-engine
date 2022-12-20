@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
 use crate::{
-    base::{application::Loop, input::KeyState},
-    core::{math::angle::Angle, node::Node},
+    base::{application::Loop, input::KeyState, math::angle::Angle},
+    core::node::Node,
 };
 
 #[derive(Debug, Clone)]

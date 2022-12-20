@@ -10,11 +10,11 @@ use crate::{
         color,
         convert::FromWithContext,
         input::KeyState,
+        math::angle::Angle,
     },
     core::{
         camera::Camera,
         geometry::Geometry,
-        math::angle::Angle,
         mesh::Mesh,
         node::Node,
         renderer::{Renderer, RendererOptions},

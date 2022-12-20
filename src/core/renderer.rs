@@ -4,13 +4,14 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::base::{
     color::{self, Color},
-    gl, web,
+    gl,
+    math::resolution::Resolution,
+    web,
 };
 
 use super::{
     camera::Camera,
     light::{shadow::Shadow, Light},
-    math::resolution::Resolution,
     mesh::Mesh,
     node::Node,
     render_target::RenderTarget,

@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use glm::{Mat4, Vec3};
 
-use super::math::matrix::{self, Ortographic, Perspective};
+use crate::base::math::{angle::Angle, matrix};
 
 #[derive(Debug, Clone, Copy)]
 enum Projection {
@@ -69,6 +69,72 @@ impl Camera {
 
     pub fn world_position(&self) -> Vec3 {
         matrix::get_position(&self.world_matrix)
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Perspective {
+    pub aspect_ratio: f32,
+    pub angle_of_view: Angle,
+    pub near: f32,
+    pub far: f32,
+}
+
+impl Default for Perspective {
+    fn default() -> Self {
+        Self {
+            aspect_ratio: 1.0,
+            angle_of_view: Angle::from_degrees(60.0),
+            near: 0.1,
+            far: 1000.0,
+        }
+    }
+}
+
+impl From<Perspective> for Mat4 {
+    fn from(perspective: Perspective) -> Self {
+        glm::perspective(
+            perspective.aspect_ratio,
+            perspective.angle_of_view.to_radians(),
+            perspective.near,
+            perspective.far,
+        )
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Ortographic {
+    pub left: f32,
+    pub right: f32,
+    pub bottom: f32,
+    pub top: f32,
+    pub near: f32,
+    pub far: f32,
+}
+
+impl Default for Ortographic {
+    fn default() -> Self {
+        Self {
+            left: -1.0,
+            right: 1.0,
+            bottom: -1.0,
+            top: 1.0,
+            near: -1.0,
+            far: 1.0,
+        }
+    }
+}
+
+impl From<Ortographic> for Mat4 {
+    fn from(orto: Ortographic) -> Self {
+        glm::ortho(
+            orto.left,
+            orto.right,
+            orto.bottom,
+            orto.top,
+            orto.near,
+            orto.far,
+        )
     }
 }
 

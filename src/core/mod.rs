@@ -3,7 +3,6 @@ pub mod camera;
 pub mod geometry;
 pub mod light;
 pub mod material;
-pub mod math;
 pub mod mesh;
 pub mod node;
 pub mod render_target;

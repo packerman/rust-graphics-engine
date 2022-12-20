@@ -5,10 +5,10 @@ use glm::{Mat4, Vec3};
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    base::math::resolution::Resolution,
     core::{
-        camera::Camera,
+        camera::{Camera, Ortographic},
         material::Material,
-        math::{matrix::Ortographic, resolution::Resolution},
         node::Node,
         render_target::RenderTarget,
         texture::TextureUnit,

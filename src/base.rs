@@ -5,3 +5,4 @@ pub mod color;
 pub mod convert;
 pub mod gl;
 pub mod input;
+pub mod math;

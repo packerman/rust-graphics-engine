@@ -3,10 +3,9 @@ use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::{color::Color, convert::FromWithContext},
+    base::{color::Color, convert::FromWithContext, math::resolution::Resolution},
     core::{
         material::{Material, MaterialSettings},
-        math::resolution::Resolution,
         uniform::data::{Data, Sampler2D},
     },
 };

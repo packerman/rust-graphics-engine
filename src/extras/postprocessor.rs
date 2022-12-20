@@ -4,13 +4,12 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::convert::FromWithContext,
+    base::{convert::FromWithContext, math::resolution::Resolution},
     core::{
         attribute::AttributeData,
         camera::Camera,
         geometry::Geometry,
         material::Material,
-        math::resolution::Resolution,
         mesh::Mesh,
         node::Node,
         render_target::RenderTarget,
