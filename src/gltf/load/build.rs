@@ -3,7 +3,7 @@ use std::{collections::HashMap, rc::Rc};
 use anyhow::{anyhow, Result};
 use glm::{Qua, Vec3, Vec4};
 use js_sys::ArrayBuffer;
-use web_sys::WebGl2RenderingContext;
+use web_sys::{HtmlImageElement, WebGl2RenderingContext};
 
 use crate::gltf::{
     core::{
@@ -12,6 +12,7 @@ use crate::gltf::{
         material::Material,
         scene::{Node, Scene},
         storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
+        texture_data::{Image, Sampler},
     },
     material::TestMaterial,
     util::shared_ref::SharedRef,
@@ -123,6 +124,14 @@ pub fn build_cameras(cameras: Vec<&data::Camera>) -> Vec<SharedRef<Camera>> {
             _ => panic!("Unknown camera type: {}", camera.camera_type),
         })
         .map(SharedRef::new)
+        .collect()
+}
+
+pub fn build_images(html_images: Vec<HtmlImageElement>) -> Vec<Rc<Image>> {
+    html_images
+        .into_iter()
+        .map(Image::new)
+        .map(Rc::new)
         .collect()
 }
 
@@ -246,6 +255,21 @@ pub fn build_nodes(
         }
     }
     nodes
+}
+
+pub fn build_samplers(samplers: Vec<&data::Sampler>) -> Result<Vec<Rc<Sampler>>> {
+    samplers
+        .iter()
+        .map(|sampler| {
+            Sampler::new(
+                sampler.mag_filter,
+                sampler.min_filter,
+                sampler.wrap_s,
+                sampler.wrap_t,
+            )
+            .map(Rc::new)
+        })
+        .collect()
 }
 
 pub fn build_scenes(scenes: Vec<&data::Scene>, nodes: &[SharedRef<Node>]) -> Vec<Scene> {

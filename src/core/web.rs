@@ -1,7 +1,7 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, sync::Mutex};
 
 use anyhow::{anyhow, Result};
-use futures::Future;
+use futures::{channel::oneshot, Future};
 use js_sys::ArrayBuffer;
 use wasm_bindgen::{closure::WasmClosureFnOnce, prelude::*, JsCast};
 use wasm_bindgen_futures::JsFuture;
@@ -186,4 +186,30 @@ pub async fn fetch_array_buffer(uri: &str) -> Result<ArrayBuffer> {
         .map_err(|err| anyhow!("Error while fetching ArrayBuffer from {}: {:#?}", uri, err))?
         .dyn_into()
         .map_err(|err| anyhow!("Error while fetching ArrayBuffer from {}: {:#?}", uri, err))
+}
+
+pub async fn fetch_image(uri: &str) -> Result<HtmlImageElement> {
+    let image = self::new_image()?;
+    let (sender, receiver) = oneshot::channel::<Result<()>>();
+    let success = Rc::new(Mutex::new(Some(sender)));
+    let error = Rc::clone(&success);
+    let success_callback = self::closure_once(move || {
+        if let Some(success) = success.lock().ok().and_then(|mut success| success.take()) {
+            if let Err(err) = success.send(Ok(())) {
+                error!("Cannot send 'image loaded messsage': {:#?}", err);
+            }
+        }
+    });
+    let error_callback: Closure<dyn FnMut(JsValue)> = self::closure_once(move |err| {
+        if let Some(error) = error.lock().ok().and_then(|mut error| error.take()) {
+            if let Err(err) = error.send(Err(anyhow!("Error when loading image: {:#?}", err))) {
+                error!("Cannot send 'image error message': {:#?}", err);
+            }
+        }
+    });
+    image.set_onload(Some(success_callback.as_ref().unchecked_ref()));
+    image.set_onerror(Some(error_callback.as_ref().unchecked_ref()));
+    image.set_src(uri);
+    receiver.await??;
+    Ok(image)
 }

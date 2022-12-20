@@ -20,6 +20,7 @@ pub mod material;
 pub mod renderer;
 pub mod scene;
 pub mod storage;
+pub mod texture_data;
 
 #[derive(Debug)]
 pub struct Root {
