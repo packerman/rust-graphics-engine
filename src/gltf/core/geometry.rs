@@ -145,17 +145,6 @@ impl Mesh {
         Self { primitives, name }
     }
 
-    pub fn primitive(
-        context: &WebGl2RenderingContext,
-        attributes: HashMap<String, Rc<Accessor>>,
-        indices: Option<Rc<Accessor>>,
-        material: Rc<Material>,
-        mode: u32,
-    ) -> Result<Self> {
-        let primitive = Primitive::new(context, attributes, indices, material, mode)?;
-        Ok(Self::new(vec![primitive], None))
-    }
-
     pub fn render(
         &self,
         context: &WebGl2RenderingContext,
