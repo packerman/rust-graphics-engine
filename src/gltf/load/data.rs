@@ -92,9 +92,10 @@ pub struct Gltf {
     pub materials: Option<Vec<Material>>,
     pub meshes: Option<Vec<Mesh>>,
     pub nodes: Option<Vec<Node>>,
-    pub samples: Option<Vec<Sampler>>,
+    pub samplers: Option<Vec<Sampler>>,
     pub scene: Option<u32>,
     pub scenes: Option<Vec<Scene>>,
+    pub textures: Option<Vec<Texture>>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -201,4 +202,11 @@ impl Sampler {
 #[serde(rename_all = "camelCase")]
 pub struct Scene {
     pub nodes: Option<Vec<u32>>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Texture {
+    pub sampler: Option<u32>,
+    pub source: Option<u32>,
 }

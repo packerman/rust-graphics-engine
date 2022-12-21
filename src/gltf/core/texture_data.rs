@@ -1,9 +1,9 @@
 use std::rc::Rc;
 
 use anyhow::{anyhow, Result};
-use web_sys::{HtmlImageElement, WebGl2RenderingContext};
+use web_sys::{HtmlImageElement, WebGl2RenderingContext, WebGlTexture};
 
-use crate::gltf::util::validate;
+use crate::{base::gl, gltf::util::validate};
 
 #[derive(Debug, Clone)]
 pub struct Sampler {
@@ -101,6 +101,22 @@ impl Sampler {
             self.wrap_t,
         );
     }
+
+    pub fn has_mipmap_filter(&self) -> bool {
+        self.min_filter.map_or(false, |min_filter| {
+            let min_filter = min_filter as u32;
+            min_filter == WebGl2RenderingContext::NEAREST_MIPMAP_NEAREST
+                || min_filter == WebGl2RenderingContext::LINEAR_MIPMAP_NEAREST
+                || min_filter == WebGl2RenderingContext::NEAREST_MIPMAP_LINEAR
+                || min_filter == WebGl2RenderingContext::LINEAR_MIPMAP_LINEAR
+        })
+    }
+
+    pub fn generate_mipmap(&self, context: &WebGl2RenderingContext) {
+        if self.has_mipmap_filter() {
+            context.generate_mipmap(WebGl2RenderingContext::TEXTURE_2D);
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -112,16 +128,52 @@ impl Image {
     pub fn new(html_image: HtmlImageElement) -> Self {
         Self { html_image }
     }
+
+    pub fn tex_image_2d(&self, context: &WebGl2RenderingContext) -> Result<()> {
+        context
+            .tex_image_2d_with_u32_and_u32_and_html_image_element(
+                WebGl2RenderingContext::TEXTURE_2D,
+                0,
+                WebGl2RenderingContext::RGBA as i32,
+                WebGl2RenderingContext::RGBA,
+                WebGl2RenderingContext::UNSIGNED_BYTE,
+                &self.html_image,
+            )
+            .map_err(|error| anyhow::anyhow!("Error while specifying: {:#?}", error))
+    }
 }
 
 #[derive(Debug, Clone)]
 pub struct Texture {
+    texture: WebGlTexture,
     sampler: Rc<Sampler>,
-    source: Option<Image>,
+    source: Rc<Image>,
 }
 
 impl Texture {
-    pub fn new(sampler: Rc<Sampler>, source: Option<Image>) -> Self {
-        Self { sampler, source }
+    pub fn initialize(
+        context: &WebGl2RenderingContext,
+        sampler: Rc<Sampler>,
+        source: Rc<Image>,
+    ) -> Result<Self> {
+        let texture = gl::create_texture(context)?;
+        let me = Self {
+            texture,
+            sampler,
+            source,
+        };
+        Ok(me)
+    }
+
+    pub fn bind(&self, context: &WebGl2RenderingContext) {
+        context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, Some(&self.texture));
+    }
+
+    pub fn store_data(&self, context: &WebGl2RenderingContext) -> Result<()> {
+        self.bind(context);
+        self.source.tex_image_2d(context)?;
+        self.sampler.set_texture_parameters(context);
+        self.sampler.generate_mipmap(context);
+        Ok(())
     }
 }

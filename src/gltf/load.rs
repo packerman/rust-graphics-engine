@@ -23,9 +23,9 @@ pub async fn load<'a>(context: &WebGl2RenderingContext, uri: &str) -> Result<Roo
     let base_uri = Url::parse(uri)?;
     let buffers =
         self::load_buffers(&base_uri, coll::flatten_optional_vector(&gltf.buffers)).await?;
-    let images = self::load_images(&base_uri, coll::flatten_optional_vector(&gltf.images));
+    let images = self::load_images(&base_uri, coll::flatten_optional_vector(&gltf.images)).await?;
     let cameras = build::build_cameras(coll::flatten_optional_vector(&gltf.cameras));
-    let scenes = self::load_scenes(context, &gltf, &buffers, &cameras)?;
+    let scenes = self::load_scenes(context, &gltf, &buffers, &images, &cameras)?;
     Ok(Root::initialize(
         context,
         cameras,
@@ -48,6 +48,7 @@ fn load_scenes(
     context: &WebGl2RenderingContext,
     gltf: &data::Gltf,
     buffers: &[Rc<Buffer>],
+    images: &[Rc<Image>],
     cameras: &[SharedRef<Camera>],
 ) -> Result<Vec<Scene>> {
     let buffer_views =
@@ -56,6 +57,13 @@ fn load_scenes(
         context,
         coll::flatten_optional_vector(&gltf.accessors),
         &buffer_views,
+    )?;
+    let samplers = build::build_samplers(coll::flatten_optional_vector(&gltf.samplers))?;
+    let textures = build::build_textures(
+        context,
+        coll::flatten_optional_vector(&gltf.textures),
+        &samplers,
+        images,
     )?;
     let materials =
         build::build_materials(context, coll::flatten_optional_vector(&gltf.materials))?;

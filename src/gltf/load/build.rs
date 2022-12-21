@@ -12,7 +12,7 @@ use crate::gltf::{
         material::Material,
         scene::{Node, Scene},
         storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
-        texture_data::{Image, Sampler},
+        texture_data::{Image, Sampler, Texture},
     },
     material::TestMaterial,
     util::shared_ref::SharedRef,
@@ -268,6 +268,28 @@ pub fn build_samplers(samplers: Vec<&data::Sampler>) -> Result<Vec<Rc<Sampler>>>
                 sampler.wrap_t,
             )
             .map(Rc::new)
+        })
+        .collect()
+}
+
+pub fn build_textures(
+    context: &WebGl2RenderingContext,
+    textures: Vec<&data::Texture>,
+    samplers: &[Rc<Sampler>],
+    images: &[Rc<Image>],
+) -> Result<Vec<Rc<Texture>>> {
+    textures
+        .into_iter()
+        .map(|texture| {
+            let sampler = texture
+                .sampler
+                .map(|index| self::get_rc_by_u32(samplers, index))
+                .unwrap_or_default();
+            let source = texture
+                .source
+                .map(|index| self::get_rc_by_u32(images, index))
+                .expect("Expected source image in texture");
+            Texture::initialize(context, sampler, source).map(Rc::new)
         })
         .collect()
 }
