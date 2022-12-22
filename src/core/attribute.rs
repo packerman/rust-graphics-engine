@@ -4,7 +4,7 @@ use js_sys::Float32Array;
 use na::SVector;
 use web_sys::{WebGl2RenderingContext, WebGlBuffer, WebGlProgram};
 
-use super::gl;
+use crate::base::gl;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DataType {

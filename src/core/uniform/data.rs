@@ -3,9 +3,10 @@ use std::{collections::HashMap, rc::Rc};
 use glm::{Mat4, Vec2, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlUniformLocation};
 
-use crate::core::{
-    math::resolution::Resolution,
-    texture::{Texture, TextureUnit},
+use crate::{
+    base::math::resolution::Resolution,
+    core::texture::Texture,
+    gltf::{core::texture_data::TextureUnit, program::UpdateUniformValue},
 };
 
 #[derive(Debug, Clone)]
@@ -24,8 +25,9 @@ impl Sampler2D {
         context: &WebGl2RenderingContext,
         location: Option<&WebGlUniformLocation>,
     ) {
-        self.unit
-            .upload_data(context, location, self.texture.texture());
+        self.unit.active_texture(context);
+        self.texture.bind(context);
+        self.unit.update_uniform_value(context, location);
     }
 
     pub fn resolution(&self) -> Resolution {

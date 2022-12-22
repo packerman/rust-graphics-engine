@@ -3,15 +3,16 @@ use std::{collections::HashMap, rc::Rc};
 use anyhow::{anyhow, Result};
 use glm::{Qua, Vec3, Vec4};
 use js_sys::ArrayBuffer;
-use web_sys::WebGl2RenderingContext;
+use web_sys::{HtmlImageElement, WebGl2RenderingContext};
 
 use crate::gltf::{
     core::{
         camera::Camera,
         geometry::{Mesh, Primitive},
-        material::Material,
+        material::{Material, TextureRef},
         scene::{Node, Scene},
         storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
+        texture_data::{Image, Sampler, Texture},
     },
     material::TestMaterial,
     util::shared_ref::SharedRef,
@@ -84,8 +85,10 @@ pub fn build_accessors(
 
 fn get_size(accessor_type: &str) -> Result<AccessorType> {
     match accessor_type {
-        "VEC3" => Ok(AccessorType::vec(3)),
         "SCALAR" => Ok(AccessorType::scalar()),
+        "VEC2" => Ok(AccessorType::vec(2)),
+        "VEC3" => Ok(AccessorType::vec(3)),
+        "VEC4" => Ok(AccessorType::vec(4)),
         _ => Err(anyhow!("Unknown type: {}", accessor_type)),
     }
 }
@@ -126,9 +129,18 @@ pub fn build_cameras(cameras: Vec<&data::Camera>) -> Vec<SharedRef<Camera>> {
         .collect()
 }
 
+pub fn build_images(html_images: Vec<HtmlImageElement>) -> Vec<Rc<Image>> {
+    html_images
+        .into_iter()
+        .map(Image::new)
+        .map(Rc::new)
+        .collect()
+}
+
 pub fn build_materials(
     context: &WebGl2RenderingContext,
     materials: Vec<&data::Material>,
+    textures: &[Rc<Texture>],
 ) -> Result<Vec<Rc<Material>>> {
     materials
         .into_iter()
@@ -141,6 +153,16 @@ pub fn build_materials(
                     base_color_factor: Vec4::from(
                         material.pbr_metallic_roughness.base_color_factor,
                     ),
+                    base_color_texture: material
+                        .pbr_metallic_roughness
+                        .base_color_texture
+                        .as_ref()
+                        .map(|texture_info| {
+                            TextureRef::new(
+                                self::get_rc_by_u32(textures, texture_info.index),
+                                texture_info.tex_coord,
+                            )
+                        }),
                     ..Default::default()
                 }),
             )
@@ -246,6 +268,43 @@ pub fn build_nodes(
         }
     }
     nodes
+}
+
+pub fn build_samplers(samplers: Vec<&data::Sampler>) -> Result<Vec<Rc<Sampler>>> {
+    samplers
+        .iter()
+        .map(|sampler| {
+            Sampler::new(
+                sampler.mag_filter,
+                sampler.min_filter,
+                sampler.wrap_s,
+                sampler.wrap_t,
+            )
+            .map(Rc::new)
+        })
+        .collect()
+}
+
+pub fn build_textures(
+    context: &WebGl2RenderingContext,
+    textures: Vec<&data::Texture>,
+    samplers: &[Rc<Sampler>],
+    images: &[Rc<Image>],
+) -> Result<Vec<Rc<Texture>>> {
+    textures
+        .into_iter()
+        .map(|texture| {
+            let sampler = texture
+                .sampler
+                .map(|index| self::get_rc_by_u32(samplers, index))
+                .unwrap_or_default();
+            let source = texture
+                .source
+                .map(|index| self::get_rc_by_u32(images, index))
+                .expect("Expected source image in texture");
+            Texture::initialize(context, sampler, source).map(Rc::new)
+        })
+        .collect()
 }
 
 pub fn build_scenes(scenes: Vec<&data::Scene>, nodes: &[SharedRef<Node>]) -> Vec<Scene> {

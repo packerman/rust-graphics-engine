@@ -1,6 +1,6 @@
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::input::KeyState;
+use crate::base::input::KeyState;
 
 use self::{
     camera::Camera,
@@ -20,6 +20,7 @@ pub mod material;
 pub mod renderer;
 pub mod scene;
 pub mod storage;
+pub mod texture_data;
 
 #[derive(Debug)]
 pub struct Root {

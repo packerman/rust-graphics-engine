@@ -2,17 +2,20 @@ use std::{cell::RefCell, rc::Rc};
 
 use web_sys::WebGl2RenderingContext;
 
-use super::{
-    camera::Camera,
+use crate::base::{
     color::{self, Color},
     gl,
-    light::{shadow::Shadow, Light},
     math::resolution::Resolution,
+    web,
+};
+
+use super::{
+    camera::Camera,
+    light::{shadow::Shadow, Light},
     mesh::Mesh,
     node::Node,
     render_target::RenderTarget,
     uniform::UpdateUniform,
-    web,
 };
 
 pub struct RendererOptions {

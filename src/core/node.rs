@@ -8,15 +8,14 @@ use std::{
 
 use glm::{Mat3, Mat4, Vec3};
 
+use crate::base::{
+    input::KeyState,
+    math::{angle::Angle, matrix, resolution::Resolution},
+};
+
 use self::movement_rig::MovementRig;
 
-use super::{
-    camera::Camera,
-    input::KeyState,
-    light::Light,
-    math::{angle::Angle, matrix, resolution::Resolution},
-    mesh::Mesh,
-};
+use super::{camera::Camera, light::Light, mesh::Mesh};
 
 pub enum Transform {
     Local,

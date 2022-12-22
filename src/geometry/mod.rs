@@ -7,9 +7,9 @@ use anyhow::Result;
 use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    attribute::AttributeData, color, convert::FromWithContext, geometry::Geometry,
-    math::angle::Angle,
+use crate::{
+    base::{color, convert::FromWithContext, math::angle::Angle},
+    core::{attribute::AttributeData, geometry::Geometry},
 };
 
 pub struct Rectangle {

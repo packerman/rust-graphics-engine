@@ -2,6 +2,7 @@ extern crate nalgebra as na;
 extern crate nalgebra_glm as glm;
 
 #[macro_use]
+mod base;
 mod core;
 mod examples;
 mod extras;

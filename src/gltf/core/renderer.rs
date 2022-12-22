@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
+    base::{
         color::{self, Color},
         gl, web,
     },
@@ -38,6 +38,7 @@ impl Renderer {
         global_uniform_updater: Box<dyn UpdateUniforms>,
     ) -> Self {
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
+        context.pixel_storei(WebGl2RenderingContext::UNPACK_FLIP_Y_WEBGL, 1);
         Renderer {
             properties,
             global_uniform_updater,

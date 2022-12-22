@@ -5,20 +5,22 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
+    base::{
         application::{self, Application, AsyncCreator},
-        camera::Camera,
         color,
         convert::FromWithContext,
-        geometry::Geometry,
         input::KeyState,
-        material::Material,
         math::angle::Angle,
+    },
+    core::{
+        camera::Camera,
+        geometry::Geometry,
+        material::Material,
         mesh::Mesh,
         node::Node,
         render_target::RenderTarget,
         renderer::{self, Renderer, RendererOptions},
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
         uniform::data::Sampler2D,
     },
     extras::{
@@ -26,6 +28,7 @@ use crate::{
         postprocessor::Postprocessor,
     },
     geometry::{parametric::Sphere, Rectangle},
+    gltf::core::texture_data::TextureUnit,
     material::{
         self,
         basic::{BasicMaterial, SurfaceMaterial},
@@ -74,7 +77,7 @@ impl AsyncCreator for Example {
                         TextureData::load_from_source("images/sky-earth.jpg").await?,
                         Default::default(),
                     )?,
-                    TextureUnit::from(0),
+                    TextureUnit(0),
                     Default::default(),
                 )?,
             )?);
@@ -98,7 +101,7 @@ impl AsyncCreator for Example {
                         TextureData::load_from_source("images/grass.jpg").await?,
                         Default::default(),
                     )?,
-                    TextureUnit::from(1),
+                    TextureUnit(1),
                     TextureMaterial {
                         repeat_uv: glm::vec2(50.0, 50.0),
                         ..Default::default()
@@ -119,7 +122,7 @@ impl AsyncCreator for Example {
                     TextureData::load_from_source("images/grid.png").await?,
                     Default::default(),
                 )?,
-                TextureUnit::from(2),
+                TextureUnit(2),
                 Default::default(),
             )?,
         )?);
@@ -158,7 +161,7 @@ impl AsyncCreator for Example {
             glow_scene,
             Rc::clone(&camera),
             Some(glow_target),
-            TextureUnit::from(3),
+            TextureUnit(3),
         )?;
         glow_pass.add_effect(context, |sampler| {
             let texture_size = sampler.resolution();
@@ -183,19 +186,13 @@ impl AsyncCreator for Example {
             )
         })?;
 
-        let mut combo_pass = Postprocessor::initialize(
-            context,
-            renderer,
-            scene,
-            camera,
-            None,
-            TextureUnit::from(4),
-        )?;
+        let mut combo_pass =
+            Postprocessor::initialize(context, renderer, scene, camera, None, TextureUnit(4))?;
         combo_pass.add_effect(context, |sampler| {
             effects::additive_blend(
                 context,
                 sampler,
-                Sampler2D::new(Rc::clone(&glow_texture), TextureUnit::from(5)),
+                Sampler2D::new(Rc::clone(&glow_texture), TextureUnit(5)),
                 Blend {
                     original_strength: 1.0,
                     blend_strength: 3.0,

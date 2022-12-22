@@ -5,7 +5,7 @@ use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
 use crate::{
-    core::gl,
+    base::gl,
     gltf::{
         program::{UpdateUniform, UpdateUniforms},
         util::validate,
@@ -70,7 +70,7 @@ impl Primitive {
         program.use_program(context);
         context.bind_vertex_array(Some(&self.vertex_array));
         for (attribute, accessor) in self.attributes.iter() {
-            let attribute = format!("a_{}", attribute.to_lowercase());
+            let attribute = Self::attribute_to_variable_name(attribute);
             if let Some(location) = program.get_attribute_location(&attribute) {
                 accessor.set_vertex_attribute(context, *location);
             }
@@ -126,6 +126,10 @@ impl Primitive {
                 Err(anyhow!("All accessors count have to be equal"))
             }
         }
+    }
+
+    fn attribute_to_variable_name(attribute: &str) -> String {
+        format!("a_{}", attribute.to_lowercase())
     }
 }
 

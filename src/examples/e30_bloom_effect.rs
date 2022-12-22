@@ -5,18 +5,20 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
+    base::{
         application::{self, Application, AsyncCreator},
-        camera::Camera,
         color,
         convert::FromWithContext,
-        geometry::Geometry,
         input::KeyState,
         math::angle::Angle,
+    },
+    core::{
+        camera::Camera,
+        geometry::Geometry,
         mesh::Mesh,
         node::Node,
         renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
         uniform::data::Sampler2D,
     },
     extras::{
@@ -24,6 +26,7 @@ use crate::{
         postprocessor::Postprocessor,
     },
     geometry::{parametric::Sphere, Rectangle},
+    gltf::core::texture_data::TextureUnit,
     material::{self, texture::TextureMaterial},
 };
 
@@ -67,7 +70,7 @@ impl AsyncCreator for Example {
                         TextureData::load_from_source("images/sky-earth.jpg").await?,
                         Default::default(),
                     )?,
-                    TextureUnit::from(0),
+                    TextureUnit(0),
                     Default::default(),
                 )?,
             )?);
@@ -91,7 +94,7 @@ impl AsyncCreator for Example {
                         TextureData::load_from_source("images/grass.jpg").await?,
                         Default::default(),
                     )?,
-                    TextureUnit::from(1),
+                    TextureUnit(1),
                     TextureMaterial {
                         repeat_uv: glm::vec2(50.0, 50.0),
                         ..Default::default()
@@ -111,7 +114,7 @@ impl AsyncCreator for Example {
                     TextureData::load_from_source("images/grid.png").await?,
                     Default::default(),
                 )?,
-                TextureUnit::from(2),
+                TextureUnit(2),
                 Default::default(),
             )?,
         )?);
@@ -120,14 +123,8 @@ impl AsyncCreator for Example {
             scene.add_child(&sphere);
         }
 
-        let mut postprocessor = Postprocessor::initialize(
-            context,
-            renderer,
-            scene,
-            camera,
-            None,
-            TextureUnit::from(3),
-        )?;
+        let mut postprocessor =
+            Postprocessor::initialize(context, renderer, scene, camera, None, TextureUnit(3))?;
         postprocessor.add_effect(context, |sampler| {
             effects::bright_filter(context, sampler, BrightFilter { threshold: 2.4 })
         })?;
@@ -158,7 +155,7 @@ impl AsyncCreator for Example {
                 effects::additive_blend(
                     context,
                     sampler,
-                    Sampler2D::new(Rc::clone(&main_scene), TextureUnit::from(4)),
+                    Sampler2D::new(Rc::clone(&main_scene), TextureUnit(4)),
                     Blend {
                         original_strength: 2.0,
                         blend_strength: 1.0,

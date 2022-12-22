@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
+    base::{
         application::{self, Application, AsyncCreator},
         gl::diagnostic::GlDiagnostics,
         input::KeyState,
@@ -61,6 +61,8 @@ fn example_names<'a>() -> Vec<&'a str> {
         "Cameras",
         "Box",
         "BoxInterleaved",
+        "BoxTextured",
+        "Duck",
         "2CylinderEngine",
         "ReciprocatingSaw",
         "GearboxAssy",
@@ -74,7 +76,7 @@ impl AsyncCreator for Example {
         debug!("{:#?}", GlDiagnostics::collect(context)?);
         let root = gltf::load::load(
             context,
-            &khronos_sample(example_names()[9], Default::default()),
+            &khronos_sample(example_names()[11], Default::default()),
         )
         .await?;
         Ok(Box::new(Example { root }))

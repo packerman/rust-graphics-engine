@@ -21,6 +21,7 @@ pub struct Accessor {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Asset {
     pub generator: Option<String>,
     pub version: String,
@@ -45,6 +46,7 @@ pub struct BufferView {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Camera {
     pub orthographic: Option<Orthographic>,
     pub perspective: Option<Perspective>,
@@ -54,6 +56,7 @@ pub struct Camera {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Orthographic {
     #[serde(rename = "xmag")]
     pub x_mag: f32,
@@ -66,8 +69,8 @@ pub struct Orthographic {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Perspective {
-    #[serde(rename = "aspectRatio")]
     pub aspect_ratio: Option<f32>,
     #[serde(rename = "yfov")]
     pub y_fov: f32,
@@ -85,11 +88,20 @@ pub struct Gltf {
     pub buffers: Option<Vec<Buffer>>,
     pub buffer_views: Option<Vec<BufferView>>,
     pub cameras: Option<Vec<Camera>>,
+    pub images: Option<Vec<Image>>,
     pub materials: Option<Vec<Material>>,
     pub meshes: Option<Vec<Mesh>>,
     pub nodes: Option<Vec<Node>>,
+    pub samplers: Option<Vec<Sampler>>,
     pub scene: Option<u32>,
     pub scenes: Option<Vec<Scene>>,
+    pub textures: Option<Vec<Texture>>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Image {
+    pub uri: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -107,6 +119,7 @@ pub struct Material {
 pub struct PbrMetallicRoughness {
     #[serde(default = "PbrMetallicRoughness::default_base_color_factor")]
     pub base_color_factor: [f32; 4],
+    pub base_color_texture: Option<TextureInfo>,
     #[serde(default = "PbrMetallicRoughness::default_metallic_factor")]
     pub metallic_factor: f32,
 }
@@ -125,18 +138,29 @@ impl Default for PbrMetallicRoughness {
     fn default() -> Self {
         Self {
             base_color_factor: Self::default_base_color_factor(),
+            base_color_texture: None,
             metallic_factor: Self::default_metallic_factor(),
         }
     }
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TextureInfo {
+    pub index: u32,
+    #[serde(default)]
+    pub tex_coord: u32,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Mesh {
     pub primitives: Vec<Primitive>,
     pub name: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Primitive {
     pub attributes: HashMap<String, u32>,
     pub indices: Option<u32>,
@@ -152,6 +176,7 @@ impl Primitive {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Node {
     pub camera: Option<u32>,
     pub children: Option<Vec<u32>>,
@@ -163,6 +188,35 @@ pub struct Node {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Sampler {
+    pub mag_filter: Option<i32>,
+    pub min_filter: Option<i32>,
+    #[serde(default = "Sampler::default_wrap_s")]
+    pub wrap_s: i32,
+    #[serde(default = "Sampler::default_wrap_t")]
+    pub wrap_t: i32,
+}
+
+impl Sampler {
+    fn default_wrap_s() -> i32 {
+        WebGl2RenderingContext::REPEAT as i32
+    }
+
+    fn default_wrap_t() -> i32 {
+        WebGl2RenderingContext::REPEAT as i32
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Scene {
     pub nodes: Option<Vec<u32>>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Texture {
+    pub sampler: Option<u32>,
+    pub source: Option<u32>,
 }

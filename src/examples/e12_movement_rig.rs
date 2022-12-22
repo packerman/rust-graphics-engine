@@ -5,13 +5,15 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
+    base::{
         application::{self, Application, AsyncCreator},
-        camera::Camera,
         color,
         convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
+    },
+    core::{
+        camera::Camera,
         mesh::Mesh,
         node::{Node, Transform},
         renderer::Renderer,

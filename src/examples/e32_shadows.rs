@@ -5,23 +5,26 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
+    base::{
         application::{self, Application, AsyncCreator},
-        camera::Camera,
         color,
         convert::FromWithContext,
-        geometry::Geometry,
         input::KeyState,
-        light::{shadow::Shadow, Light},
         math::angle::Angle,
+    },
+    core::{
+        camera::Camera,
+        geometry::Geometry,
+        light::{shadow::Shadow, Light},
         mesh::Mesh,
         node::Node,
         renderer::{self, Renderer, RendererOptions},
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
         uniform::data::Sampler2D,
     },
     extras::light_helpers::DirectionalLightHelper,
     geometry::{parametric::Sphere, Rectangle},
+    gltf::core::texture_data::TextureUnit,
     material::{self, phong::PhongMaterial},
 };
 
@@ -55,7 +58,7 @@ impl AsyncCreator for Example {
             context,
             Rc::clone(&directional_light),
             resolution,
-            TextureUnit::from(15),
+            TextureUnit(15),
             Default::default(),
         )?;
 
@@ -90,7 +93,7 @@ impl AsyncCreator for Example {
                         TextureData::load_from_source("images/grid.png").await?,
                         Default::default(),
                     )?,
-                    TextureUnit::from(0),
+                    TextureUnit(0),
                 )
                 .into(),
                 ambient: ambient_color,

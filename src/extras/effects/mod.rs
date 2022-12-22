@@ -2,12 +2,12 @@ use anyhow::Result;
 use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{
-    color::Color,
-    convert::FromWithContext,
-    material::{Material, MaterialSettings},
-    math::resolution::Resolution,
-    uniform::data::{Data, Sampler2D},
+use crate::{
+    base::{color::Color, convert::FromWithContext, math::resolution::Resolution},
+    core::{
+        material::{Material, MaterialSettings},
+        uniform::data::{Data, Sampler2D},
+    },
 };
 
 use super::postprocessor::Effect;

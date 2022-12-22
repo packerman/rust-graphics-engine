@@ -5,21 +5,24 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
+    base::{
         application::{self, Application, AsyncCreator},
-        camera::Camera,
         color,
         convert::FromWithContext,
-        geometry::Geometry,
         input::KeyState,
+    },
+    core::{
+        camera::Camera,
+        geometry::Geometry,
         light::Light,
         mesh::Mesh,
         node::Node,
         renderer::Renderer,
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
         uniform::data::Sampler2D,
     },
     geometry::Rectangle,
+    gltf::core::texture_data::TextureUnit,
     material::{self, lambert::LambertMaterial},
 };
 
@@ -67,7 +70,7 @@ impl AsyncCreator for Example {
                                 TextureData::load_from_source("images/brick-color.png").await?,
                                 Default::default(),
                             )?,
-                            TextureUnit::from(0),
+                            TextureUnit(0),
                         )
                         .into(),
                         bump_texture: Sampler2D::new(
@@ -76,7 +79,7 @@ impl AsyncCreator for Example {
                                 TextureData::load_from_source("images/brick-bump.png").await?,
                                 Default::default(),
                             )?,
-                            TextureUnit::from(1),
+                            TextureUnit(1),
                         )
                         .into(),
                         ..Default::default()

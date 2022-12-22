@@ -3,11 +3,9 @@ use std::rc::Rc;
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlFramebuffer};
 
-use super::{
-    gl,
-    math::resolution::Resolution,
-    texture::{Texture, TextureData, TextureProperties},
-};
+use crate::base::{gl, math::resolution::Resolution};
+
+use super::texture::{Texture, TextureData, TextureProperties};
 
 #[derive(Debug, Clone)]
 pub struct RenderTarget {

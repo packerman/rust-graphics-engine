@@ -5,7 +5,7 @@ use js_sys::{ArrayBuffer, Float32Array, Uint16Array};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer};
 
 use crate::{
-    core::gl,
+    base::gl,
     gltf::util::{cache::Cached, validate},
 };
 
@@ -129,7 +129,7 @@ pub struct Accessor {
     accessor_type: AccessorType,
     min: Option<Vec<f32>>,
     max: Option<Vec<f32>>,
-    pub normalized: bool,
+    normalized: bool,
     gl_buffer: WebGlBuffer,
     typed_view_cached: Cached<TypedView>,
 }

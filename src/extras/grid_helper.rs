@@ -4,14 +4,11 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
-        attribute::AttributeData,
+    base::{
         color::{self, Color},
         convert::FromWithContext,
-        geometry::Geometry,
-        material::Material,
-        mesh::Mesh,
     },
+    core::{attribute::AttributeData, geometry::Geometry, material::Material, mesh::Mesh},
     material::basic::{BasicMaterial, LineMaterial, LineType},
 };
 

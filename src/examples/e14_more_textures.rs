@@ -5,19 +5,22 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    core::{
+    base::{
         application::{self, Application, AsyncCreator},
-        camera::Camera,
         convert::FromWithContext,
-        geometry::Geometry,
         input::KeyState,
         math::{angle::Angle, matrix},
+    },
+    core::{
+        camera::Camera,
+        geometry::Geometry,
         mesh::Mesh,
         node::Node,
         renderer::Renderer,
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
     },
     geometry::parametric::{Cone, Cylinder, Sphere},
+    gltf::core::texture_data::TextureUnit,
     material,
 };
 
@@ -48,7 +51,7 @@ impl AsyncCreator for Example {
                 TextureData::load_from_source("images/grid.png").await?,
                 Default::default(),
             )?,
-            TextureUnit::from(0),
+            TextureUnit(0),
             Default::default(),
         )?);
         {

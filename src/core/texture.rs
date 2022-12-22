@@ -1,13 +1,10 @@
-use std::{rc::Rc, sync::Mutex};
+use std::rc::Rc;
 
-use anyhow::{anyhow, Ok, Result};
-use futures::channel::oneshot;
-use wasm_bindgen::{prelude::*, JsCast, JsValue};
-use web_sys::{
-    HtmlCanvasElement, HtmlImageElement, WebGl2RenderingContext, WebGlTexture, WebGlUniformLocation,
-};
+use anyhow::{anyhow, Result};
 
-use super::{gl, math::resolution::Resolution, web};
+use web_sys::{HtmlCanvasElement, HtmlImageElement, WebGl2RenderingContext, WebGlTexture};
+
+use crate::base::{gl, math::resolution::Resolution, web};
 
 #[derive(Debug, Clone)]
 pub struct TextureProperties {
@@ -56,34 +53,6 @@ impl TextureProperties {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct TextureUnit {
-    reference: u32,
-    number: i32,
-}
-
-impl TextureUnit {
-    pub fn upload_data(
-        &self,
-        context: &WebGl2RenderingContext,
-        location: Option<&WebGlUniformLocation>,
-        texture: &WebGlTexture,
-    ) {
-        context.active_texture(self.reference);
-        context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, Some(texture));
-        context.uniform1i(location, self.number);
-    }
-}
-
-impl From<i32> for TextureUnit {
-    fn from(i: i32) -> Self {
-        TextureUnit {
-            reference: WebGl2RenderingContext::TEXTURE0 + i as u32,
-            number: i,
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub enum TextureData {
     Image(HtmlImageElement),
@@ -107,7 +76,7 @@ impl TextureData {
     const TYPE: u32 = WebGl2RenderingContext::UNSIGNED_BYTE;
 
     pub async fn load_from_source(source: &str) -> Result<Self> {
-        self::load_image(source).await.map(Self::from)
+        web::fetch_image(source).await.map(Self::from)
     }
 
     pub fn new_buffer(resolution: Resolution) -> Self {
@@ -214,32 +183,4 @@ impl Texture {
     pub fn resolution(&self) -> Resolution {
         self.data.resolution()
     }
-}
-
-async fn load_image(source: &str) -> Result<HtmlImageElement> {
-    let image = web::new_image()?;
-    let (sender, receiver) = oneshot::channel::<Result<()>>();
-    let success = Rc::new(Mutex::new(Some(sender)));
-    let error = Rc::clone(&success);
-    let success_callback = web::closure_once(move || {
-        if let Some(success) = success.lock().ok().and_then(|mut success| success.take()) {
-            if let Err(err) = success.send(Ok(())) {
-                error!("Cannot send 'image loaded messsage': {:#?}", err);
-            }
-        }
-    });
-    let error_callback: Closure<dyn FnMut(JsValue)> = web::closure_once(move |err| {
-        if let Some(error) = error.lock().ok().and_then(|mut error| error.take()) {
-            if let Err(err) = error.send(Err(anyhow!("Error when loading image: {:#?}", err))) {
-                error!("Cannot send 'image error message': {:#?}", err);
-            }
-        }
-    });
-    image.set_onload(Some(success_callback.as_ref().unchecked_ref()));
-    image.set_onerror(Some(error_callback.as_ref().unchecked_ref()));
-    image.set_src(source);
-
-    receiver.await??;
-
-    Ok(image)
 }
