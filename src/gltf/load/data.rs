@@ -119,6 +119,7 @@ pub struct Material {
 pub struct PbrMetallicRoughness {
     #[serde(default = "PbrMetallicRoughness::default_base_color_factor")]
     pub base_color_factor: [f32; 4],
+    pub base_color_texture: Option<TextureInfo>,
     #[serde(default = "PbrMetallicRoughness::default_metallic_factor")]
     pub metallic_factor: f32,
 }
@@ -137,9 +138,18 @@ impl Default for PbrMetallicRoughness {
     fn default() -> Self {
         Self {
             base_color_factor: Self::default_base_color_factor(),
+            base_color_texture: None,
             metallic_factor: Self::default_metallic_factor(),
         }
     }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TextureInfo {
+    pub index: u32,
+    #[serde(default)]
+    pub tex_coord: u32,
 }
 
 #[derive(Debug, Clone, Deserialize)]

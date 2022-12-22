@@ -4,7 +4,10 @@ use web_sys::WebGl2RenderingContext;
 use crate::base::color;
 
 use super::{
-    core::material::MaterialLifecycle,
+    core::{
+        material::{MaterialLifecycle, TextureRef},
+        texture_data::Sampler2D,
+    },
     program::{Program, UpdateUniform, UpdateUniforms},
 };
 
@@ -12,6 +15,7 @@ use super::{
 pub struct TestMaterial {
     pub base_color_factor: Vec4,
     pub min_factor: f32,
+    pub base_color_texture: Option<TextureRef>,
 }
 
 impl Default for TestMaterial {
@@ -19,6 +23,7 @@ impl Default for TestMaterial {
         Self {
             base_color_factor: color::white(),
             min_factor: 0.2,
+            base_color_texture: None,
         }
     }
 }
@@ -39,5 +44,15 @@ impl UpdateUniforms for TestMaterial {
             .update_uniform(context, "u_BaseColorFactor", program);
         self.min_factor
             .update_uniform(context, "u_MinFactor", program);
+
+        if let Some(base_color_texture) = &self.base_color_texture {
+            let sampler = Sampler2D(0);
+            sampler.active_texture(context);
+            base_color_texture.texture().bind(context);
+            sampler.update_uniform(context, "u_Sampler", program);
+        }
+        self.base_color_texture
+            .is_some()
+            .update_uniform(context, "u_UseTexture", program);
     }
 }

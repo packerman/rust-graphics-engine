@@ -5,6 +5,8 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::gltf::program::{Program, UpdateUniforms};
 
+use super::texture_data::Texture;
+
 pub trait MaterialLifecycle: UpdateUniforms {
     fn vertex_shader(&self) -> &str;
 
@@ -64,5 +66,21 @@ impl Material {
         } else {
             context.disable(setting);
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TextureRef {
+    texture: Rc<Texture>,
+    tex_coord: u32,
+}
+
+impl TextureRef {
+    pub fn new(texture: Rc<Texture>, tex_coord: u32) -> Self {
+        Self { texture, tex_coord }
+    }
+
+    pub fn texture(&self) -> &Texture {
+        &self.texture
     }
 }

@@ -65,8 +65,11 @@ fn load_scenes(
         &samplers,
         images,
     )?;
-    let materials =
-        build::build_materials(context, coll::flatten_optional_vector(&gltf.materials))?;
+    let materials = build::build_materials(
+        context,
+        coll::flatten_optional_vector(&gltf.materials),
+        &textures,
+    )?;
     let meshes = build::build_meshes(
         context,
         coll::flatten_optional_vector(&gltf.meshes),

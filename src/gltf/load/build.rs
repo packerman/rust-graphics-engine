@@ -9,7 +9,7 @@ use crate::gltf::{
     core::{
         camera::Camera,
         geometry::{Mesh, Primitive},
-        material::Material,
+        material::{Material, TextureRef},
         scene::{Node, Scene},
         storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
         texture_data::{Image, Sampler, Texture},
@@ -85,8 +85,10 @@ pub fn build_accessors(
 
 fn get_size(accessor_type: &str) -> Result<AccessorType> {
     match accessor_type {
-        "VEC3" => Ok(AccessorType::vec(3)),
         "SCALAR" => Ok(AccessorType::scalar()),
+        "VEC2" => Ok(AccessorType::vec(2)),
+        "VEC3" => Ok(AccessorType::vec(3)),
+        "VEC4" => Ok(AccessorType::vec(4)),
         _ => Err(anyhow!("Unknown type: {}", accessor_type)),
     }
 }
@@ -138,6 +140,7 @@ pub fn build_images(html_images: Vec<HtmlImageElement>) -> Vec<Rc<Image>> {
 pub fn build_materials(
     context: &WebGl2RenderingContext,
     materials: Vec<&data::Material>,
+    textures: &[Rc<Texture>],
 ) -> Result<Vec<Rc<Material>>> {
     materials
         .into_iter()
@@ -150,6 +153,16 @@ pub fn build_materials(
                     base_color_factor: Vec4::from(
                         material.pbr_metallic_roughness.base_color_factor,
                     ),
+                    base_color_texture: material
+                        .pbr_metallic_roughness
+                        .base_color_texture
+                        .as_ref()
+                        .map(|texture_info| {
+                            TextureRef::new(
+                                self::get_rc_by_u32(textures, texture_info.index),
+                                texture_info.tex_coord,
+                            )
+                        }),
                     ..Default::default()
                 }),
             )

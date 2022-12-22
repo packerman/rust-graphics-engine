@@ -3,7 +3,10 @@ use std::rc::Rc;
 use anyhow::{anyhow, Result};
 use web_sys::{HtmlImageElement, WebGl2RenderingContext, WebGlTexture};
 
-use crate::{base::gl, gltf::util::validate};
+use crate::{
+    base::gl,
+    gltf::{program::UpdateUniformValue, util::validate},
+};
 
 #[derive(Debug, Clone)]
 pub struct Sampler {
@@ -162,6 +165,7 @@ impl Texture {
             sampler,
             source,
         };
+        me.store_data(context)?;
         Ok(me)
     }
 
@@ -175,5 +179,28 @@ impl Texture {
         self.sampler.set_texture_parameters(context);
         self.sampler.generate_mipmap(context);
         Ok(())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Sampler2D(pub u32);
+
+impl Sampler2D {
+    pub fn active_texture(&self, context: &WebGl2RenderingContext) {
+        context.active_texture(WebGl2RenderingContext::TEXTURE0 + self.0)
+    }
+}
+
+impl UpdateUniformValue for Sampler2D {
+    fn update_uniform_value(
+        &self,
+        context: &WebGl2RenderingContext,
+        location: Option<&web_sys::WebGlUniformLocation>,
+    ) {
+        context.uniform1ui(location, self.0)
+    }
+
+    fn value_type(&self) -> u32 {
+        WebGl2RenderingContext::SAMPLER_2D
     }
 }

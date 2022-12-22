@@ -129,7 +129,7 @@ pub struct Accessor {
     accessor_type: AccessorType,
     min: Option<Vec<f32>>,
     max: Option<Vec<f32>>,
-    pub normalized: bool,
+    normalized: bool,
     gl_buffer: WebGlBuffer,
     typed_view_cached: Cached<TypedView>,
 }
