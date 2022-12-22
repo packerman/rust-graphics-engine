@@ -190,7 +190,7 @@ pub async fn fetch_array_buffer(uri: &str) -> Result<ArrayBuffer> {
 
 pub async fn fetch_image(uri: &str) -> Result<HtmlImageElement> {
     let image = self::new_image()?;
-    // image.set_cross_origin(Some("".into()));
+    image.set_cross_origin(Some(""));
     let (sender, receiver) = oneshot::channel::<Result<()>>();
     let success = Rc::new(Mutex::new(Some(sender)));
     let error = Rc::clone(&success);

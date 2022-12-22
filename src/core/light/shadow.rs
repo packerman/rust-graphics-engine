@@ -11,12 +11,12 @@ use crate::{
         material::Material,
         node::Node,
         render_target::RenderTarget,
-        texture::TextureUnit,
         uniform::{
             data::{CreateDataFromValue, Data, Sampler2D},
             Uniform, UpdateUniform,
         },
     },
+    gltf::core::texture_data::TextureUnit,
     material,
 };
 

@@ -19,10 +19,11 @@ use crate::{
         mesh::Mesh,
         node::Node,
         renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
     },
     extras::grid_helper::GridHelper,
     geometry::Rectangle,
+    gltf::core::texture_data::TextureUnit,
     material::{self, sprite::SpriteMaterial},
 };
 
@@ -108,7 +109,7 @@ async fn create_sprite(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
     let material = material::sprite::create(
         context,
         tile_set,
-        TextureUnit::from(0),
+        TextureUnit(0),
         SpriteMaterial {
             billboard: true,
             tile_count: glm::vec2(4.0, 4.0),

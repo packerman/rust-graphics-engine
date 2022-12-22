@@ -17,9 +17,10 @@ use crate::{
         mesh::Mesh,
         node::{Node, Transform},
         renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
     },
     geometry::BoxGeometry,
+    gltf::core::texture_data::TextureUnit,
     material,
 };
 
@@ -52,7 +53,7 @@ impl AsyncCreator for Example {
                 TextureData::load_from_source("images/crate.png").await?,
                 Default::default(),
             )?,
-            TextureUnit::from(0),
+            TextureUnit(0),
             Default::default(),
         )?;
         let mesh = Mesh::initialize(context, geometry, material)?;

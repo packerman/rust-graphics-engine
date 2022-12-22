@@ -19,11 +19,12 @@ use crate::{
         mesh::Mesh,
         node::Node,
         renderer::Renderer,
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
         uniform::data::Sampler2D,
     },
     extras::light_helpers::{DirectionalLightHelper, PointLightHelper},
     geometry::parametric::Sphere,
+    gltf::core::texture_data::TextureUnit,
     material::{self, flat::FlatMaterial, lambert::LambertMaterial, phong::PhongMaterial},
 };
 
@@ -103,7 +104,7 @@ impl AsyncCreator for Example {
                                 TextureData::load_from_source("images/grid.png").await?,
                                 Default::default(),
                             )?,
-                            TextureUnit::from(0),
+                            TextureUnit(0),
                         )
                         .into(),
                         ..Default::default()

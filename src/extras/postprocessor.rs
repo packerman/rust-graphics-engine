@@ -14,9 +14,10 @@ use crate::{
         node::Node,
         render_target::RenderTarget,
         renderer::{self, Renderer},
-        texture::{Texture, TextureUnit},
+        texture::Texture,
         uniform::data::Sampler2D,
     },
+    gltf::core::texture_data::TextureUnit,
 };
 
 pub type Effect = Material;

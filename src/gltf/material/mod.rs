@@ -6,7 +6,7 @@ use crate::base::color;
 use super::{
     core::{
         material::{MaterialLifecycle, TextureRef},
-        texture_data::Sampler2D,
+        texture_data::TextureUnit,
     },
     program::{Program, UpdateUniform, UpdateUniforms},
 };
@@ -46,7 +46,7 @@ impl UpdateUniforms for TestMaterial {
             .update_uniform(context, "u_MinFactor", program);
 
         if let Some(base_color_texture) = &self.base_color_texture {
-            let sampler = Sampler2D(0);
+            let sampler = TextureUnit(0);
             sampler.active_texture(context);
             base_color_texture.texture().bind(context);
             sampler.update_uniform(context, "u_Sampler", program);

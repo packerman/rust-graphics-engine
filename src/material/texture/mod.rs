@@ -11,9 +11,10 @@ use crate::{
     },
     core::{
         material::{Material, MaterialSettings, RenderSetting},
-        texture::{Texture, TextureUnit},
+        texture::Texture,
         uniform::data::{Data, Sampler2D},
     },
+    gltf::core::texture_data::TextureUnit,
 };
 
 pub struct TextureMaterial {

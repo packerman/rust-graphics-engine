@@ -18,10 +18,11 @@ use crate::{
         mesh::Mesh,
         node::Node,
         renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
     },
     extras::text_texture::TextTexture,
     geometry::{BoxGeometry, Rectangle},
+    gltf::core::texture_data::TextureUnit,
     material,
 };
 
@@ -86,8 +87,7 @@ fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
         })?,
         Default::default(),
     )?;
-    let material =
-        material::texture::create(context, texture, TextureUnit::from(0), Default::default())?;
+    let material = material::texture::create(context, texture, TextureUnit(0), Default::default())?;
     let mut geometry = Geometry::from_with_context(
         context,
         Rectangle {
@@ -113,7 +113,7 @@ async fn create_crate_mesh(context: &WebGl2RenderingContext) -> Result<Rc<Node>>
             TextureData::load_from_source("images/crate.png").await?,
             Default::default(),
         )?,
-        TextureUnit::from(1),
+        TextureUnit(1),
         Default::default(),
     )?;
     let mesh = Mesh::initialize(context, geometry, material)?;

@@ -182,16 +182,16 @@ impl Texture {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Sampler2D(pub u32);
+#[derive(Debug, Clone, Copy)]
+pub struct TextureUnit(pub u32);
 
-impl Sampler2D {
+impl TextureUnit {
     pub fn active_texture(&self, context: &WebGl2RenderingContext) {
         context.active_texture(WebGl2RenderingContext::TEXTURE0 + self.0)
     }
 }
 
-impl UpdateUniformValue for Sampler2D {
+impl UpdateUniformValue for TextureUnit {
     fn update_uniform_value(
         &self,
         context: &WebGl2RenderingContext,

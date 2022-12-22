@@ -76,7 +76,7 @@ impl AsyncCreator for Example {
         debug!("{:#?}", GlDiagnostics::collect(context)?);
         let root = gltf::load::load(
             context,
-            &khronos_sample(example_names()[7], Default::default()),
+            &khronos_sample(example_names()[11], Default::default()),
         )
         .await?;
         Ok(Box::new(Example { root }))

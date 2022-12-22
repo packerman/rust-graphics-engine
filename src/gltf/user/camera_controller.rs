@@ -31,7 +31,7 @@ pub struct Properties {
 impl Default for Properties {
     fn default() -> Self {
         Self {
-            linear_speed: 1.0,
+            linear_speed: 5.0,
             angular_speed: Angle::from_degrees(60.0),
             key_move_forwards: Some("KeyW".into()),
             key_move_backwards: Some("KeyS".into()),

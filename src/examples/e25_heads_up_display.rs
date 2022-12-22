@@ -18,10 +18,11 @@ use crate::{
         mesh::Mesh,
         node::Node,
         renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
     },
     extras::grid_helper::GridHelper,
     geometry::{BoxGeometry, Rectangle},
+    gltf::core::texture_data::TextureUnit,
     material,
 };
 
@@ -67,7 +68,7 @@ impl AsyncCreator for Example {
                     TextureData::load_from_source("images/crate.png").await?,
                     Default::default(),
                 )?,
-                TextureUnit::from(0),
+                TextureUnit(0),
                 Default::default(),
             )?;
             let crate_mesh = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
@@ -151,7 +152,7 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
                     TextureData::load_from_source("images/crate-sim.png").await?,
                     Default::default(),
                 )?,
-                TextureUnit::from(0),
+                TextureUnit(0),
                 Default::default(),
             )?,
         )?);
@@ -176,7 +177,7 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
                     TextureData::load_from_source("images/version-1.png").await?,
                     Default::default(),
                 )?,
-                TextureUnit::from(1),
+                TextureUnit(1),
                 Default::default(),
             )?,
         )?);

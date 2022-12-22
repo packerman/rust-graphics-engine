@@ -18,10 +18,11 @@ use crate::{
         mesh::Mesh,
         node::Node,
         renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
     },
     extras::{grid_helper::GridHelper, text_texture::TextTexture},
     geometry::BoxGeometry,
+    gltf::core::texture_data::TextureUnit,
     material,
 };
 
@@ -86,7 +87,7 @@ impl AsyncCreator for Example {
                 })?,
                 Default::default(),
             )?,
-            TextureUnit::from(0),
+            TextureUnit(0),
             Default::default(),
         )?;
         let mesh = Node::new_mesh(Mesh::initialize(context, geometry, material)?);

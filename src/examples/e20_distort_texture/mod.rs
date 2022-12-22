@@ -18,10 +18,11 @@ use crate::{
         mesh::Mesh,
         node::Node,
         renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
         uniform::data::{Data, Sampler2D},
     },
     geometry::Rectangle,
+    gltf::core::texture_data::TextureUnit,
 };
 
 struct Example {
@@ -57,7 +58,7 @@ impl AsyncCreator for Example {
                                 TextureData::load_from_source("images/noise.png").await?,
                                 Default::default(),
                             )?,
-                            TextureUnit::from(0),
+                            TextureUnit(0),
                         )),
                     ),
                     (
@@ -68,7 +69,7 @@ impl AsyncCreator for Example {
                                 TextureData::load_from_source("images/grid.png").await?,
                                 Default::default(),
                             )?,
-                            TextureUnit::from(1),
+                            TextureUnit(1),
                         )),
                     ),
                     ("time", Data::from(0.0)),

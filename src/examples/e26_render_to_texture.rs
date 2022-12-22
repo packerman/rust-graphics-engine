@@ -20,9 +20,10 @@ use crate::{
         node::Node,
         render_target::RenderTarget,
         renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData, TextureUnit},
+        texture::{Texture, TextureData},
     },
     geometry::{parametric::Sphere, BoxGeometry, Rectangle},
+    gltf::core::texture_data::TextureUnit,
     material::{
         self,
         basic::{BasicMaterial, SurfaceMaterial},
@@ -71,7 +72,7 @@ impl AsyncCreator for Example {
                         TextureData::load_from_source("images/sky-earth.jpg").await?,
                         Default::default(),
                     )?,
-                    TextureUnit::from(0),
+                    TextureUnit(0),
                     Default::default(),
                 )?,
             )?);
@@ -95,7 +96,7 @@ impl AsyncCreator for Example {
                         TextureData::load_from_source("images/grass.jpg").await?,
                         Default::default(),
                     )?,
-                    TextureUnit::from(1),
+                    TextureUnit(1),
                     TextureMaterial {
                         repeat_uv: glm::vec2(50.0, 50.0),
                         ..Default::default()
@@ -115,7 +116,7 @@ impl AsyncCreator for Example {
                     TextureData::load_from_source("images/grid.png").await?,
                     Default::default(),
                 )?,
-                TextureUnit::from(2),
+                TextureUnit(2),
                 Default::default(),
             )?,
         )?);
@@ -162,7 +163,7 @@ impl AsyncCreator for Example {
             material::texture::create(
                 context,
                 render_target.texture(),
-                TextureUnit::from(3),
+                TextureUnit(3),
                 Default::default(),
             )?,
         )?);

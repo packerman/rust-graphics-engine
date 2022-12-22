@@ -2,9 +2,7 @@ use std::rc::Rc;
 
 use anyhow::{anyhow, Result};
 
-use web_sys::{
-    HtmlCanvasElement, HtmlImageElement, WebGl2RenderingContext, WebGlTexture, WebGlUniformLocation,
-};
+use web_sys::{HtmlCanvasElement, HtmlImageElement, WebGl2RenderingContext, WebGlTexture};
 
 use crate::base::{gl, math::resolution::Resolution, web};
 
@@ -52,34 +50,6 @@ impl TextureProperties {
     fn has_mipmap_filter(&self) -> bool {
         self.min_filter != WebGl2RenderingContext::LINEAR as i32
             && self.min_filter != WebGl2RenderingContext::NEAREST as i32
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct TextureUnit {
-    reference: u32,
-    number: i32,
-}
-
-impl TextureUnit {
-    pub fn upload_data(
-        &self,
-        context: &WebGl2RenderingContext,
-        location: Option<&WebGlUniformLocation>,
-        texture: &WebGlTexture,
-    ) {
-        context.active_texture(self.reference);
-        context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, Some(texture));
-        context.uniform1i(location, self.number);
-    }
-}
-
-impl From<i32> for TextureUnit {
-    fn from(i: i32) -> Self {
-        TextureUnit {
-            reference: WebGl2RenderingContext::TEXTURE0 + i as u32,
-            number: i,
-        }
     }
 }
 
