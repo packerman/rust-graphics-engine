@@ -128,6 +128,8 @@ pub struct PbrMetallicRoughness {
     pub base_color_texture: Option<TextureInfo>,
     #[serde(default = "PbrMetallicRoughness::default_metallic_factor")]
     pub metallic_factor: f32,
+    #[serde(default = "PbrMetallicRoughness::default_roughness_factor")]
+    pub roughness_factor: f32,
     pub metallic_roughness_texture: Option<TextureInfo>,
 }
 
@@ -139,6 +141,10 @@ impl PbrMetallicRoughness {
     pub fn default_metallic_factor() -> f32 {
         1.0
     }
+
+    pub fn default_roughness_factor() -> f32 {
+        1.0
+    }
 }
 
 impl Default for PbrMetallicRoughness {
@@ -147,6 +153,7 @@ impl Default for PbrMetallicRoughness {
             base_color_factor: Self::default_base_color_factor(),
             base_color_texture: None,
             metallic_factor: Self::default_metallic_factor(),
+            roughness_factor: Self::default_roughness_factor(),
             metallic_roughness_texture: None,
         }
     }
@@ -200,6 +207,7 @@ pub struct Node {
     pub mesh: Option<u32>,
     pub translation: Option<[f32; 3]>,
     pub rotation: Option<[f32; 4]>,
+    pub scale: Option<[f32; 3]>,
     pub name: Option<String>,
 }
 

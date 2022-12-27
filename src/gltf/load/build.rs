@@ -243,6 +243,7 @@ fn build_attributes(
 
 const DEFAULT_TRANSLATION: [f32; 3] = [0.0, 0.0, 0.0];
 const DEFAULT_ROTATION: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+const DEFAULT_SCALE: [f32; 3] = [1.0, 1.0, 1.0];
 
 pub fn build_nodes(
     gltf_nodes: Vec<&data::Node>,
@@ -255,11 +256,12 @@ pub fn build_nodes(
             let transform = if let Some(matrix) = node.matrix {
                 glm::make_mat4(&matrix)
             } else {
-                let translation = node.translation.unwrap_or(DEFAULT_TRANSLATION);
-                let translation = glm::translation(&Vec3::from(translation));
-                let rotation = node.rotation.unwrap_or(DEFAULT_ROTATION);
-                let rotation = glm::quat_to_mat4(&Qua::from(rotation));
-                translation * rotation
+                let translation =
+                    glm::translation(&Vec3::from(node.translation.unwrap_or(DEFAULT_TRANSLATION)));
+                let rotation =
+                    glm::quat_to_mat4(&Qua::from(node.rotation.unwrap_or(DEFAULT_ROTATION)));
+                let scale = glm::scaling(&Vec3::from(node.scale.unwrap_or(DEFAULT_SCALE)));
+                translation * rotation * scale
             };
             Node::new(
                 transform,

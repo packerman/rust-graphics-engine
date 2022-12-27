@@ -6,7 +6,7 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
 use crate::base::{convert::FromWithContext, gl};
 
-use super::level::Level;
+use super::util::level::Level;
 
 #[derive(Debug, Clone)]
 pub struct Uniform {

@@ -30,6 +30,7 @@ pub struct Primitive {
 
 impl Primitive {
     const POSITION_NAME: &str = "POSITION";
+    const COLOR_0_NAME: &str = "COLOR_0";
 
     const MODES: [u32; 7] = [
         WebGl2RenderingContext::POINTS,
@@ -50,6 +51,9 @@ impl Primitive {
     ) -> Result<Self> {
         validate::contains(&mode, &Self::MODES, |value| {
             anyhow!("Unknown mode: {}", value)
+        })?;
+        validate::assert(attributes.contains_key(Self::POSITION_NAME), || {
+            anyhow!("Missing attribute {}", Self::POSITION_NAME)
         })?;
         let vertex_array = gl::create_vertex_array(context)?;
         let vertex_count = Self::get_vertex_count(&attributes)?;
@@ -82,6 +86,10 @@ impl Primitive {
         BufferView::unbind(context, self.indices.is_some());
     }
 
+    pub fn has_attribute(&self, name: &str) -> bool {
+        self.attributes.contains_key(name)
+    }
+
     fn render(
         &self,
         context: &WebGl2RenderingContext,
@@ -98,6 +106,8 @@ impl Primitive {
             .update_uniform(context, "u_ModelMatrix", program);
         node.normal_transform()
             .update_uniform(context, "u_NormalMatrix", program);
+        self.has_attribute(Self::COLOR_0_NAME)
+            .update_uniform(context, "u_UseColor_0", program);
         self.draw(context);
     }
 

@@ -4,6 +4,7 @@ precision highp float;
 
 in vec3 v_Normal;
 in vec2 v_TexCoord_0;
+in vec4 v_Color_0;
 
 uniform vec4 u_BaseColorFactor;
 uniform sampler2D u_BaseColorSampler;
@@ -11,6 +12,7 @@ uniform bool u_UseTexture;
 uniform bool u_UseLight;
 uniform vec3 u_Light;
 uniform float u_MinFactor;
+uniform bool u_UseColor_0;
 
 out vec4 fragColor;
 
@@ -31,6 +33,16 @@ vec4 getTextureColor() {
     }
 }
 
+vec4 getVertexColor() {
+    if (u_UseColor_0) {
+        return v_Color_0;
+    } else {
+        return vec4(1.0, 1.0, 1.0, 1.0);
+    }
+}
+
 void main() {
-    fragColor = getLightFactor() * getTextureColor() * u_BaseColorFactor;
+    fragColor = getLightFactor() * 
+                getTextureColor() * 
+                getVertexColor() * u_BaseColorFactor;
 }
