@@ -23,6 +23,7 @@ pub struct Accessor {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Asset {
+    pub copyright: Option<String>,
     pub generator: Option<String>,
     pub version: String,
 }
@@ -102,6 +103,8 @@ pub struct Gltf {
 #[serde(rename_all = "camelCase")]
 pub struct Image {
     pub uri: Option<String>,
+    pub mime_type: Option<String>,
+    pub name: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -112,6 +115,9 @@ pub struct Material {
     pub pbr_metallic_roughness: PbrMetallicRoughness,
     #[serde(default)]
     pub double_sided: bool,
+    #[serde(default)]
+    pub emissive_factor: [f32; 3],
+    pub normal_texture: Option<NormalTextureInfo>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -122,6 +128,15 @@ pub struct PbrMetallicRoughness {
     pub base_color_texture: Option<TextureInfo>,
     #[serde(default = "PbrMetallicRoughness::default_metallic_factor")]
     pub metallic_factor: f32,
+    pub metallic_roughness_texture: Option<TextureInfo>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NormalTextureInfo {
+    pub index: u32,
+    #[serde(default)]
+    pub tex_coord: u32,
 }
 
 impl PbrMetallicRoughness {
@@ -140,6 +155,7 @@ impl Default for PbrMetallicRoughness {
             base_color_factor: Self::default_base_color_factor(),
             base_color_texture: None,
             metallic_factor: Self::default_metallic_factor(),
+            metallic_roughness_texture: None,
         }
     }
 }
@@ -211,6 +227,7 @@ impl Sampler {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Scene {
+    pub name: Option<String>,
     pub nodes: Option<Vec<u32>>,
 }
 

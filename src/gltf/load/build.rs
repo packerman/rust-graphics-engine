@@ -129,10 +129,20 @@ pub fn build_cameras(cameras: Vec<&data::Camera>) -> Vec<SharedRef<Camera>> {
         .collect()
 }
 
-pub fn build_images(html_images: Vec<HtmlImageElement>) -> Vec<Rc<Image>> {
+pub fn build_images(
+    images: Vec<&data::Image>,
+    html_images: Vec<HtmlImageElement>,
+) -> Vec<Rc<Image>> {
     html_images
         .into_iter()
-        .map(Image::new)
+        .enumerate()
+        .map(|(index, html_image)| {
+            Image::new(
+                html_image,
+                images.get(index).and_then(|image| image.name.clone()),
+                images.get(index).and_then(|image| image.mime_type.clone()),
+            )
+        })
         .map(Rc::new)
         .collect()
 }

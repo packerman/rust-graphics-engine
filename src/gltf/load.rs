@@ -41,7 +41,7 @@ async fn load_buffers(base_uri: &Url, buffers: Vec<&data::Buffer>) -> Result<Vec
 
 async fn load_images(base_uri: &Url, images: Vec<&data::Image>) -> Result<Vec<Rc<Image>>> {
     let html_images = fetch::fetch_images(base_uri, &images).await?;
-    Ok(build::build_images(html_images))
+    Ok(build::build_images(images, html_images))
 }
 
 fn load_scenes(

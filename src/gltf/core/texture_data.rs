@@ -125,11 +125,22 @@ impl Sampler {
 #[derive(Debug, Clone)]
 pub struct Image {
     html_image: HtmlImageElement,
+    #[allow(dead_code)]
+    name: Option<String>,
+    mime_type: Option<String>,
 }
 
 impl Image {
-    pub fn new(html_image: HtmlImageElement) -> Self {
-        Self { html_image }
+    pub fn new(
+        html_image: HtmlImageElement,
+        name: Option<String>,
+        mime_type: Option<String>,
+    ) -> Self {
+        Self {
+            html_image,
+            name,
+            mime_type,
+        }
     }
 
     pub fn tex_image_2d(&self, context: &WebGl2RenderingContext) -> Result<()> {
