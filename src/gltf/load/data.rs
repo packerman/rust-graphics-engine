@@ -113,11 +113,25 @@ pub struct Material {
     pub name: Option<String>,
     #[serde(default)]
     pub pbr_metallic_roughness: PbrMetallicRoughness,
-    #[serde(default)]
-    pub double_sided: bool,
+    pub normal_texture: Option<NormalTextureInfo>,
     #[serde(default)]
     pub emissive_factor: [f32; 3],
-    pub normal_texture: Option<NormalTextureInfo>,
+    #[serde(default = "Material::default_alpha_mode")]
+    pub alpha_mode: String,
+    #[serde(default = "Material::default_alpha_cutoff")]
+    pub alpha_cutoff: f32,
+    #[serde(default)]
+    pub double_sided: bool,
+}
+
+impl Material {
+    fn default_alpha_mode() -> String {
+        String::from("OPAQUE")
+    }
+
+    fn default_alpha_cutoff() -> f32 {
+        0.5
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]

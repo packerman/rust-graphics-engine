@@ -80,6 +80,20 @@ impl UpdateUniformValue for bool {
     }
 }
 
+impl UpdateUniformValue for i32 {
+    fn update_uniform_value(
+        &self,
+        context: &WebGl2RenderingContext,
+        location: Option<&WebGlUniformLocation>,
+    ) {
+        context.uniform1i(location, *self)
+    }
+
+    fn value_type(&self) -> u32 {
+        WebGl2RenderingContext::INT
+    }
+}
+
 impl UpdateUniformValue for f32 {
     fn update_uniform_value(
         &self,

@@ -9,7 +9,7 @@ use crate::gltf::{
     core::{
         camera::Camera,
         geometry::{Mesh, Primitive},
-        material::{Material, TextureRef},
+        material::{AlphaMode, Material, TextureRef},
         scene::{Node, Scene},
         storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
         texture_data::{Image, Sampler, Texture},
@@ -152,9 +152,21 @@ pub fn build_materials(
     materials: Vec<&data::Material>,
     textures: &[Rc<Texture>],
 ) -> Result<Vec<Rc<Material>>> {
+    fn build_alpha_mode(material: &data::Material) -> Result<AlphaMode> {
+        match material.alpha_mode.as_str() {
+            "OPAQUE" => Ok(AlphaMode::Opaque),
+            "MASK" => Ok(AlphaMode::Mask {
+                cutoff: material.alpha_cutoff,
+            }),
+            "BLEND" => Ok(AlphaMode::Blend),
+            _ => Err(anyhow!("Unknown alpha mode: {}", material.alpha_mode)),
+        }
+    }
+
     materials
         .into_iter()
         .map(|material| {
+            let alpha_mode = build_alpha_mode(material)?;
             Material::initialize(
                 context,
                 material.name.clone(),
@@ -175,6 +187,7 @@ pub fn build_materials(
                         }),
                     ..Default::default()
                 }),
+                alpha_mode,
             )
             .map(Rc::new)
         })
@@ -336,7 +349,14 @@ pub fn build_scenes(scenes: Vec<&data::Scene>, nodes: &[SharedRef<Node>]) -> Vec
 }
 
 fn default_material(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
-    Material::initialize(context, None, false, Rc::<TestMaterial>::default()).map(Rc::new)
+    Material::initialize(
+        context,
+        None,
+        false,
+        Rc::<TestMaterial>::default(),
+        AlphaMode::default(),
+    )
+    .map(Rc::new)
 }
 
 fn get_rc_by_u32<T>(slice: &[Rc<T>], index: u32) -> Rc<T> {
