@@ -11,6 +11,8 @@ use super::{
     program::{Program, UpdateUniform, UpdateUniforms},
 };
 
+const USE_LIGHT: bool = true;
+
 #[derive(Debug)]
 pub struct TestMaterial {
     pub base_color_factor: Vec4,
@@ -23,7 +25,7 @@ impl Default for TestMaterial {
     fn default() -> Self {
         Self {
             base_color_factor: color::white(),
-            use_light: true,
+            use_light: USE_LIGHT,
             min_factor: 0.2,
             base_color_texture: None,
         }
