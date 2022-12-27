@@ -131,14 +131,6 @@ pub struct PbrMetallicRoughness {
     pub metallic_roughness_texture: Option<TextureInfo>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct NormalTextureInfo {
-    pub index: u32,
-    #[serde(default)]
-    pub tex_coord: u32,
-}
-
 impl PbrMetallicRoughness {
     pub fn default_base_color_factor() -> [f32; 4] {
         [1.0, 1.0, 1.0, 1.0]
@@ -158,6 +150,14 @@ impl Default for PbrMetallicRoughness {
             metallic_roughness_texture: None,
         }
     }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NormalTextureInfo {
+    pub index: u32,
+    #[serde(default)]
+    pub tex_coord: u32,
 }
 
 #[derive(Debug, Clone, Deserialize)]

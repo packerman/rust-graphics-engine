@@ -53,7 +53,7 @@ impl UpdateUniforms for TestMaterial {
             let sampler = TextureUnit(0);
             sampler.active_texture(context);
             base_color_texture.texture().bind(context);
-            sampler.update_uniform(context, "u_Sampler", program);
+            sampler.update_uniform(context, "u_BaseColorSampler", program);
         }
         self.base_color_texture
             .is_some()
