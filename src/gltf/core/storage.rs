@@ -170,7 +170,7 @@ impl Accessor {
 
     pub fn set_vertex_attribute(&self, context: &WebGl2RenderingContext, location: u32) {
         if let Some(buffer_view) = &self.buffer_view {
-            self.buffer_data(context, buffer_view);
+            self.buffer_data(context, buffer_view, WebGl2RenderingContext::ARRAY_BUFFER);
             context.vertex_attrib_pointer_with_i32(
                 location,
                 self.accessor_type.size(),
@@ -185,22 +185,30 @@ impl Accessor {
 
     pub fn set_indices(&self, context: &WebGl2RenderingContext) {
         if let Some(buffer_view) = &self.buffer_view {
-            self.buffer_data(context, buffer_view);
+            self.buffer_data(
+                context,
+                buffer_view,
+                WebGl2RenderingContext::ELEMENT_ARRAY_BUFFER,
+            );
         }
     }
 
-    fn buffer_data(&self, context: &WebGl2RenderingContext, buffer_view: &BufferView) {
+    fn buffer_data(
+        &self,
+        context: &WebGl2RenderingContext,
+        buffer_view: &BufferView,
+        default_target: u32,
+    ) {
         self.typed_view_cached.with_cached_ref(
             || self.get_typed_view(buffer_view),
             |typed_view| {
-                if let Some(target) = buffer_view.target {
-                    context.bind_buffer(target, self.gl_buffer());
-                    context.buffer_data_with_array_buffer_view(
-                        target,
-                        typed_view.as_object(),
-                        WebGl2RenderingContext::STATIC_DRAW,
-                    );
-                }
+                let target = buffer_view.target.unwrap_or(default_target);
+                context.bind_buffer(target, self.gl_buffer());
+                context.buffer_data_with_array_buffer_view(
+                    target,
+                    typed_view.as_object(),
+                    WebGl2RenderingContext::STATIC_DRAW,
+                );
             },
         )
     }

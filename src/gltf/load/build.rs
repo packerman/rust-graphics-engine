@@ -9,7 +9,7 @@ use crate::gltf::{
     core::{
         camera::Camera,
         geometry::{Mesh, Primitive},
-        material::{Material, TextureRef},
+        material::{AlphaMode, Material, TextureRef},
         scene::{Node, Scene},
         storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
         texture_data::{Image, Sampler, Texture},
@@ -129,10 +129,20 @@ pub fn build_cameras(cameras: Vec<&data::Camera>) -> Vec<SharedRef<Camera>> {
         .collect()
 }
 
-pub fn build_images(html_images: Vec<HtmlImageElement>) -> Vec<Rc<Image>> {
+pub fn build_images(
+    images: Vec<&data::Image>,
+    html_images: Vec<HtmlImageElement>,
+) -> Vec<Rc<Image>> {
     html_images
         .into_iter()
-        .map(Image::new)
+        .enumerate()
+        .map(|(index, html_image)| {
+            Image::new(
+                html_image,
+                images.get(index).and_then(|image| image.name.clone()),
+                images.get(index).and_then(|image| image.mime_type.clone()),
+            )
+        })
         .map(Rc::new)
         .collect()
 }
@@ -142,9 +152,21 @@ pub fn build_materials(
     materials: Vec<&data::Material>,
     textures: &[Rc<Texture>],
 ) -> Result<Vec<Rc<Material>>> {
+    fn build_alpha_mode(material: &data::Material) -> Result<AlphaMode> {
+        match material.alpha_mode.as_str() {
+            "OPAQUE" => Ok(AlphaMode::Opaque),
+            "MASK" => Ok(AlphaMode::Mask {
+                cutoff: material.alpha_cutoff,
+            }),
+            "BLEND" => Ok(AlphaMode::Blend),
+            _ => Err(anyhow!("Unknown alpha mode: {}", material.alpha_mode)),
+        }
+    }
+
     materials
         .into_iter()
         .map(|material| {
+            let alpha_mode = build_alpha_mode(material)?;
             Material::initialize(
                 context,
                 material.name.clone(),
@@ -165,6 +187,7 @@ pub fn build_materials(
                         }),
                     ..Default::default()
                 }),
+                alpha_mode,
             )
             .map(Rc::new)
         })
@@ -233,6 +256,7 @@ fn build_attributes(
 
 const DEFAULT_TRANSLATION: [f32; 3] = [0.0, 0.0, 0.0];
 const DEFAULT_ROTATION: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+const DEFAULT_SCALE: [f32; 3] = [1.0, 1.0, 1.0];
 
 pub fn build_nodes(
     gltf_nodes: Vec<&data::Node>,
@@ -245,11 +269,12 @@ pub fn build_nodes(
             let transform = if let Some(matrix) = node.matrix {
                 glm::make_mat4(&matrix)
             } else {
-                let translation = node.translation.unwrap_or(DEFAULT_TRANSLATION);
-                let translation = glm::translation(&Vec3::from(translation));
-                let rotation = node.rotation.unwrap_or(DEFAULT_ROTATION);
-                let rotation = glm::quat_to_mat4(&Qua::from(rotation));
-                translation * rotation
+                let translation =
+                    glm::translation(&Vec3::from(node.translation.unwrap_or(DEFAULT_TRANSLATION)));
+                let rotation =
+                    glm::quat_to_mat4(&Qua::from(node.rotation.unwrap_or(DEFAULT_ROTATION)));
+                let scale = glm::scaling(&Vec3::from(node.scale.unwrap_or(DEFAULT_SCALE)));
+                translation * rotation * scale
             };
             Node::new(
                 transform,
@@ -324,7 +349,14 @@ pub fn build_scenes(scenes: Vec<&data::Scene>, nodes: &[SharedRef<Node>]) -> Vec
 }
 
 fn default_material(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
-    Material::initialize(context, None, false, Rc::<TestMaterial>::default()).map(Rc::new)
+    Material::initialize(
+        context,
+        None,
+        false,
+        Rc::<TestMaterial>::default(),
+        AlphaMode::default(),
+    )
+    .map(Rc::new)
 }
 
 fn get_rc_by_u32<T>(slice: &[Rc<T>], index: u32) -> Rc<T> {

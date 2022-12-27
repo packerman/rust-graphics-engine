@@ -11,9 +11,12 @@ use super::{
     program::{Program, UpdateUniform, UpdateUniforms},
 };
 
+const USE_LIGHT: bool = true;
+
 #[derive(Debug)]
 pub struct TestMaterial {
     pub base_color_factor: Vec4,
+    pub use_light: bool,
     pub min_factor: f32,
     pub base_color_texture: Option<TextureRef>,
 }
@@ -22,6 +25,7 @@ impl Default for TestMaterial {
     fn default() -> Self {
         Self {
             base_color_factor: color::white(),
+            use_light: USE_LIGHT,
             min_factor: 0.2,
             base_color_texture: None,
         }
@@ -42,6 +46,8 @@ impl UpdateUniforms for TestMaterial {
     fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
         self.base_color_factor
             .update_uniform(context, "u_BaseColorFactor", program);
+        self.use_light
+            .update_uniform(context, "u_UseLight", program);
         self.min_factor
             .update_uniform(context, "u_MinFactor", program);
 
@@ -49,7 +55,7 @@ impl UpdateUniforms for TestMaterial {
             let sampler = TextureUnit(0);
             sampler.active_texture(context);
             base_color_texture.texture().bind(context);
-            sampler.update_uniform(context, "u_Sampler", program);
+            sampler.update_uniform(context, "u_BaseColorSampler", program);
         }
         self.base_color_texture
             .is_some()

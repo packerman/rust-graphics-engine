@@ -62,6 +62,9 @@ fn example_names<'a>() -> Vec<&'a str> {
         "Box",
         "BoxInterleaved",
         "BoxTextured",
+        "BoxTexturedNonPowerOfTwo",
+        "Box%20With%20Spaces",
+        "BoxVertexColors",
         "Duck",
         "2CylinderEngine",
         "ReciprocatingSaw",
@@ -76,7 +79,7 @@ impl AsyncCreator for Example {
         debug!("{:#?}", GlDiagnostics::collect(context)?);
         let root = gltf::load::load(
             context,
-            &khronos_sample(example_names()[11], Default::default()),
+            &khronos_sample(example_names()[9], Default::default()),
         )
         .await?;
         Ok(Box::new(Example { root }))

@@ -3,7 +3,7 @@ use std::rc::Rc;
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::gltf::program::{Program, UpdateUniforms};
+use crate::gltf::program::{Program, UpdateUniform, UpdateUniforms};
 
 use super::texture_data::Texture;
 
@@ -20,6 +20,7 @@ pub struct Material {
     double_sided: bool,
     program: Program,
     uniform_updater: Rc<dyn MaterialLifecycle>,
+    alpha_mode: AlphaMode,
 }
 
 impl Material {
@@ -28,6 +29,7 @@ impl Material {
         name: Option<String>,
         double_sided: bool,
         uniform_updater: Rc<dyn MaterialLifecycle>,
+        alpha_mode: AlphaMode,
     ) -> Result<Self> {
         let program = Program::initialize(
             context,
@@ -39,13 +41,15 @@ impl Material {
             double_sided,
             uniform_updater,
             program,
+            alpha_mode,
         })
     }
 
     pub fn update(&self, context: &WebGl2RenderingContext) {
+        self.update_settings(context);
+        self.alpha_mode.update_uniforms(context, self.program());
         self.uniform_updater
             .update_uniforms(context, self.program());
-        self.update_settings(context);
     }
 
     pub fn update_settings(&self, context: &WebGl2RenderingContext) {
@@ -82,5 +86,51 @@ impl TextureRef {
 
     pub fn texture(&self) -> &Texture {
         &self.texture
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum AlphaMode {
+    Opaque,
+    Mask { cutoff: f32 },
+    Blend,
+}
+
+impl AlphaMode {
+    const OPAQUE_VALUE: i32 = 0;
+    const MASK_VALUE: i32 = 1;
+    const BLEND_VALUE: i32 = 2;
+}
+
+impl Default for AlphaMode {
+    fn default() -> Self {
+        Self::Opaque
+    }
+}
+
+impl UpdateUniforms for AlphaMode {
+    fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        match self {
+            Self::Opaque => {
+                context.disable(WebGl2RenderingContext::BLEND);
+                Self::OPAQUE_VALUE.update_uniform(context, "u_AlphaMode", program);
+            }
+            Self::Mask { cutoff } => {
+                context.disable(WebGl2RenderingContext::BLEND);
+                Self::MASK_VALUE.update_uniform(context, "u_AlphaMode", program);
+                cutoff.update_uniform(context, "u_AlphaCutoff", program);
+            }
+            Self::Blend => {
+                context.enable(WebGl2RenderingContext::BLEND);
+                context.blend_func_separate(
+                    WebGl2RenderingContext::SRC_ALPHA,
+                    WebGl2RenderingContext::ONE_MINUS_SRC_ALPHA,
+                    WebGl2RenderingContext::ONE,
+                    WebGl2RenderingContext::ONE_MINUS_SRC_ALPHA,
+                );
+                context.blend_equation(WebGl2RenderingContext::FUNC_ADD);
+                Self::BLEND_VALUE.update_uniform(context, "u_AlphaMode", program);
+            }
+        }
     }
 }

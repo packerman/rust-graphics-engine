@@ -6,7 +6,7 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
 use crate::base::{convert::FromWithContext, gl};
 
-use super::level::Level;
+use super::util::level::Level;
 
 #[derive(Debug, Clone)]
 pub struct Uniform {
@@ -77,6 +77,20 @@ impl UpdateUniformValue for bool {
 
     fn value_type(&self) -> u32 {
         WebGl2RenderingContext::BOOL
+    }
+}
+
+impl UpdateUniformValue for i32 {
+    fn update_uniform_value(
+        &self,
+        context: &WebGl2RenderingContext,
+        location: Option<&WebGlUniformLocation>,
+    ) {
+        context.uniform1i(location, *self)
+    }
+
+    fn value_type(&self) -> u32 {
+        WebGl2RenderingContext::INT
     }
 }
 
