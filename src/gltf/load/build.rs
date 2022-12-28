@@ -8,13 +8,17 @@ use web_sys::{HtmlImageElement, WebGl2RenderingContext};
 use crate::{
     base::util::shared_ref::{self, SharedRef},
     core::{
+        accessor::{Accessor, AccessorProperties, AccessorType},
+        buffer::Buffer,
+        buffer_view::BufferView,
         camera::Camera,
+        image::Image,
         material::{AlphaMode, Material, TextureRef},
         mesh::{Mesh, Primitive},
         node::Node,
+        sampler::Sampler,
         scene::Scene,
-        storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
-        texture_data::{Image, Sampler, Texture},
+        texture::Texture,
     },
     gltf::material::TestMaterial,
 };

@@ -10,7 +10,7 @@ use crate::{
         convert::FromWithContext,
         input::KeyState,
     },
-    core::texture_data::TextureUnit,
+    core::texture::TextureUnit,
     geometry::Rectangle,
     legacy::{
         camera::Camera,

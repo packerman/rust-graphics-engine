@@ -9,7 +9,7 @@ use crate::{
         color::{self, Color},
         convert::FromWithContext,
     },
-    core::texture_data::TextureUnit,
+    core::texture::TextureUnit,
     legacy::{
         material::{Material, MaterialSettings, RenderSetting},
         texture::Texture,

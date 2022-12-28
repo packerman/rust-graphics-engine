@@ -12,7 +12,7 @@ use crate::{
         input::KeyState,
         math::{angle::Angle, resolution::Resolution},
     },
-    core::texture_data::TextureUnit,
+    core::texture::TextureUnit,
     geometry::{parametric::Sphere, BoxGeometry, Rectangle},
     legacy::{
         camera::Camera,

@@ -9,11 +9,7 @@ use crate::{
     gltf::program::{UpdateUniform, UpdateUniforms},
 };
 
-use super::{
-    material::Material,
-    node::Node,
-    storage::{Accessor, BufferView},
-};
+use super::{accessor::Accessor, buffer_view::BufferView, material::Material, node::Node};
 
 #[derive(Debug, Clone)]
 pub struct Mesh {

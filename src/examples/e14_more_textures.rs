@@ -11,7 +11,7 @@ use crate::{
         input::KeyState,
         math::{angle::Angle, matrix},
     },
-    core::texture_data::TextureUnit,
+    core::texture::TextureUnit,
     geometry::parametric::{Cone, Cylinder, Sphere},
     legacy::{
         camera::Camera,

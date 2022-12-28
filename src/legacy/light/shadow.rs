@@ -6,7 +6,7 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     base::math::resolution::Resolution,
-    core::texture_data::TextureUnit,
+    core::texture::TextureUnit,
     legacy::{
         camera::{Camera, Ortographic},
         material::Material,

@@ -13,7 +13,7 @@ use crate::{
         math::angle::Angle,
         web,
     },
-    core::texture_data::TextureUnit,
+    core::texture::TextureUnit,
     extras::grid_helper::GridHelper,
     geometry::Rectangle,
     legacy::{

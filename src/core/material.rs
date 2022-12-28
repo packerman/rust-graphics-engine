@@ -5,7 +5,7 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::gltf::program::{Program, UpdateUniform, UpdateUniforms};
 
-use super::texture_data::Texture;
+use super::texture::Texture;
 
 pub trait MaterialLifecycle: UpdateUniforms {
     fn vertex_shader(&self) -> &str;

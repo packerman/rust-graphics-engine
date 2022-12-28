@@ -12,7 +12,7 @@ use crate::{
         input::KeyState,
         math::{angle::Angle, matrix},
     },
-    core::texture_data::TextureUnit,
+    core::texture::TextureUnit,
     extras::text_texture::TextTexture,
     geometry::{BoxGeometry, Rectangle},
     legacy::{

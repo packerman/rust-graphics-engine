@@ -12,7 +12,7 @@ use crate::{
         input::KeyState,
         web,
     },
-    core::texture_data::TextureUnit,
+    core::texture::TextureUnit,
     extras::light_helpers::{DirectionalLightHelper, PointLightHelper},
     geometry::parametric::Sphere,
     legacy::{

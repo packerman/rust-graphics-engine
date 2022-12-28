@@ -5,7 +5,7 @@ use crate::{
     base::color,
     core::{
         material::{MaterialLifecycle, TextureRef},
-        texture_data::TextureUnit,
+        texture::TextureUnit,
     },
 };
 

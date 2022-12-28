@@ -6,7 +6,7 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     base::util::{coll, shared_ref::SharedRef},
-    core::{camera::Camera, scene::Scene, storage::Buffer, texture_data::Image},
+    core::{buffer::Buffer, camera::Camera, image::Image, scene::Scene},
     gltf::{core::Root, load::statistics::GltfStatistics},
 };
 

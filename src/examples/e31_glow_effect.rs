@@ -12,7 +12,7 @@ use crate::{
         input::KeyState,
         math::angle::Angle,
     },
-    core::texture_data::TextureUnit,
+    core::texture::TextureUnit,
     extras::{
         effects::{self, Blend, Blur},
         postprocessor::Postprocessor,

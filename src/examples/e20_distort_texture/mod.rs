@@ -11,7 +11,7 @@ use crate::{
         input::KeyState,
         web,
     },
-    core::texture_data::TextureUnit,
+    core::texture::TextureUnit,
     geometry::Rectangle,
     legacy::{
         camera::Camera,

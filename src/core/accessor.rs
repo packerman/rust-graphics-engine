@@ -1,7 +1,7 @@
 use std::{mem::size_of, rc::Rc};
 
 use anyhow::{anyhow, Result};
-use js_sys::{ArrayBuffer, Float32Array, Uint16Array};
+use js_sys::{Float32Array, Uint16Array};
 use web_sys::{WebGl2RenderingContext, WebGlBuffer};
 
 use crate::base::{
@@ -9,82 +9,7 @@ use crate::base::{
     util::{cache::Cached, validate},
 };
 
-#[derive(Debug, Clone)]
-pub struct Buffer {
-    array_buffer: ArrayBuffer,
-    byte_length: usize,
-}
-
-impl Buffer {
-    pub fn new(array_buffer: ArrayBuffer, byte_length: usize) -> Self {
-        Self {
-            array_buffer,
-            byte_length,
-        }
-    }
-
-    pub fn get_float32_array(&self, byte_offset: u32, length: u32) -> Float32Array {
-        Float32Array::new_with_byte_offset_and_length(&self.array_buffer, byte_offset, length)
-    }
-
-    pub fn get_uint16_array(&self, byte_offset: u32, length: u32) -> Uint16Array {
-        Uint16Array::new_with_byte_offset_and_length(&self.array_buffer, byte_offset, length)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct BufferView {
-    buffer: Rc<Buffer>,
-    byte_offset: u32,
-    byte_length: u32,
-    byte_stride: i32,
-    target: Option<u32>,
-}
-
-impl BufferView {
-    const TARGETS: [u32; 2] = [
-        WebGl2RenderingContext::ARRAY_BUFFER,
-        WebGl2RenderingContext::ELEMENT_ARRAY_BUFFER,
-    ];
-
-    pub fn new(
-        buffer: Rc<Buffer>,
-        byte_offset: u32,
-        byte_length: u32,
-        byte_stride: Option<i32>,
-        target: Option<u32>,
-    ) -> Result<Self> {
-        validate::optional(&target, |target| {
-            validate::contains(target, &Self::TARGETS, |value| {
-                anyhow!("Unknown target: {}", value)
-            })
-        })?;
-        Ok(Self {
-            buffer,
-            byte_offset,
-            byte_length,
-            target,
-            byte_stride: byte_stride.unwrap_or_default(),
-        })
-    }
-
-    pub fn get_float32_array(&self, byte_offset: u32, length: u32) -> Float32Array {
-        self.buffer
-            .get_float32_array(self.byte_offset + byte_offset, length)
-    }
-
-    pub fn get_uint16_array(&self, byte_offset: u32, length: u32) -> Uint16Array {
-        self.buffer
-            .get_uint16_array(self.byte_offset + byte_offset, length)
-    }
-
-    pub fn unbind(context: &WebGl2RenderingContext, has_indices: bool) {
-        context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, None);
-        if has_indices {
-            context.bind_buffer(WebGl2RenderingContext::ELEMENT_ARRAY_BUFFER, None);
-        }
-    }
-}
+use super::buffer_view::BufferView;
 
 #[derive(Debug, Clone, Copy)]
 pub enum AccessorType {
