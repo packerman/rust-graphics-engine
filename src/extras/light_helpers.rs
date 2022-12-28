@@ -5,10 +5,10 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     base::{color, convert::FromWithContext},
-    core::{
+    geometry::parametric::Sphere,
+    legacy::{
         attribute::AttributeData, geometry::Geometry, light::Light, material::Material, mesh::Mesh,
     },
-    geometry::parametric::Sphere,
     material::basic::{BasicMaterial, SurfaceMaterial},
 };
 

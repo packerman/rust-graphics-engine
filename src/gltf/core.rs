@@ -1,11 +1,12 @@
 use web_sys::WebGl2RenderingContext;
 
-use crate::base::input::KeyState;
-
-use self::{
-    camera::Camera,
-    renderer::Renderer,
-    scene::{Node, Scene},
+use crate::{
+    base::input::KeyState,
+    core::{
+        camera::Camera,
+        renderer::Renderer,
+        scene::{Node, Scene},
+    },
 };
 
 use super::{
@@ -13,14 +14,6 @@ use super::{
     user::{camera_controller::CameraController, light_controller::LightController},
     util::shared_ref::SharedRef,
 };
-
-pub mod camera;
-pub mod geometry;
-pub mod material;
-pub mod renderer;
-pub mod scene;
-pub mod storage;
-pub mod texture_data;
 
 #[derive(Debug)]
 pub struct Root {

@@ -12,7 +12,10 @@ use crate::{
         input::KeyState,
         math::angle::Angle,
     },
-    core::{
+    core::texture_data::TextureUnit,
+    extras::{grid_helper::GridHelper, text_texture::TextTexture},
+    geometry::BoxGeometry,
+    legacy::{
         camera::Camera,
         geometry::Geometry,
         mesh::Mesh,
@@ -20,9 +23,6 @@ use crate::{
         renderer::{Renderer, RendererOptions},
         texture::{Texture, TextureData},
     },
-    extras::{grid_helper::GridHelper, text_texture::TextTexture},
-    geometry::BoxGeometry,
-    gltf::core::texture_data::TextureUnit,
     material,
 };
 

@@ -5,7 +5,8 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     base::{convert::FromWithContext, math::resolution::Resolution},
-    core::{
+    core::texture_data::TextureUnit,
+    legacy::{
         attribute::AttributeData,
         camera::Camera,
         geometry::Geometry,
@@ -17,7 +18,6 @@ use crate::{
         texture::Texture,
         uniform::data::Sampler2D,
     },
-    gltf::core::texture_data::TextureUnit,
 };
 
 pub type Effect = Material;

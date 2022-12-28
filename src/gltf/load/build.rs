@@ -5,7 +5,7 @@ use glm::{Qua, Vec3, Vec4};
 use js_sys::ArrayBuffer;
 use web_sys::{HtmlImageElement, WebGl2RenderingContext};
 
-use crate::gltf::{
+use crate::{
     core::{
         camera::Camera,
         geometry::{Mesh, Primitive},
@@ -14,8 +14,7 @@ use crate::gltf::{
         storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
         texture_data::{Image, Sampler, Texture},
     },
-    material::TestMaterial,
-    util::shared_ref::SharedRef,
+    gltf::{material::TestMaterial, util::shared_ref::SharedRef},
 };
 
 use super::data;

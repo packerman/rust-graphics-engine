@@ -11,7 +11,8 @@ use crate::{
         input::KeyState,
         math::angle::Angle,
     },
-    core::{
+    geometry::BoxGeometry,
+    legacy::{
         camera::Camera,
         geometry::Geometry,
         material::Material,
@@ -19,7 +20,6 @@ use crate::{
         node::{Node, Transform},
         renderer::{Renderer, RendererOptions},
     },
-    geometry::BoxGeometry,
     material::basic::{BasicMaterial, SurfaceMaterial},
 };
 

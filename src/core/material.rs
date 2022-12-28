@@ -1,187 +1,136 @@
-use std::{cell::RefMut, collections::HashMap};
+use std::rc::Rc;
 
-use anyhow::{anyhow, Result};
-use glm::{Mat4, Vec3};
-use web_sys::{WebGl2RenderingContext, WebGlProgram};
+use anyhow::Result;
+use web_sys::WebGl2RenderingContext;
 
-use crate::base::{convert::FromWithContext, gl};
+use crate::gltf::program::{Program, UpdateUniform, UpdateUniforms};
 
-use super::uniform::{data::Data, Uniform};
+use super::texture_data::Texture;
+
+pub trait MaterialLifecycle: UpdateUniforms {
+    fn vertex_shader(&self) -> &str;
+
+    fn fragment_shader(&self) -> &str;
+}
 
 #[derive(Debug, Clone)]
 pub struct Material {
-    program: WebGlProgram,
-    uniforms: HashMap<String, Uniform>,
-    render_settings: Vec<RenderSetting>,
-    pub draw_style: u32,
-    model_matrix: Option<Uniform>,
-    view_matrix: Option<Uniform>,
-    projection_matrix: Option<Uniform>,
+    #[allow(dead_code)]
+    name: Option<String>,
+    double_sided: bool,
+    program: Program,
+    uniform_updater: Rc<dyn MaterialLifecycle>,
+    alpha_mode: AlphaMode,
 }
 
 impl Material {
-    pub fn add_uniform<T>(&mut self, context: &WebGl2RenderingContext, name: &str, value: T)
-    where
-        Data: From<T>,
-    {
-        if let Some(uniform) = Uniform::from_data(context, &self.program, name, Data::from(value)) {
-            self.uniforms.insert(String::from(name), uniform);
-        }
+    pub fn initialize(
+        context: &WebGl2RenderingContext,
+        name: Option<String>,
+        double_sided: bool,
+        uniform_updater: Rc<dyn MaterialLifecycle>,
+        alpha_mode: AlphaMode,
+    ) -> Result<Self> {
+        let program = Program::initialize(
+            context,
+            uniform_updater.vertex_shader(),
+            uniform_updater.fragment_shader(),
+        )?;
+        Ok(Self {
+            name,
+            double_sided,
+            uniform_updater,
+            program,
+            alpha_mode,
+        })
     }
 
-    pub fn add_render_setting(&mut self, settings: RenderSetting) {
-        self.render_settings.push(settings)
+    pub fn update(&self, context: &WebGl2RenderingContext) {
+        self.update_settings(context);
+        self.alpha_mode.update_uniforms(context, self.program());
+        self.uniform_updater
+            .update_uniforms(context, self.program());
     }
 
-    pub fn program(&self) -> &WebGlProgram {
+    pub fn update_settings(&self, context: &WebGl2RenderingContext) {
+        Self::update_setting(
+            context,
+            WebGl2RenderingContext::CULL_FACE,
+            !self.double_sided,
+        );
+    }
+
+    pub fn program(&self) -> &Program {
         &self.program
     }
 
-    pub fn use_program(&self, context: &WebGl2RenderingContext) {
-        context.use_program(Some(&self.program));
-    }
-
-    pub fn set_model_matrix(&self, matrix: Mat4) {
-        Self::set_matrix_uniform(self.model_matrix.as_ref(), matrix);
-    }
-
-    pub fn set_view_matrix(&self, matrix: Mat4) {
-        Self::set_matrix_uniform(self.view_matrix.as_ref(), matrix);
-    }
-
-    pub fn set_projection_matrix(&self, matrix: Mat4) {
-        Self::set_matrix_uniform(self.projection_matrix.as_ref(), matrix);
-    }
-
-    pub fn upload_uniform_data(&self, context: &WebGl2RenderingContext) {
-        for uniform in self.uniforms.values() {
-            uniform.upload_data(context);
-        }
-        if let Some(uniform) = &self.model_matrix {
-            uniform.upload_data(context);
-        }
-        if let Some(uniform) = &self.view_matrix {
-            uniform.upload_data(context);
-        }
-        if let Some(uniform) = &self.projection_matrix {
-            uniform.upload_data(context);
-        }
-    }
-
-    pub fn update_render_settings(&self, context: &WebGl2RenderingContext) {
-        for render_setting in self.render_settings.iter() {
-            render_setting.update(context);
-        }
-    }
-
-    pub fn uniform(&self, name: &str) -> Option<&Uniform> {
-        self.uniforms.get(name)
-    }
-
-    pub fn has_uniform(&self, name: &str) -> bool {
-        self.uniforms.contains_key(name)
-    }
-
-    pub fn is_triangle_based(&self) -> bool {
-        self.draw_style == WebGl2RenderingContext::TRIANGLES
-            || self.draw_style == WebGl2RenderingContext::TRIANGLE_STRIP
-            || self.draw_style == WebGl2RenderingContext::TRIANGLE_FAN
-    }
-
-    pub fn vec3_mut(&self, name: &str) -> Option<RefMut<Vec3>> {
-        self.uniforms
-            .get(name)
-            .and_then(|uniform| uniform.as_mut_vec3())
-    }
-
-    fn set_matrix_uniform(uniform: Option<&Uniform>, matrix: Mat4) {
-        if let Some(uniform) = uniform {
-            let mut m = uniform.as_mut_mat4().unwrap();
-            *m = matrix;
-        }
-    }
-}
-
-pub struct MaterialSettings<'a> {
-    pub vertex_shader: &'a str,
-    pub fragment_shader: &'a str,
-    pub uniforms: Vec<(&'a str, Data)>,
-    pub render_settings: Vec<RenderSetting>,
-    pub draw_style: u32,
-}
-
-impl FromWithContext<WebGl2RenderingContext, MaterialSettings<'_>> for Material {
-    fn from_with_context(
-        context: &WebGl2RenderingContext,
-        settings: MaterialSettings<'_>,
-    ) -> Result<Self> {
-        self::check_draw_style_is_correct(settings.draw_style)?;
-        let program = gl::build_program(context, settings.vertex_shader, settings.fragment_shader)?;
-        let uniforms: HashMap<_, _> = settings
-            .uniforms
-            .into_iter()
-            .filter_map(|(name, data)| {
-                Some((
-                    String::from(name),
-                    Uniform::from_data(context, &program, name, data)?,
-                ))
-            })
-            .collect();
-        let model_matrix = Uniform::from_default::<Mat4>(context, &program, "modelMatrix");
-        let view_matrix = Uniform::from_default::<Mat4>(context, &program, "viewMatrix");
-        let projection_matrix =
-            Uniform::from_default::<Mat4>(context, &program, "projectionMatrix");
-        Ok(Material {
-            program,
-            uniforms,
-            render_settings: settings.render_settings,
-            draw_style: settings.draw_style,
-            model_matrix,
-            view_matrix,
-            projection_matrix,
-        })
-    }
-}
-
-const DRAW_STYLES: [u32; 7] = [
-    WebGl2RenderingContext::POINTS,
-    WebGl2RenderingContext::LINES,
-    WebGl2RenderingContext::LINE_LOOP,
-    WebGl2RenderingContext::LINE_STRIP,
-    WebGl2RenderingContext::TRIANGLES,
-    WebGl2RenderingContext::TRIANGLE_STRIP,
-    WebGl2RenderingContext::TRIANGLE_FAN,
-];
-
-fn check_draw_style_is_correct(draw_style: u32) -> Result<()> {
-    if DRAW_STYLES.contains(&draw_style) {
-        Ok(())
-    } else {
-        Err(anyhow!("Unkown draw style: {:#?}", draw_style))
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum RenderSetting {
-    LineWidth(f32),
-    CullFace(bool),
-}
-
-impl RenderSetting {
-    pub fn update(self, context: &WebGl2RenderingContext) {
-        match self {
-            RenderSetting::LineWidth(setting) => context.line_width(setting),
-            RenderSetting::CullFace(setting) => {
-                Self::set_capability(context, WebGl2RenderingContext::CULL_FACE, setting)
-            }
-        }
-    }
-
-    fn set_capability(context: &WebGl2RenderingContext, capability: u32, enabled: bool) {
-        if enabled {
-            context.enable(capability)
+    fn update_setting(context: &WebGl2RenderingContext, setting: u32, value: bool) {
+        if value {
+            context.enable(setting);
         } else {
-            context.disable(capability)
+            context.disable(setting);
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TextureRef {
+    texture: Rc<Texture>,
+    tex_coord: u32,
+}
+
+impl TextureRef {
+    pub fn new(texture: Rc<Texture>, tex_coord: u32) -> Self {
+        Self { texture, tex_coord }
+    }
+
+    pub fn texture(&self) -> &Texture {
+        &self.texture
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum AlphaMode {
+    Opaque,
+    Mask { cutoff: f32 },
+    Blend,
+}
+
+impl AlphaMode {
+    const OPAQUE_VALUE: i32 = 0;
+    const MASK_VALUE: i32 = 1;
+    const BLEND_VALUE: i32 = 2;
+}
+
+impl Default for AlphaMode {
+    fn default() -> Self {
+        Self::Opaque
+    }
+}
+
+impl UpdateUniforms for AlphaMode {
+    fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        match self {
+            Self::Opaque => {
+                context.disable(WebGl2RenderingContext::BLEND);
+                Self::OPAQUE_VALUE.update_uniform(context, "u_AlphaMode", program);
+            }
+            Self::Mask { cutoff } => {
+                context.disable(WebGl2RenderingContext::BLEND);
+                Self::MASK_VALUE.update_uniform(context, "u_AlphaMode", program);
+                cutoff.update_uniform(context, "u_AlphaCutoff", program);
+            }
+            Self::Blend => {
+                context.enable(WebGl2RenderingContext::BLEND);
+                context.blend_func_separate(
+                    WebGl2RenderingContext::SRC_ALPHA,
+                    WebGl2RenderingContext::ONE_MINUS_SRC_ALPHA,
+                    WebGl2RenderingContext::ONE,
+                    WebGl2RenderingContext::ONE_MINUS_SRC_ALPHA,
+                );
+                context.blend_equation(WebGl2RenderingContext::FUNC_ADD);
+                Self::BLEND_VALUE.update_uniform(context, "u_AlphaMode", program);
+            }
         }
     }
 }

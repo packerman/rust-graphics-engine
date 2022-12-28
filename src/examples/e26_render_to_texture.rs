@@ -12,7 +12,9 @@ use crate::{
         input::KeyState,
         math::{angle::Angle, resolution::Resolution},
     },
-    core::{
+    core::texture_data::TextureUnit,
+    geometry::{parametric::Sphere, BoxGeometry, Rectangle},
+    legacy::{
         camera::Camera,
         geometry::Geometry,
         material::Material,
@@ -22,8 +24,6 @@ use crate::{
         renderer::{Renderer, RendererOptions},
         texture::{Texture, TextureData},
     },
-    geometry::{parametric::Sphere, BoxGeometry, Rectangle},
-    gltf::core::texture_data::TextureUnit,
     material::{
         self,
         basic::{BasicMaterial, SurfaceMaterial},

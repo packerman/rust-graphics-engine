@@ -12,7 +12,13 @@ use crate::{
         input::KeyState,
         math::angle::Angle,
     },
-    core::{
+    core::texture_data::TextureUnit,
+    extras::{
+        effects::{self, Blend, Blur},
+        postprocessor::Postprocessor,
+    },
+    geometry::{parametric::Sphere, Rectangle},
+    legacy::{
         camera::Camera,
         geometry::Geometry,
         material::Material,
@@ -23,12 +29,6 @@ use crate::{
         texture::{Texture, TextureData},
         uniform::data::Sampler2D,
     },
-    extras::{
-        effects::{self, Blend, Blur},
-        postprocessor::Postprocessor,
-    },
-    geometry::{parametric::Sphere, Rectangle},
-    gltf::core::texture_data::TextureUnit,
     material::{
         self,
         basic::{BasicMaterial, SurfaceMaterial},

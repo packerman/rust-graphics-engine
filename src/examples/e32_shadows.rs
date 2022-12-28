@@ -12,7 +12,10 @@ use crate::{
         input::KeyState,
         math::angle::Angle,
     },
-    core::{
+    core::texture_data::TextureUnit,
+    extras::light_helpers::DirectionalLightHelper,
+    geometry::{parametric::Sphere, Rectangle},
+    legacy::{
         camera::Camera,
         geometry::Geometry,
         light::{shadow::Shadow, Light},
@@ -22,9 +25,6 @@ use crate::{
         texture::{Texture, TextureData},
         uniform::data::Sampler2D,
     },
-    extras::light_helpers::DirectionalLightHelper,
-    geometry::{parametric::Sphere, Rectangle},
-    gltf::core::texture_data::TextureUnit,
     material::{self, phong::PhongMaterial},
 };
 

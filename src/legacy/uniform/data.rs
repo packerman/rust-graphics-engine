@@ -4,9 +4,8 @@ use glm::{Mat4, Vec2, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlUniformLocation};
 
 use crate::{
-    base::math::resolution::Resolution,
-    core::texture::Texture,
-    gltf::{core::texture_data::TextureUnit, program::UpdateUniformValue},
+    base::math::resolution::Resolution, core::texture_data::TextureUnit,
+    gltf::program::UpdateUniformValue, legacy::texture::Texture,
 };
 
 #[derive(Debug, Clone)]

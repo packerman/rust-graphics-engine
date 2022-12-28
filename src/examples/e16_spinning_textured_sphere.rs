@@ -11,7 +11,9 @@ use crate::{
         input::KeyState,
         math::angle::Angle,
     },
-    core::{
+    core::texture_data::TextureUnit,
+    geometry::parametric::Sphere,
+    legacy::{
         camera::Camera,
         geometry::Geometry,
         mesh::Mesh,
@@ -19,8 +21,6 @@ use crate::{
         renderer::{Renderer, RendererOptions},
         texture::{Texture, TextureData},
     },
-    geometry::parametric::Sphere,
-    gltf::core::texture_data::TextureUnit,
     material,
 };
 

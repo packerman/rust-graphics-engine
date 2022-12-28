@@ -9,7 +9,7 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     base::{color, convert::FromWithContext, math::angle::Angle},
-    core::{attribute::AttributeData, geometry::Geometry},
+    legacy::{attribute::AttributeData, geometry::Geometry},
 };
 
 pub struct Rectangle {

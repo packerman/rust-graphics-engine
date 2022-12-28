@@ -6,7 +6,8 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     base::math::resolution::Resolution,
-    core::{
+    core::texture_data::TextureUnit,
+    legacy::{
         camera::{Camera, Ortographic},
         material::Material,
         node::Node,
@@ -16,7 +17,6 @@ use crate::{
             Uniform, UpdateUniform,
         },
     },
-    gltf::core::texture_data::TextureUnit,
     material,
 };
 

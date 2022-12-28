@@ -11,7 +11,9 @@ use crate::{
         input::KeyState,
         web,
     },
-    core::{
+    core::texture_data::TextureUnit,
+    geometry::Rectangle,
+    legacy::{
         camera::Camera,
         geometry::Geometry,
         material::{Material, MaterialSettings},
@@ -21,8 +23,6 @@ use crate::{
         texture::{Texture, TextureData},
         uniform::data::{Data, Sampler2D},
     },
-    geometry::Rectangle,
-    gltf::core::texture_data::TextureUnit,
 };
 
 struct Example {

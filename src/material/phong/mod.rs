@@ -8,7 +8,7 @@ use crate::{
         color::{self, Color},
         convert::FromWithContext,
     },
-    core::{
+    legacy::{
         light::{shadow::Shadow, Light},
         material::{Material, MaterialSettings, RenderSetting},
         uniform::data::{CreateDataFromType, CreateDataFromValue, Data, Sampler2D},

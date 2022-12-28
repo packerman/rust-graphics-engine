@@ -4,7 +4,7 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     base::{color::Color, convert::FromWithContext, math::resolution::Resolution},
-    core::{
+    legacy::{
         material::{Material, MaterialSettings},
         uniform::data::{Data, Sampler2D},
     },

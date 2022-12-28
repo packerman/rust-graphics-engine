@@ -5,7 +5,7 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     base::convert::FromWithContext,
-    core::material::{Material, MaterialSettings},
+    legacy::material::{Material, MaterialSettings},
 };
 
 pub fn create(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {

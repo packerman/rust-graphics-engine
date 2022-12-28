@@ -1,15 +1,15 @@
 use glm::Vec4;
 use web_sys::WebGl2RenderingContext;
 
-use crate::base::color;
-
-use super::{
+use crate::{
+    base::color,
     core::{
         material::{MaterialLifecycle, TextureRef},
         texture_data::TextureUnit,
     },
-    program::{Program, UpdateUniform, UpdateUniforms},
 };
+
+use super::program::{Program, UpdateUniform, UpdateUniforms};
 
 const USE_LIGHT: bool = true;
 

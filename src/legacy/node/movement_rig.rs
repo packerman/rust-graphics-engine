@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     base::{application::Loop, input::KeyState, math::angle::Angle},
-    core::node::Node,
+    legacy::node::Node,
 };
 
 #[derive(Debug, Clone)]

@@ -13,7 +13,10 @@ use crate::{
         math::angle::Angle,
         web,
     },
-    core::{
+    core::texture_data::TextureUnit,
+    extras::grid_helper::GridHelper,
+    geometry::Rectangle,
+    legacy::{
         camera::Camera,
         geometry::Geometry,
         mesh::Mesh,
@@ -21,9 +24,6 @@ use crate::{
         renderer::{Renderer, RendererOptions},
         texture::{Texture, TextureData},
     },
-    extras::grid_helper::GridHelper,
-    geometry::Rectangle,
-    gltf::core::texture_data::TextureUnit,
     material::{self, sprite::SpriteMaterial},
 };
 

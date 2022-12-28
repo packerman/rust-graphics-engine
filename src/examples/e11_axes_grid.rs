@@ -12,13 +12,13 @@ use crate::{
         input::KeyState,
         math::angle::Angle,
     },
-    core::{
+    extras::{axes_helper::AxesHelper, grid_helper::GridHelper},
+    legacy::{
         camera::Camera,
         mesh::Mesh,
         node::{Node, Transform},
         renderer::{Renderer, RendererOptions},
     },
-    extras::{axes_helper::AxesHelper, grid_helper::GridHelper},
 };
 
 struct Example {

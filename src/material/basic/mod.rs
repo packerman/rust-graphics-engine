@@ -6,7 +6,7 @@ use crate::{
         color::{self, Color},
         convert::FromWithContext,
     },
-    core::{
+    legacy::{
         material::{Material, MaterialSettings, RenderSetting},
         uniform::data::Data,
     },

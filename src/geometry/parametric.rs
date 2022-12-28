@@ -13,7 +13,7 @@ use crate::{
         convert::FromWithContext,
         math::{angle::Angle, matrix},
     },
-    core::{attribute::AttributeData, geometry::Geometry},
+    legacy::{attribute::AttributeData, geometry::Geometry},
 };
 
 use super::Polygon;

@@ -8,7 +8,7 @@ use crate::{
         color::{self, Color},
         convert::FromWithContext,
     },
-    core::{attribute::AttributeData, geometry::Geometry, material::Material, mesh::Mesh},
+    legacy::{attribute::AttributeData, geometry::Geometry, material::Material, mesh::Mesh},
     material::basic::{BasicMaterial, LineMaterial, LineType},
 };
 

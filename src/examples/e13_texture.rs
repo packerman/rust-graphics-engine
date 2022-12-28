@@ -10,7 +10,9 @@ use crate::{
         convert::FromWithContext,
         input::KeyState,
     },
-    core::{
+    core::texture_data::TextureUnit,
+    geometry::Rectangle,
+    legacy::{
         camera::Camera,
         geometry::Geometry,
         mesh::Mesh,
@@ -18,8 +20,6 @@ use crate::{
         renderer::Renderer,
         texture::{Texture, TextureData},
     },
-    geometry::Rectangle,
-    gltf::core::texture_data::TextureUnit,
     material,
 };
 

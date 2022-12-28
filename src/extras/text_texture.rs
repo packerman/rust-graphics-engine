@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use wasm_bindgen::JsValue;
 use web_sys::HtmlCanvasElement;
 
-use crate::{base::web, core::texture::TextureData};
+use crate::{base::web, legacy::texture::TextureData};
 
 pub struct TextTexture<'a> {
     pub text: &'a str,

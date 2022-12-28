@@ -1,95 +1,174 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 use anyhow::{anyhow, Result};
 use glm::Mat4;
-use web_sys::WebGl2RenderingContext;
+use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
-use crate::base::{convert::FromWithContext, math::matrix};
+use crate::{
+    base::gl,
+    gltf::{
+        program::{UpdateUniform, UpdateUniforms},
+        util::validate,
+    },
+};
 
-use super::attribute::{Attribute, AttributeData};
+use super::{
+    material::Material,
+    scene::Node,
+    storage::{Accessor, BufferView},
+};
 
 #[derive(Debug, Clone)]
-pub struct Geometry {
-    attributes: HashMap<String, Attribute>,
+pub struct Primitive {
+    vertex_array: WebGlVertexArrayObject,
+    attributes: HashMap<String, Rc<Accessor>>,
+    indices: Option<Rc<Accessor>>,
+    material: Rc<Material>,
+    mode: u32,
+    vertex_count: i32,
 }
 
-impl Geometry {
-    pub fn new(attributes: HashMap<String, Attribute>) -> Self {
-        Self { attributes }
-    }
+impl Primitive {
+    const POSITION_NAME: &str = "POSITION";
+    const COLOR_0_NAME: &str = "COLOR_0";
 
-    pub fn attributes(&self) -> impl Iterator<Item = (&String, &Attribute)> {
-        self.attributes.iter()
-    }
+    const MODES: [u32; 7] = [
+        WebGl2RenderingContext::POINTS,
+        WebGl2RenderingContext::LINES,
+        WebGl2RenderingContext::LINE_LOOP,
+        WebGl2RenderingContext::LINE_STRIP,
+        WebGl2RenderingContext::TRIANGLES,
+        WebGl2RenderingContext::TRIANGLE_STRIP,
+        WebGl2RenderingContext::TRIANGLE_STRIP,
+    ];
 
-    pub fn attribute_mut(&mut self, name: &str) -> Result<&mut Attribute> {
-        self.attributes
-            .get_mut(name)
-            .ok_or_else(|| anyhow!("Cannot find attribute {}", name))
-    }
-
-    pub fn count_vertices(&self) -> i32 {
-        self.attributes
-            .values()
-            .next()
-            .expect("Expected at least one attribute")
-            .count()
-    }
-
-    pub fn apply_matrix(
-        &mut self,
+    pub fn new(
         context: &WebGl2RenderingContext,
-        matrix: &Mat4,
-        name: &str,
-        rotate_attrs: &[&str],
-    ) -> Result<()> {
-        self.attribute_mut(name)?.apply_matrix(context, matrix);
-        let rotation_matrix = matrix::get_rotation_matrix(matrix);
-        for rotate_attr in rotate_attrs {
-            self.attribute_mut(rotate_attr)?
-                .apply_matrix3(context, &rotation_matrix)
-        }
-        Ok(())
-    }
-
-    pub fn apply_matrix_default(
-        &mut self,
-        context: &WebGl2RenderingContext,
-        matrix: &Mat4,
-    ) -> Result<()> {
-        self.apply_matrix(
-            context,
-            matrix,
-            "vertexPosition",
-            &["vertexNormal", "faceNormal"],
-        )
-    }
-
-    pub fn merge_mut(&mut self, context: &WebGl2RenderingContext, other: &Geometry) -> Result<()> {
-        for (name, attribute) in self.attributes.iter_mut() {
-            attribute.concat_mut(
-                context,
-                other
-                    .attributes
-                    .get(name)
-                    .ok_or_else(|| anyhow!("Cannot find attribute {:?}", name))?,
-            )?;
-        }
-        Ok(())
-    }
-}
-
-impl<const N: usize> FromWithContext<WebGl2RenderingContext, [(&str, AttributeData); N]>
-    for Geometry
-{
-    fn from_with_context(
-        context: &WebGl2RenderingContext,
-        attributes: [(&str, AttributeData); N],
+        attributes: HashMap<String, Rc<Accessor>>,
+        indices: Option<Rc<Accessor>>,
+        material: Rc<Material>,
+        mode: u32,
     ) -> Result<Self> {
-        let mut map = HashMap::new();
-        for (name, data) in attributes {
-            map.insert(String::from(name), Attribute::new_with_data(context, data)?);
+        validate::contains(&mode, &Self::MODES, |value| {
+            anyhow!("Unknown mode: {}", value)
+        })?;
+        validate::assert(attributes.contains_key(Self::POSITION_NAME), || {
+            anyhow!("Missing attribute {}", Self::POSITION_NAME)
+        })?;
+        let vertex_array = gl::create_vertex_array(context)?;
+        let vertex_count = Self::get_vertex_count(&attributes)?;
+        let me = Self {
+            vertex_array,
+            attributes,
+            indices,
+            material,
+            mode,
+            vertex_count,
+        };
+        me.set_vertex_array(context);
+        Ok(me)
+    }
+
+    pub fn set_vertex_array(&self, context: &WebGl2RenderingContext) {
+        let program = self.material.program();
+        program.use_program(context);
+        context.bind_vertex_array(Some(&self.vertex_array));
+        for (attribute, accessor) in self.attributes.iter() {
+            let attribute = Self::attribute_to_variable_name(attribute);
+            if let Some(location) = program.get_attribute_location(&attribute) {
+                accessor.set_vertex_attribute(context, *location);
+            }
         }
-        Ok(Geometry::new(map))
+        if let Some(accessor) = &self.indices {
+            accessor.set_indices(context);
+        }
+        context.bind_vertex_array(None);
+        BufferView::unbind(context, self.indices.is_some());
+    }
+
+    pub fn has_attribute(&self, name: &str) -> bool {
+        self.attributes.contains_key(name)
+    }
+
+    fn render(
+        &self,
+        context: &WebGl2RenderingContext,
+        node: &Node,
+        view_projection_matrix: &Mat4,
+        global_uniform_updater: &dyn UpdateUniforms,
+    ) {
+        let program = self.material.program();
+        program.use_program(context);
+        global_uniform_updater.update_uniforms(context, program);
+        self.material.update(context);
+        view_projection_matrix.update_uniform(context, "u_ViewProjectionMatrix", program);
+        node.global_transform()
+            .update_uniform(context, "u_ModelMatrix", program);
+        node.normal_transform()
+            .update_uniform(context, "u_NormalMatrix", program);
+        self.has_attribute(Self::COLOR_0_NAME)
+            .update_uniform(context, "u_UseColor_0", program);
+        self.draw(context);
+    }
+
+    fn draw(&self, context: &WebGl2RenderingContext) {
+        context.bind_vertex_array(Some(&self.vertex_array));
+        if let Some(indices) = &self.indices {
+            context.draw_elements_with_i32(self.mode, indices.count, indices.component_type, 0);
+        } else {
+            context.draw_arrays(self.mode, 0, self.vertex_count);
+        }
+        context.bind_vertex_array(None);
+    }
+
+    fn get_vertex_count(atttributes: &HashMap<String, Rc<Accessor>>) -> Result<i32> {
+        let counts: Vec<_> = atttributes
+            .values()
+            .map(|accessor| accessor.count)
+            .collect();
+        if counts.is_empty() {
+            Err(anyhow!("Attributes map is empty"))
+        } else {
+            let count = counts[0];
+            if counts.into_iter().all(|value| value == count) {
+                Ok(count)
+            } else {
+                Err(anyhow!("All accessors count have to be equal"))
+            }
+        }
+    }
+
+    fn attribute_to_variable_name(attribute: &str) -> String {
+        format!("a_{}", attribute.to_lowercase())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Mesh {
+    primitives: Vec<Primitive>,
+    #[allow(dead_code)]
+    name: Option<String>,
+}
+
+impl Mesh {
+    pub fn new(primitives: Vec<Primitive>, name: Option<String>) -> Self {
+        Self { primitives, name }
+    }
+
+    pub fn render(
+        &self,
+        context: &WebGl2RenderingContext,
+        node: &Node,
+        view_projection_matrix: &Mat4,
+        global_uniform_updater: &dyn UpdateUniforms,
+    ) {
+        for primitive in self.primitives.iter() {
+            primitive.render(
+                context,
+                node,
+                view_projection_matrix,
+                global_uniform_updater,
+            );
+        }
     }
 }

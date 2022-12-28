@@ -6,10 +6,8 @@ use crate::{
         input::KeyState,
         math::{angle::Angle, matrix},
     },
-    gltf::{
-        core::{camera::Camera, scene::Node},
-        util::shared_ref::SharedRef,
-    },
+    core::{camera::Camera, scene::Node},
+    gltf::util::shared_ref::SharedRef,
 };
 
 #[derive(Debug, Clone)]

@@ -11,7 +11,8 @@ use crate::{
         convert::FromWithContext,
         input::KeyState,
     },
-    core::{
+    geometry::Rectangle,
+    legacy::{
         camera::Camera,
         geometry::Geometry,
         material::{Material, MaterialSettings},
@@ -19,7 +20,6 @@ use crate::{
         node::Node,
         renderer::{Renderer, RendererOptions},
     },
-    geometry::Rectangle,
 };
 
 struct Example {

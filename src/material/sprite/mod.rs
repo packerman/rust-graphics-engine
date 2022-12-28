@@ -9,12 +9,12 @@ use crate::{
         color::{self, Color},
         convert::FromWithContext,
     },
-    core::{
+    core::texture_data::TextureUnit,
+    legacy::{
         material::{Material, MaterialSettings, RenderSetting},
         texture::Texture,
         uniform::data::{Data, Sampler2D},
     },
-    gltf::core::texture_data::TextureUnit,
 };
 
 pub struct SpriteMaterial {
