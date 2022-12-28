@@ -8,9 +8,10 @@ use web_sys::{HtmlImageElement, WebGl2RenderingContext};
 use crate::{
     core::{
         camera::Camera,
-        geometry::{Mesh, Primitive},
         material::{AlphaMode, Material, TextureRef},
-        scene::{Node, Scene},
+        mesh::{Mesh, Primitive},
+        node::Node,
+        scene::Scene,
         storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
         texture_data::{Image, Sampler, Texture},
     },

@@ -6,7 +6,7 @@ use crate::{
         input::KeyState,
         math::{angle::Angle, matrix},
     },
-    core::{camera::Camera, scene::Node},
+    core::{camera::Camera, node::Node},
     gltf::util::shared_ref::SharedRef,
 };
 

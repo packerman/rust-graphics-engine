@@ -4,7 +4,7 @@ use glm::Mat4;
 
 use crate::gltf::util::shared_ref::{self, SharedRef, WeakRef};
 
-use super::scene::Node;
+use super::node::Node;
 
 #[derive(Debug, Clone)]
 pub struct Camera {

@@ -14,9 +14,39 @@ use crate::{
 
 use super::{
     material::Material,
-    scene::Node,
+    node::Node,
     storage::{Accessor, BufferView},
 };
+
+#[derive(Debug, Clone)]
+pub struct Mesh {
+    primitives: Vec<Primitive>,
+    #[allow(dead_code)]
+    name: Option<String>,
+}
+
+impl Mesh {
+    pub fn new(primitives: Vec<Primitive>, name: Option<String>) -> Self {
+        Self { primitives, name }
+    }
+
+    pub fn render(
+        &self,
+        context: &WebGl2RenderingContext,
+        node: &Node,
+        view_projection_matrix: &Mat4,
+        global_uniform_updater: &dyn UpdateUniforms,
+    ) {
+        for primitive in self.primitives.iter() {
+            primitive.render(
+                context,
+                node,
+                view_projection_matrix,
+                global_uniform_updater,
+            );
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Primitive {
@@ -140,35 +170,5 @@ impl Primitive {
 
     fn attribute_to_variable_name(attribute: &str) -> String {
         format!("a_{}", attribute.to_lowercase())
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Mesh {
-    primitives: Vec<Primitive>,
-    #[allow(dead_code)]
-    name: Option<String>,
-}
-
-impl Mesh {
-    pub fn new(primitives: Vec<Primitive>, name: Option<String>) -> Self {
-        Self { primitives, name }
-    }
-
-    pub fn render(
-        &self,
-        context: &WebGl2RenderingContext,
-        node: &Node,
-        view_projection_matrix: &Mat4,
-        global_uniform_updater: &dyn UpdateUniforms,
-    ) {
-        for primitive in self.primitives.iter() {
-            primitive.render(
-                context,
-                node,
-                view_projection_matrix,
-                global_uniform_updater,
-            );
-        }
     }
 }

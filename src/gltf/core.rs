@@ -2,11 +2,7 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     base::input::KeyState,
-    core::{
-        camera::Camera,
-        renderer::Renderer,
-        scene::{Node, Scene},
-    },
+    core::{camera::Camera, node::Node, renderer::Renderer, scene::Scene},
     gltf::util::shared_ref,
 };
 
