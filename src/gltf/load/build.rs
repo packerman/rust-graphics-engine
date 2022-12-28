@@ -6,6 +6,7 @@ use js_sys::ArrayBuffer;
 use web_sys::{HtmlImageElement, WebGl2RenderingContext};
 
 use crate::{
+    base::util::shared_ref::{self, SharedRef},
     core::{
         camera::Camera,
         material::{AlphaMode, Material, TextureRef},
@@ -15,10 +16,7 @@ use crate::{
         storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
         texture_data::{Image, Sampler, Texture},
     },
-    gltf::{
-        material::TestMaterial,
-        util::shared_ref::{self, SharedRef},
-    },
+    gltf::material::TestMaterial,
 };
 
 use super::data;

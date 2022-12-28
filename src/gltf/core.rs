@@ -1,15 +1,16 @@
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::input::KeyState,
+    base::{
+        input::KeyState,
+        util::shared_ref::{self, SharedRef},
+    },
     core::{camera::Camera, node::Node, renderer::Renderer, scene::Scene},
-    gltf::util::shared_ref,
 };
 
 use super::{
     program::{Program, UpdateUniform, UpdateUniforms},
     user::{camera_controller::CameraController, light_controller::LightController},
-    util::shared_ref::SharedRef,
 };
 
 #[derive(Debug)]

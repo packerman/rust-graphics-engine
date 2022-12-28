@@ -7,12 +7,12 @@ use std::{
 use glm::Mat4;
 use web_sys::WebGl2RenderingContext;
 
-use crate::gltf::{
-    program::UpdateUniforms,
-    util::{
+use crate::{
+    base::util::{
         cache::Cached,
         shared_ref::{self, SharedRef, WeakRef},
     },
+    gltf::program::UpdateUniforms,
 };
 
 use super::{camera::Camera, mesh::Mesh};

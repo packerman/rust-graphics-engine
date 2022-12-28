@@ -5,11 +5,10 @@ use url::Url;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    base::util::{coll, shared_ref::SharedRef},
     core::{camera::Camera, scene::Scene, storage::Buffer, texture_data::Image},
-    gltf::{core::Root, load::statistics::GltfStatistics, util::coll},
+    gltf::{core::Root, load::statistics::GltfStatistics},
 };
-
-use super::util::shared_ref::SharedRef;
 
 pub mod build;
 pub mod data;

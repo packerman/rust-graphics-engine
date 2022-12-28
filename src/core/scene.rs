@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use web_sys::WebGl2RenderingContext;
 
-use crate::gltf::{program::UpdateUniforms, util::shared_ref::SharedRef};
+use crate::{base::util::shared_ref::SharedRef, gltf::program::UpdateUniforms};
 
 use super::{camera::Camera, node::Node};
 

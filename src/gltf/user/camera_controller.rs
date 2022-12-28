@@ -5,9 +5,9 @@ use crate::{
         application::Loop,
         input::KeyState,
         math::{angle::Angle, matrix},
+        util::shared_ref::SharedRef,
     },
     core::{camera::Camera, node::Node},
-    gltf::util::shared_ref::SharedRef,
 };
 
 #[derive(Debug, Clone)]

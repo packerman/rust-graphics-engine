@@ -4,9 +4,7 @@ use anyhow::Result;
 use glm::{Mat4, Vec2, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
-use crate::base::{convert::FromWithContext, gl};
-
-use super::util::level::Level;
+use crate::base::{convert::FromWithContext, gl, util::level::Level};
 
 #[derive(Debug, Clone)]
 pub struct Uniform {

@@ -5,11 +5,8 @@ use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
 use crate::{
-    base::gl,
-    gltf::{
-        program::{UpdateUniform, UpdateUniforms},
-        util::validate,
-    },
+    base::{gl, util::validate},
+    gltf::program::{UpdateUniform, UpdateUniforms},
 };
 
 use super::{

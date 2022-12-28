@@ -4,8 +4,8 @@ use anyhow::{anyhow, Result};
 use web_sys::{HtmlImageElement, WebGl2RenderingContext, WebGlTexture};
 
 use crate::{
-    base::gl,
-    gltf::{program::UpdateUniformValue, util::validate},
+    base::{gl, util::validate},
+    gltf::program::UpdateUniformValue,
 };
 
 #[derive(Debug, Clone)]

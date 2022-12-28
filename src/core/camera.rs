@@ -2,7 +2,7 @@ use std::rc::Weak;
 
 use glm::Mat4;
 
-use crate::gltf::util::shared_ref::{self, SharedRef, WeakRef};
+use crate::base::util::shared_ref::{self, SharedRef, WeakRef};
 
 use super::node::Node;
 
