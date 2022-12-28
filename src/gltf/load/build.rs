@@ -14,7 +14,10 @@ use crate::{
         storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
         texture_data::{Image, Sampler, Texture},
     },
-    gltf::{material::TestMaterial, util::shared_ref::SharedRef},
+    gltf::{
+        material::TestMaterial,
+        util::shared_ref::{self, SharedRef},
+    },
 };
 
 use super::data;
@@ -124,7 +127,7 @@ pub fn build_cameras(cameras: Vec<&data::Camera>) -> Vec<SharedRef<Camera>> {
             }
             _ => panic!("Unknown camera type: {}", camera.camera_type),
         })
-        .map(SharedRef::new)
+        .map(shared_ref::strong)
         .collect()
 }
 

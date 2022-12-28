@@ -11,7 +11,7 @@ use crate::gltf::{
     program::UpdateUniforms,
     util::{
         cache::Cached,
-        shared_ref::{SharedRef, WeakRef},
+        shared_ref::{self, SharedRef, WeakRef},
     },
 };
 
@@ -38,13 +38,13 @@ impl Node {
         camera: Option<SharedRef<Camera>>,
         name: Option<String>,
     ) -> SharedRef<Self> {
-        let node = SharedRef::new_cyclic(|me| Self {
+        let node = shared_ref::cyclic(|me| Self {
             me: Weak::clone(me),
             camera: camera.clone(),
             children: vec![],
             local_transform,
             mesh,
-            parent: Weak::new(),
+            parent: shared_ref::weak(),
             global_transform: Cached::new(),
             normal_transform: Cached::new(),
             name,

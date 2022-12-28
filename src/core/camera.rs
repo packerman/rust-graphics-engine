@@ -2,7 +2,7 @@ use std::rc::Weak;
 
 use glm::Mat4;
 
-use crate::gltf::util::shared_ref::{SharedRef, WeakRef};
+use crate::gltf::util::shared_ref::{self, SharedRef, WeakRef};
 
 use super::scene::Node;
 
@@ -30,7 +30,7 @@ impl Camera {
                 z_far,
                 z_near,
             }),
-            node: Weak::new(),
+            node: shared_ref::weak(),
         }
     }
 
@@ -49,7 +49,7 @@ impl Camera {
                 z_far,
                 z_near,
             }),
-            node: Weak::new(),
+            node: shared_ref::weak(),
         }
     }
 
@@ -95,7 +95,7 @@ impl Camera {
     }
 
     pub fn node(&self) -> Option<SharedRef<Node>> {
-        SharedRef::upgrade(&self.node)
+        self.node.upgrade()
     }
 
     pub fn set_node(&mut self, node: &WeakRef<Node>) {

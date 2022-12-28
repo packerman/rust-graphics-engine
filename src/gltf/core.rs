@@ -7,6 +7,7 @@ use crate::{
         renderer::Renderer,
         scene::{Node, Scene},
     },
+    gltf::util::shared_ref,
 };
 
 use super::{
@@ -41,7 +42,7 @@ impl Root {
             "Scene depths: {:#?}",
             scenes.iter().map(|scene| scene.depth()).collect::<Vec<_>>()
         );
-        let light_controller = SharedRef::new(LightController::new(Default::default()));
+        let light_controller = shared_ref::strong(LightController::new(Default::default()));
         let renderer = Renderer::initialize(
             context,
             Default::default(),
@@ -122,14 +123,13 @@ impl Root {
     }
 
     fn default_camera() -> SharedRef<Camera> {
-        Camera::perspective(
+        shared_ref::strong(Camera::perspective(
             1.0,
             60_f32.to_radians(),
             0.01,
             Some(100.0),
             Some("Default camera".into()),
-        )
-        .into()
+        ))
     }
 }
 
