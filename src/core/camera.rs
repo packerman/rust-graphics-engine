@@ -1,8 +1,11 @@
 use std::rc::Weak;
 
-use glm::Mat4;
+use glm::{Mat4, Vec3};
 
-use crate::base::util::shared_ref::{self, SharedRef, WeakRef};
+use crate::base::{
+    math::matrix,
+    util::shared_ref::{self, SharedRef, WeakRef},
+};
 
 use super::node::Node;
 
@@ -15,6 +18,14 @@ pub struct Camera {
 }
 
 impl Camera {
+    pub fn new(camera_type: CameraType, name: Option<String>) -> Self {
+        Self {
+            camera_type,
+            name,
+            node: shared_ref::weak(),
+        }
+    }
+
     pub fn perspective(
         aspect_ratio: f32,
         y_fov: f32,
@@ -22,16 +33,15 @@ impl Camera {
         z_far: Option<f32>,
         name: Option<String>,
     ) -> Self {
-        Self {
-            name,
-            camera_type: CameraType::Perspective(Perspective {
+        Self::new(
+            CameraType::Perspective(Perspective {
                 aspect_ratio,
                 y_fov,
                 z_far,
                 z_near,
             }),
-            node: shared_ref::weak(),
-        }
+            name,
+        )
     }
 
     pub fn orthographic(
@@ -41,16 +51,15 @@ impl Camera {
         z_far: f32,
         name: Option<String>,
     ) -> Self {
-        Self {
-            name,
-            camera_type: CameraType::Orthographic(Orthographic {
+        Self::new(
+            CameraType::Orthographic(Orthographic {
                 x_mag,
                 y_mag,
                 z_far,
                 z_near,
             }),
-            node: shared_ref::weak(),
-        }
+            name,
+        )
     }
 
     pub fn projection_matrix(&self) -> Mat4 {
@@ -82,9 +91,17 @@ impl Camera {
         }
     }
 
+    pub fn model_matrix(&self) -> Mat4 {
+        if let Some(node) = self.node() {
+            node.borrow().global_transform()
+        } else {
+            glm::identity()
+        }
+    }
+
     pub fn view_matrix(&self) -> Mat4 {
-        if let Some(node) = self.node.upgrade() {
-            if let Some(inverse) = node.borrow().global_transform().try_inverse() {
+        if let Some(node) = self.node() {
+            if let Some(inverse) = self.model_matrix().try_inverse() {
                 inverse
             } else {
                 glm::identity()
@@ -92,6 +109,10 @@ impl Camera {
         } else {
             glm::identity()
         }
+    }
+
+    pub fn world_position(&self) -> Vec3 {
+        matrix::get_position(&self.model_matrix())
     }
 
     pub fn node(&self) -> Option<SharedRef<Node>> {
@@ -129,10 +150,32 @@ pub struct Orthographic {
     z_near: f32,
 }
 
+impl Default for Orthographic {
+    fn default() -> Self {
+        Self {
+            x_mag: 1.0,
+            y_mag: 1.0,
+            z_far: 1.0,
+            z_near: -1.0,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Perspective {
     aspect_ratio: f32,
     y_fov: f32,
     z_far: Option<f32>,
     z_near: f32,
+}
+
+impl Default for Perspective {
+    fn default() -> Self {
+        Self {
+            aspect_ratio: 1.0,
+            y_fov: 60_f32.to_radians(),
+            z_near: 0.1,
+            z_far: Some(1000.0),
+        }
+    }
 }

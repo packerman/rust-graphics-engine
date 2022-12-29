@@ -3,9 +3,10 @@ use std::rc::Rc;
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::gltf::program::{Program, UpdateUniform, UpdateUniforms};
-
-use super::texture::Texture;
+use super::{
+    program::{Program, UpdateUniforms},
+    texture::Texture,
+};
 
 pub trait MaterialLifecycle: UpdateUniforms {
     fn vertex_shader(&self) -> &str;
@@ -133,4 +134,15 @@ impl UpdateUniforms for AlphaMode {
             }
         }
     }
+}
+
+#[derive(Debug, Clone)]
+struct DefaultGlobalUniformUpdater;
+
+impl UpdateUniforms for DefaultGlobalUniformUpdater {
+    fn update_uniforms(&self, _context: &WebGl2RenderingContext, _program: &Program) {}
+}
+
+pub fn default_uniform_updater() -> Box<dyn UpdateUniforms> {
+    Box::new(DefaultGlobalUniformUpdater)
 }

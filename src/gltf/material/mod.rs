@@ -5,11 +5,10 @@ use crate::{
     base::color,
     core::{
         material::{MaterialLifecycle, TextureRef},
+        program::{Program, UpdateUniforms},
         texture::TextureUnit,
     },
 };
-
-use super::program::{Program, UpdateUniform, UpdateUniforms};
 
 const USE_LIGHT: bool = true;
 

@@ -10,7 +10,7 @@ use crate::examples::{
 };
 
 pub fn run_example() {
-    run_example_by_index(None)
+    run_example_by_index(Some(0))
 }
 
 fn examples() -> Vec<Box<dyn Fn()>> {

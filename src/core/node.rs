@@ -7,15 +7,12 @@ use std::{
 use glm::Mat4;
 use web_sys::WebGl2RenderingContext;
 
-use crate::{
-    base::util::{
-        cache::Cached,
-        shared_ref::{self, SharedRef, WeakRef},
-    },
-    gltf::program::UpdateUniforms,
+use crate::base::util::{
+    cache::Cached,
+    shared_ref::{self, SharedRef, WeakRef},
 };
 
-use super::{camera::Camera, mesh::Mesh};
+use super::{camera::Camera, mesh::Mesh, program::UpdateUniforms};
 
 #[derive(Debug, Clone)]
 pub struct Node {
@@ -61,6 +58,10 @@ impl Node {
 
     pub fn with_camera_and_name(camera: SharedRef<Camera>, name: &str) -> SharedRef<Self> {
         Self::new(glm::identity(), None, camera.into(), Some(name.into()))
+    }
+
+    pub fn with_mesh(mesh: Mesh) -> SharedRef<Self> {
+        Self::new(glm::identity(), Some(mesh), None, None)
     }
 
     pub fn render(

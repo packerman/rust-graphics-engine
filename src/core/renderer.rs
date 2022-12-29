@@ -2,15 +2,12 @@ use std::cell::RefCell;
 
 use web_sys::WebGl2RenderingContext;
 
-use crate::{
-    base::{
-        color::{self, Color},
-        gl, web,
-    },
-    gltf::program::UpdateUniforms,
+use crate::base::{
+    color::{self, Color},
+    gl, web,
 };
 
-use super::{camera::Camera, scene::Scene};
+use super::{camera::Camera, program::UpdateUniforms, scene::Scene};
 
 #[derive(Debug, Clone)]
 pub struct Properties {
@@ -66,17 +63,5 @@ impl Renderer {
             .borrow_mut()
             .set_aspect_ratio(canvas.client_width() as f32 / canvas.client_height() as f32);
         scene.render(context, camera, self.global_uniform_updater.as_ref())
-    }
-}
-
-#[derive(Debug, Clone)]
-struct DefaultGlobalUniformUpdater;
-
-impl UpdateUniforms for DefaultGlobalUniformUpdater {
-    fn update_uniforms(
-        &self,
-        _context: &WebGl2RenderingContext,
-        _program: &crate::gltf::program::Program,
-    ) {
     }
 }

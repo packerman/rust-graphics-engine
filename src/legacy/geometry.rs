@@ -8,11 +8,6 @@ use crate::base::{convert::FromWithContext, math::matrix};
 
 use super::attribute::{Attribute, AttributeData};
 
-#[derive(Debug, Clone)]
-pub struct Geometry {
-    attributes: HashMap<String, Attribute>,
-}
-
 impl Geometry {
     pub fn new(attributes: HashMap<String, Attribute>) -> Self {
         Self { attributes }

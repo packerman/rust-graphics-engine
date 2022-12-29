@@ -26,22 +26,6 @@ pub struct AttributeData {
 }
 
 impl AttributeData {
-    pub fn new(data: Vec<f32>, data_type: DataType, count: i32) -> Self {
-        Self {
-            data,
-            data_type,
-            count,
-        }
-    }
-
-    fn new_with_flat_array(data: Vec<f32>, size: usize, length: usize) -> Self {
-        Self::new(
-            data,
-            DataType::new(size.try_into().unwrap(), WebGl2RenderingContext::FLOAT),
-            length.try_into().unwrap(),
-        )
-    }
-
     fn buffer_data(&self, context: &WebGl2RenderingContext) {
         unsafe {
             let buffer_view = Float32Array::view(&self.data);
@@ -116,46 +100,6 @@ impl AttributeData {
                 other.data_type
             ))
         }
-    }
-}
-
-impl<const N: usize, const K: usize> From<&[[f32; N]; K]> for AttributeData {
-    fn from(data: &[[f32; N]; K]) -> Self {
-        fn flatten_array<T: Clone, const N: usize, const K: usize>(data: &[[T; N]; K]) -> Vec<T> {
-            data.iter().flat_map(|item| item.to_vec()).collect()
-        }
-        Self::new_with_flat_array(flatten_array(data), N, data.len())
-    }
-}
-
-impl<const N: usize> From<&Vec<[f32; N]>> for AttributeData {
-    fn from(data: &Vec<[f32; N]>) -> Self {
-        fn flatten_array<T: Clone, const N: usize>(data: &[[T; N]]) -> Vec<T> {
-            data.iter().flat_map(|item| item.to_vec()).collect()
-        }
-        Self::new_with_flat_array(flatten_array(data), N, data.len())
-    }
-}
-
-impl<const N: usize> From<&Vec<SVector<f32, N>>> for AttributeData {
-    fn from(data: &Vec<SVector<f32, N>>) -> Self {
-        fn flatten_vector<T: Copy, const N: usize>(data: &[SVector<T, N>]) -> Vec<T> {
-            data.iter()
-                .flat_map(|item| item.iter().copied().collect::<Vec<T>>())
-                .collect()
-        }
-        Self::new_with_flat_array(flatten_vector(data), N, data.len())
-    }
-}
-
-impl<const N: usize, const K: usize> From<&[SVector<f32, N>; K]> for AttributeData {
-    fn from(data: &[SVector<f32, N>; K]) -> Self {
-        fn flatten_vector<T: Copy, const N: usize>(data: &[SVector<T, N>]) -> Vec<T> {
-            data.iter()
-                .flat_map(|item| item.iter().copied().collect::<Vec<T>>())
-                .collect()
-        }
-        Self::new_with_flat_array(flatten_vector(data), N, data.len())
     }
 }
 

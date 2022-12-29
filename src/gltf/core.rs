@@ -5,13 +5,16 @@ use crate::{
         input::KeyState,
         util::shared_ref::{self, SharedRef},
     },
-    core::{camera::Camera, node::Node, renderer::Renderer, scene::Scene},
+    core::{
+        camera::Camera,
+        node::Node,
+        program::{Program, UpdateUniforms},
+        renderer::Renderer,
+        scene::Scene,
+    },
 };
 
-use super::{
-    program::{Program, UpdateUniform, UpdateUniforms},
-    user::{camera_controller::CameraController, light_controller::LightController},
-};
+use super::user::{camera_controller::CameraController, light_controller::LightController};
 
 #[derive(Debug)]
 pub struct Root {

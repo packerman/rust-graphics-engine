@@ -8,8 +8,9 @@ use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{color, convert::FromWithContext, math::angle::Angle},
-    legacy::{attribute::AttributeData, geometry::Geometry},
+    core::{accessor::Accessor, mesh::Primitive},
 };
 
 pub struct Rectangle {
@@ -56,25 +57,25 @@ impl FromWithContext<WebGl2RenderingContext, Rectangle> for Geometry {
         let uvs = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]];
         let indices = [0, 1, 3, 0, 3, 2];
         let normal_data = util::replicate(6, [0.0, 0.0, 1.0]).collect::<Vec<_>>();
-        Self::from_with_context(
-            context,
-            [
-                (
-                    "vertexPosition",
-                    AttributeData::from(&util::select_by_indices(&points, indices)),
-                ),
-                (
-                    "vertexColor",
-                    AttributeData::from(&util::select_by_indices(&colors, indices)),
-                ),
-                (
-                    "vertexUV",
-                    AttributeData::from(&util::select_by_indices(&uvs, indices)),
-                ),
-                ("vertexNormal", AttributeData::from(&normal_data)),
-                ("faceNormal", AttributeData::from(&normal_data)),
-            ],
-        )
+        let geometry = Self::from([
+            (
+                Primitive::POSITION_ATTRIBUTE,
+                Accessor::from_with_context(context, &util::select_by_indices(&points, indices))?,
+            ),
+            (
+                Primitive::COLOR_0_ATTRIBUTE,
+                Accessor::from_with_context(context, &util::select_by_indices(&colors, indices))?,
+            ),
+            (
+                Primitive::TEXCOORD_0_ATTRIBUTE,
+                Accessor::from_with_context(context, &util::select_by_indices(&uvs, indices))?,
+            ),
+            (
+                Primitive::NORMAL_ATTRIBUTE,
+                Accessor::from_with_context(context, &normal_data),
+            )?,
+        ]);
+        Ok(geometry)
     }
 }
 
@@ -124,37 +125,40 @@ impl FromWithContext<WebGl2RenderingContext, BoxGeometry> for Geometry {
             [0.0, 0.0, -1.0],
         ];
         let normal_data = util::select_by_indices(&normals, util::replicate_each(6, 0..6));
-        Self::from_with_context(
-            context,
-            [
-                (
-                    "vertexPosition",
-                    AttributeData::from(&util::select_by_indices(
+        let geometry = Self::from([
+            (
+                Primitive::POSITION_ATTRIBUTE,
+                Accessor::from_with_context(
+                    context,
+                    &util::select_by_indices(
                         &points,
                         [
                             5, 1, 3, 5, 3, 7, 0, 4, 6, 0, 6, 2, 6, 7, 3, 6, 3, 2, 0, 1, 5, 0, 5, 4,
                             4, 5, 7, 4, 7, 6, 1, 0, 2, 1, 2, 3,
                         ],
-                    )),
+                    ),
                 ),
-                (
-                    "vertexColor",
-                    AttributeData::from(&util::select_by_indices(
-                        &colors,
-                        (0..=5).flat_map(|i| util::replicate(6, i)),
-                    )),
-                ),
-                (
-                    "vertexUV",
-                    AttributeData::from(&util::select_by_indices(
-                        &uvs,
-                        util::cycle_n([0, 1, 3, 0, 3, 2], 6),
-                    )),
-                ),
-                ("vertexNormal", AttributeData::from(&normal_data)),
-                ("faceNormal", AttributeData::from(&normal_data)),
-            ],
-        )
+            )?,
+            (
+                Primitive::COLOR_0_ATTRIBUTE,
+                Accessor::from_with_context(
+                    context,
+                    &util::select_by_indices(&colors, (0..=5).flat_map(|i| util::replicate(6, i))),
+                )?,
+            ),
+            (
+                Primitive::TEXCOORD_0_ATTRIBUTE,
+                Accessor::from_with_context(
+                    context,
+                    &util::select_by_indices(&uvs, util::cycle_n([0, 1, 3, 0, 3, 2], 6)),
+                )?,
+            ),
+            (
+                Primitive::NORMAL_ATTRIBUTE,
+                Accessor::from_with_context(context, &normal_data)?,
+            ),
+        ]);
+        Ok(geometry)
     }
 }
 
@@ -219,15 +223,24 @@ impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
             normal_data.push(normal_vector);
         }
 
-        Self::from_with_context(
-            context,
-            [
-                ("vertexPosition", AttributeData::from(&position_data)),
-                ("vertexColor", AttributeData::from(&color_data)),
-                ("vertexUV", AttributeData::from(&texture_data)),
-                ("vertexNormal", AttributeData::from(&normal_data)),
-                ("faceNormal", AttributeData::from(&normal_data)),
-            ],
-        )
+        let geometry = Self::from([
+            (
+                Primitive::POSITION_ATTRIBUTE,
+                Accessor::from_with_context(context, &position_data)?,
+            ),
+            (
+                Primitive::COLOR_0_ATTRIBUTE,
+                Accessor::from_with_context(context, &color_data)?,
+            ),
+            (
+                Primitive::TEXCOORD_0_ATTRIBUTE,
+                Accessor::from_with_context(context, &texture_data)?,
+            ),
+            (
+                Primitive::NORMAL_ATTRIBUTE,
+                Accessor::from_with_context(context, &normal_data)?,
+            ),
+        ]);
+        Ok(geometry)
     }
 }

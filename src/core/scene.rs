@@ -2,9 +2,9 @@ use std::cell::RefCell;
 
 use web_sys::WebGl2RenderingContext;
 
-use crate::{base::util::shared_ref::SharedRef, gltf::program::UpdateUniforms};
+use crate::base::util::shared_ref::SharedRef;
 
-use super::{camera::Camera, node::Node};
+use super::{camera::Camera, node::Node, program::UpdateUniforms};
 
 #[derive(Debug, Clone)]
 pub struct Scene {

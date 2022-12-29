@@ -6,6 +6,7 @@ pub mod image;
 pub mod material;
 pub mod mesh;
 pub mod node;
+pub mod program;
 pub mod renderer;
 pub mod sampler;
 pub mod scene;

@@ -4,14 +4,9 @@ use std::cell::RefCell;
 
 use glm::Vec3;
 
-use crate::base::color::{self, Color};
-
-use super::{
-    node::Node,
-    uniform::{
-        data::{CreateDataFromType, Data},
-        Uniform, UpdateUniform,
-    },
+use crate::{
+    base::color::{self, Color},
+    core::{node::Node, program::UpdateUniform},
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -124,40 +119,42 @@ impl Default for Light {
     }
 }
 
-impl CreateDataFromType for Light {
-    fn create_data() -> Data {
-        Data::from([
-            (Self::LIGHT_TYPE_MEMBER, Data::default::<i32>()),
-            (Self::COLOR_MEMBER, Data::from(color::white())),
-            (Self::DIRECTION_MEMBER, Data::default::<Vec3>()),
-            (Self::POSITION_MEMBER, Data::default::<Vec3>()),
-            (Self::ATTENUATION_MEMBER, Data::default::<Vec3>()),
-        ])
-    }
-}
+impl UpdateUniform for Light {}
 
-impl UpdateUniform for Light {
-    fn update_uniform(&self, uniform: &Uniform) {
-        if let Some(uniform) = uniform.as_struct() {
-            if let Some(light_type) = self.light_type {
-                match light_type {
-                    LightType::Directional { direction } => {
-                        uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::DIRECTIONAL_TYPE);
-                        uniform.set_vec3_member(Self::DIRECTION_MEMBER, direction);
-                    }
-                    LightType::Point { position } => {
-                        uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::POINT_TYPE);
-                        uniform.set_vec3_member(Self::POSITION_MEMBER, position);
-                    }
-                }
-                uniform.set_vec4_member(Self::COLOR_MEMBER, self.color);
-                uniform.set_vec3_member(Self::ATTENUATION_MEMBER, self.attenuation.into());
-            } else {
-                uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::NONE_TYPE);
-            }
-        }
-    }
-}
+// impl CreateDataFromType for Light {
+//     fn create_data() -> Data {
+//         Data::from([
+//             (Self::LIGHT_TYPE_MEMBER, Data::default::<i32>()),
+//             (Self::COLOR_MEMBER, Data::from(color::white())),
+//             (Self::DIRECTION_MEMBER, Data::default::<Vec3>()),
+//             (Self::POSITION_MEMBER, Data::default::<Vec3>()),
+//             (Self::ATTENUATION_MEMBER, Data::default::<Vec3>()),
+//         ])
+//     }
+// }
+
+// impl UpdateUniform for Light {
+//     fn update_uniform(&self, uniform: &Uniform) {
+//         if let Some(uniform) = uniform.as_struct() {
+//             if let Some(light_type) = self.light_type {
+//                 match light_type {
+//                     LightType::Directional { direction } => {
+//                         uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::DIRECTIONAL_TYPE);
+//                         uniform.set_vec3_member(Self::DIRECTION_MEMBER, direction);
+//                     }
+//                     LightType::Point { position } => {
+//                         uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::POINT_TYPE);
+//                         uniform.set_vec3_member(Self::POSITION_MEMBER, position);
+//                     }
+//                 }
+//                 uniform.set_vec4_member(Self::COLOR_MEMBER, self.color);
+//                 uniform.set_vec3_member(Self::ATTENUATION_MEMBER, self.attenuation.into());
+//             } else {
+//                 uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::NONE_TYPE);
+//             }
+//         }
+//     }
+// }
 
 #[derive(Debug, Clone, Copy)]
 pub struct Attenuation(f32, f32, f32);

@@ -2,20 +2,20 @@ use std::{cell::RefCell, rc::Rc};
 
 use web_sys::WebGl2RenderingContext;
 
-use crate::base::{
-    color::{self, Color},
-    gl,
-    math::resolution::Resolution,
-    web,
+use crate::{
+    base::{
+        color::{self, Color},
+        gl,
+        math::resolution::Resolution,
+        util::shared_ref::SharedRef,
+        web,
+    },
+    core::{camera::Camera, material, mesh::Mesh, node::Node, program::UpdateUniforms},
 };
 
 use super::{
-    camera::Camera,
     light::{shadow::Shadow, Light},
-    mesh::Mesh,
-    node::Node,
     render_target::RenderTarget,
-    uniform::UpdateUniform,
 };
 
 pub struct RendererOptions {
@@ -28,7 +28,7 @@ pub struct RendererOptions {
 impl Default for RendererOptions {
     fn default() -> Self {
         Self {
-            clear_color: color::black(),
+            clear_color: color::gray(),
             blending: true,
             flip_y: true,
             light_count: 4,
@@ -38,11 +38,12 @@ impl Default for RendererOptions {
 
 #[derive(Debug, Clone)]
 pub struct Renderer {
-    default_node: Rc<Node>,
+    default_node: SharedRef<Node>,
     default_light: RefCell<Light>,
     light_count: usize,
     shadow: Option<Shadow>,
     clear_color: Color,
+    global_uniform_updater: Box<dyn UpdateUniforms>,
 }
 
 impl Renderer {
@@ -78,6 +79,7 @@ impl Renderer {
             light_count: options.light_count,
             shadow,
             clear_color: options.clear_color,
+            global_uniform_updater: material::default_uniform_updater(),
         }
     }
 
@@ -85,7 +87,12 @@ impl Renderer {
         self.shadow.as_ref()
     }
 
-    pub fn render(&self, context: &WebGl2RenderingContext, scene: &Node, camera: &RefCell<Camera>) {
+    pub fn render(
+        &self,
+        context: &WebGl2RenderingContext,
+        scene: &RefCell<Node>,
+        camera: &RefCell<Camera>,
+    ) {
         self.render_generic(context, scene, camera, Self::CLEAR_ALL, None);
     }
 
@@ -142,7 +149,12 @@ impl Renderer {
             if let Some(mut view_position) = mesh.material().vec3_mut("viewPosition") {
                 *view_position = camera.world_position();
             }
-            mesh.render(context, camera, node.world_matrix());
+            mesh.render(
+                context,
+                camera,
+                node.world_matrix(),
+                &self.global_uniform_updater,
+            );
         });
     }
 

@@ -3,9 +3,9 @@ use std::rc::Rc;
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlTexture};
 
-use crate::{base::gl, gltf::program::UpdateUniformValue};
+use crate::base::gl;
 
-use super::{image::Image, sampler::Sampler};
+use super::{image::Image, program::UpdateUniformValue, sampler::Sampler};
 
 #[derive(Debug, Clone)]
 pub struct Texture {

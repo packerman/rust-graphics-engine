@@ -3,6 +3,7 @@ extern crate nalgebra_glm as glm;
 
 #[macro_use]
 mod base;
+mod api;
 mod core;
 mod examples;
 mod extras;

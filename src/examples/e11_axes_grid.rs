@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -8,23 +8,19 @@ use crate::{
     base::{
         application::{self, Application, AsyncCreator},
         color,
-        convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
+        util::shared_ref::SharedRef,
     },
+    core::{camera::Camera, mesh::Mesh, node::Node},
     extras::{axes_helper::AxesHelper, grid_helper::GridHelper},
-    legacy::{
-        camera::Camera,
-        mesh::Mesh,
-        node::{Node, Transform},
-        renderer::{Renderer, RendererOptions},
-    },
+    legacy::renderer::{Renderer, RendererOptions},
 };
 
 struct Example {
     renderer: Renderer,
-    scene: Rc<Node>,
-    camera: Rc<RefCell<Camera>>,
+    scene: SharedRef<Node>,
+    camera: SharedRef<Camera>,
 }
 
 #[async_trait(?Send)]
@@ -58,7 +54,7 @@ impl AsyncCreator for Example {
             },
         )?;
         let grid = Node::new_mesh(grid);
-        grid.rotate_x(-Angle::RIGHT, Transform::default());
+        grid.rotate_x(-Angle::RIGHT);
         scene.add_child(&grid);
 
         Ok(Box::new(Example {

@@ -4,12 +4,12 @@ use anyhow::{anyhow, Result};
 use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
-use crate::{
-    base::{gl, util::validate},
-    gltf::program::{UpdateUniform, UpdateUniforms},
-};
+use crate::base::{gl, util::validate};
 
-use super::{accessor::Accessor, buffer_view::BufferView, material::Material, node::Node};
+use super::{
+    accessor::Accessor, buffer_view::BufferView, material::Material, node::Node,
+    program::UpdateUniforms,
+};
 
 #[derive(Debug, Clone)]
 pub struct Mesh {
@@ -21,6 +21,17 @@ pub struct Mesh {
 impl Mesh {
     pub fn new(primitives: Vec<Primitive>, name: Option<String>) -> Self {
         Self { primitives, name }
+    }
+
+    pub fn primitive(
+        context: &WebGl2RenderingContext,
+        attributes: HashMap<String, Rc<Accessor>>,
+        indices: Option<Rc<Accessor>>,
+        material: Rc<Material>,
+        mode: u32,
+    ) -> Result<Self> {
+        let primitive = Primitive::new(context, attributes, indices, material, mode)?;
+        Ok(Self::new(vec![primitive], None))
     }
 
     pub fn render(
@@ -52,8 +63,10 @@ pub struct Primitive {
 }
 
 impl Primitive {
-    const POSITION_NAME: &str = "POSITION";
-    const COLOR_0_NAME: &str = "COLOR_0";
+    pub const POSITION_ATTRIBUTE: &str = "POSITION";
+    pub const NORMAL_ATTRIBUTE: &str = "NORMAL";
+    pub const TEXCOORD_0_ATTRIBUTE: &str = "TEXCOORD_0";
+    pub const COLOR_0_ATTRIBUTE: &str = "COLOR_0";
 
     const MODES: [u32; 7] = [
         WebGl2RenderingContext::POINTS,
@@ -75,8 +88,8 @@ impl Primitive {
         validate::contains(&mode, &Self::MODES, |value| {
             anyhow!("Unknown mode: {}", value)
         })?;
-        validate::assert(attributes.contains_key(Self::POSITION_NAME), || {
-            anyhow!("Missing attribute {}", Self::POSITION_NAME)
+        validate::assert(attributes.contains_key(Self::POSITION_ATTRIBUTE), || {
+            anyhow!("Missing attribute {}", Self::POSITION_ATTRIBUTE)
         })?;
         let vertex_array = gl::create_vertex_array(context)?;
         let vertex_count = Self::get_vertex_count(&attributes)?;
@@ -129,8 +142,11 @@ impl Primitive {
             .update_uniform(context, "u_ModelMatrix", program);
         node.normal_transform()
             .update_uniform(context, "u_NormalMatrix", program);
-        self.has_attribute(Self::COLOR_0_NAME)
-            .update_uniform(context, "u_UseColor_0", program);
+        self.has_attribute(Self::COLOR_0_ATTRIBUTE).update_uniform(
+            context,
+            "u_UseColor_0",
+            program,
+        );
         self.draw(context);
     }
 

@@ -4,11 +4,16 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         color::{self, Color},
         convert::FromWithContext,
     },
-    legacy::{attribute::AttributeData, geometry::Geometry, material::Material, mesh::Mesh},
+    core::{
+        accessor::Accessor,
+        material::Material,
+        mesh::{Mesh, Primitive},
+    },
     material::basic::{BasicMaterial, LineMaterial, LineType},
 };
 
@@ -49,13 +54,16 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
             axes_helper.axis_colors[2],
             axes_helper.axis_colors[2],
         ];
-        let geometry = Rc::new(Geometry::from_with_context(
-            context,
-            [
-                ("vertexPosition", AttributeData::from(&position_data)),
-                ("vertexColor", AttributeData::from(&color_data)),
-            ],
-        )?);
+        let geometry = Rc::new(Geometry::from([
+            (
+                Primitive::POSITION_ATTRIBUTE,
+                Accessor::from_with_context(context, &position_data)?,
+            ),
+            (
+                Primitive::COLOR_0_ATTRIBUTE,
+                Accessor::from_with_context(context, &color_data)?,
+            ),
+        ])?);
         let material = Rc::new(Material::from_with_context(
             context,
             LineMaterial {

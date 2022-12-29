@@ -8,14 +8,18 @@ use std::{
 
 use glm::{Mat3, Mat4, Vec3};
 
-use crate::base::{
-    input::KeyState,
-    math::{angle::Angle, matrix, resolution::Resolution},
+use crate::{
+    base::{
+        input::KeyState,
+        math::{angle::Angle, matrix, resolution::Resolution},
+        util::shared_ref::SharedRef,
+    },
+    core::camera::Camera,
 };
 
 use self::movement_rig::MovementRig;
 
-use super::{camera::Camera, light::Light, mesh::Mesh};
+use super::{light::Light, mesh::Mesh};
 
 pub enum Transform {
     Local,
@@ -31,7 +35,7 @@ impl Default for Transform {
 pub enum NodeType {
     Group,
     Mesh(Mesh),
-    Camera(Rc<RefCell<Camera>>),
+    Camera(SharedRef<Camera>),
     MovementRig(Box<MovementRig>),
     Light(RefCell<Light>),
 }
@@ -54,7 +58,7 @@ impl Node {
         Self::new(NodeType::Mesh(mesh))
     }
 
-    pub fn new_camera(camera: Rc<RefCell<Camera>>) -> Rc<Self> {
+    pub fn new_camera(camera: SharedRef<Camera>) -> Rc<Self> {
         Self::new(NodeType::Camera(camera))
     }
 
@@ -152,9 +156,9 @@ impl Node {
 
     pub fn update(&self) {
         match &self.node_type {
-            NodeType::Camera(camera) => {
-                camera.borrow_mut().update_world_matrix(self.world_matrix());
-            }
+            // NodeType::Camera(camera) => {
+            //     camera.borrow_mut().update_world_matrix(self.world_matrix());
+            // }
             NodeType::Light(light) => {
                 light.borrow_mut().update_from_node(self);
             }
