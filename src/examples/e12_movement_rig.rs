@@ -8,17 +8,12 @@ use crate::{
     base::{
         application::{self, Application, AsyncCreator},
         color,
-        convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
     },
+    core::{camera::Camera, mesh::Mesh, node::Node},
     extras::{axes_helper::AxesHelper, grid_helper::GridHelper},
-    legacy::{
-        camera::Camera,
-        mesh::Mesh,
-        node::{Node, Transform},
-        renderer::Renderer,
-    },
+    legacy::renderer::Renderer,
 };
 
 struct Example {
@@ -62,7 +57,7 @@ impl AsyncCreator for Example {
             },
         )?;
         let grid = Node::new_mesh(grid);
-        grid.rotate_x(-Angle::RIGHT, Transform::default());
+        grid.rotate_x(-Angle::RIGHT);
         scene.add_child(&grid);
 
         Ok(Box::new(Example {

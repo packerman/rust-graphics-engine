@@ -143,6 +143,10 @@ impl Node {
         camera.borrow_mut().set_node(&self.me);
     }
 
+    pub fn camera(&self) -> Option<&RefCell<Camera>> {
+        self.camera.as_ref()
+    }
+
     pub fn max_by_key<K>(nodes: &[SharedRef<Node>], key: K) -> usize
     where
         K: Fn(Ref<Node>) -> usize,

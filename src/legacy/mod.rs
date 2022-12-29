@@ -7,5 +7,5 @@ pub mod light;
 // pub mod node;
 pub mod render_target;
 pub mod renderer;
-// pub mod texture;
+pub mod texture;
 // pub mod uniform;

@@ -5,24 +5,23 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
         color,
-        convert::FromWithContext,
         input::KeyState,
         math::{angle::Angle, matrix},
     },
-    core::texture::TextureUnit,
-    extras::text_texture::TextTexture,
-    geometry::{BoxGeometry, Rectangle},
-    legacy::{
+    core::{
         camera::Camera,
-        geometry::Geometry,
+        image::Image,
         mesh::Mesh,
         node::Node,
-        renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData},
+        texture::{Texture, TextureUnit},
     },
+    extras::text_texture::TextTexture,
+    geometry::{BoxGeometry, Rectangle},
+    legacy::renderer::{Renderer, RendererOptions},
     material,
 };
 
@@ -76,7 +75,7 @@ impl AsyncCreator for Example {
 fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
     let texture = Texture::initialize(
         context,
-        TextureData::try_from(TextTexture {
+        Image::try_from(TextTexture {
             text: "This is a Crate.",
             width: 320,
             height: 160,
@@ -108,11 +107,7 @@ async fn create_crate_mesh(context: &WebGl2RenderingContext) -> Result<Rc<Node>>
     )?);
     let material = material::texture::create(
         context,
-        Texture::initialize(
-            context,
-            TextureData::load_from_source("images/crate.png").await?,
-            Default::default(),
-        )?,
+        Texture::fetch(context, "images/crate.png")?,
         TextureUnit(1),
         Default::default(),
     )?;

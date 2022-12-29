@@ -5,24 +5,23 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
         color,
-        convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
     },
-    core::texture::TextureUnit,
-    extras::{grid_helper::GridHelper, text_texture::TextTexture},
-    geometry::BoxGeometry,
-    legacy::{
+    core::{
         camera::Camera,
-        geometry::Geometry,
+        image::Image,
         mesh::Mesh,
         node::Node,
-        renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData},
+        texture::{Texture, TextureUnit},
     },
+    extras::{grid_helper::GridHelper, text_texture::TextTexture},
+    geometry::BoxGeometry,
+    legacy::renderer::{Renderer, RendererOptions},
     material,
 };
 
@@ -79,7 +78,7 @@ impl AsyncCreator for Example {
             context,
             Texture::initialize(
                 context,
-                TextureData::try_from(TextTexture {
+                Image::try_from(TextTexture {
                     text: "Hello, World!",
                     font: "bold 36px sans-serif",
                     font_style: "blue",

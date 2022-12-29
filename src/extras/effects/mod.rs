@@ -3,11 +3,9 @@ use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::{color::Color, convert::FromWithContext, math::resolution::Resolution},
-    legacy::{
-        material::{Material, MaterialSettings},
-        uniform::data::{Data, Sampler2D},
-    },
+    base::{color::Color, math::resolution::Resolution},
+    core::material::Material,
+    legacy::texture::Sampler2D,
 };
 
 use super::postprocessor::Effect;

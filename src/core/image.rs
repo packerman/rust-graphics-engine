@@ -1,9 +1,11 @@
 use anyhow::{anyhow, Result};
-use web_sys::{HtmlImageElement, WebGl2RenderingContext};
+use web_sys::{HtmlCanvasElement, HtmlImageElement, WebGl2RenderingContext};
+
+use crate::base::web;
 
 #[derive(Debug, Clone)]
 pub struct Image {
-    html_image: HtmlImageElement,
+    image_type: ImageType,
     #[allow(dead_code)]
     name: Option<String>,
     mime_type: Option<String>,
@@ -16,10 +18,15 @@ impl Image {
         mime_type: Option<String>,
     ) -> Self {
         Self {
-            html_image,
+            image_type: ImageType::HtmlImageElement(html_image),
             name,
             mime_type,
         }
+    }
+
+    pub async fn fetch(uri: &str) -> Result<Self> {
+        let html_image = web::fetch_image(uri).await?;
+        Ok(Self::new(html_image, None, None))
     }
 
     pub fn tex_image_2d(&self, context: &WebGl2RenderingContext) -> Result<()> {
@@ -35,3 +42,10 @@ impl Image {
             .map_err(|error| anyhow!("Error while specifying: {:#?}", error))
     }
 }
+
+enum ImageType {
+    HtmlImageElement(HtmlImageElement),
+    HtmlCanvasElement(HtmlCanvasElement),
+}
+
+impl From<HtmlCanvasElement> for Image {}

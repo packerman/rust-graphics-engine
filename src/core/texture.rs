@@ -30,6 +30,11 @@ impl Texture {
         Ok(me)
     }
 
+    pub async fn fetch(context: &WebGl2RenderingContext, uri: &str) -> Result<Self> {
+        let image = Rc::new(Image::fetch(uri).await?);
+        Self::initialize(context, Rc::default(), image)
+    }
+
     pub fn bind(&self, context: &WebGl2RenderingContext) {
         context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, Some(&self.texture));
     }

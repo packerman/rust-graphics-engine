@@ -5,27 +5,27 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
         color,
-        convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
     },
-    core::texture::TextureUnit,
+    core::{
+        camera::Camera,
+        mesh::Mesh,
+        node::Node,
+        texture::{Texture, TextureUnit},
+    },
     extras::{
         effects::{self, Blend, Blur, BrightFilter},
         postprocessor::Postprocessor,
     },
     geometry::{parametric::Sphere, Rectangle},
     legacy::{
-        camera::Camera,
-        geometry::Geometry,
-        mesh::Mesh,
-        node::Node,
         renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData},
-        uniform::data::Sampler2D,
+        texture::Sampler2D,
     },
     material::{self, texture::TextureMaterial},
 };
@@ -65,11 +65,7 @@ impl AsyncCreator for Example {
                 )?),
                 material::texture::create(
                     context,
-                    Texture::initialize(
-                        context,
-                        TextureData::load_from_source("images/sky-earth.jpg").await?,
-                        Default::default(),
-                    )?,
+                    Texture::fetch(context, "images/sky-earth.jpg")?,
                     TextureUnit(0),
                     Default::default(),
                 )?,
@@ -89,11 +85,7 @@ impl AsyncCreator for Example {
                 )?),
                 material::texture::create(
                     context,
-                    Texture::initialize(
-                        context,
-                        TextureData::load_from_source("images/grass.jpg").await?,
-                        Default::default(),
-                    )?,
+                    Texture::fetch(context, "images/grass.jpg")?,
                     TextureUnit(1),
                     TextureMaterial {
                         repeat_uv: glm::vec2(50.0, 50.0),
@@ -109,11 +101,7 @@ impl AsyncCreator for Example {
             Rc::new(Geometry::from_with_context(context, Sphere::default())?),
             material::texture::create(
                 context,
-                Texture::initialize(
-                    context,
-                    TextureData::load_from_source("images/grid.png").await?,
-                    Default::default(),
-                )?,
+                Texture::fetch(context, "images/grid.png")?,
                 TextureUnit(2),
                 Default::default(),
             )?,

@@ -5,22 +5,20 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
-        convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
     },
-    core::texture::TextureUnit,
-    geometry::BoxGeometry,
-    legacy::{
+    core::{
         camera::Camera,
-        geometry::Geometry,
         mesh::Mesh,
-        node::{Node, Transform},
-        renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData},
+        node::Node,
+        texture::{Texture, TextureUnit},
     },
+    geometry::BoxGeometry,
+    legacy::renderer::{Renderer, RendererOptions},
     material,
 };
 
@@ -48,11 +46,7 @@ impl AsyncCreator for Example {
         )?);
         let material = material::texture::create(
             context,
-            Texture::initialize(
-                context,
-                TextureData::load_from_source("images/crate.png").await?,
-                Default::default(),
-            )?,
+            Rc::new(Texture::fetch(context, "images/crate.png")?),
             TextureUnit(0),
             Default::default(),
         )?;
@@ -71,10 +65,8 @@ impl AsyncCreator for Example {
 
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
-        self.mesh
-            .rotate_y(Angle::from_radians(TAU) / 450.0, Transform::Local);
-        self.mesh
-            .rotate_x(Angle::from_radians(TAU) / 600.0, Transform::Local);
+        self.mesh.rotate_y(Angle::from_radians(TAU) / 450.0);
+        self.mesh.rotate_x(Angle::from_radians(TAU) / 600.0);
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {

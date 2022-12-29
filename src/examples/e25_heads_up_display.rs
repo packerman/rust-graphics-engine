@@ -5,24 +5,22 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
         color,
-        convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
     },
-    core::texture::TextureUnit,
-    extras::grid_helper::GridHelper,
-    geometry::{BoxGeometry, Rectangle},
-    legacy::{
-        camera::{Camera, Ortographic},
-        geometry::Geometry,
+    core::{
+        camera::{Camera, Orthographic},
         mesh::Mesh,
         node::Node,
-        renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData},
+        texture::{Texture, TextureUnit},
     },
+    extras::grid_helper::GridHelper,
+    geometry::{BoxGeometry, Rectangle},
+    legacy::renderer::{Renderer, RendererOptions},
     material,
 };
 
@@ -63,11 +61,7 @@ impl AsyncCreator for Example {
             )?);
             let material = material::texture::create(
                 context,
-                Texture::initialize(
-                    context,
-                    TextureData::load_from_source("images/crate.png").await?,
-                    Default::default(),
-                )?,
+                Texture::fetch(context, "images/crate.png")?,
                 TextureUnit(0),
                 Default::default(),
             )?;
@@ -121,13 +115,11 @@ pub fn example() -> Box<dyn Fn()> {
 
 async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<RefCell<Camera>>)> {
     let scene = Node::new_group();
-    let camera = Camera::new_ortographic(Ortographic {
-        left: 0.0,
-        right: 800.0,
-        bottom: 0.0,
-        top: 600.0,
-        near: 1.0,
-        far: -1.0,
+    let camera = Camera::new_ortographic(Orthographic {
+        x_mag: 800.0,
+        y_mag: 600.0,
+        z_near: 1.0,
+        z_far: -1.0,
     });
     {
         let camera = Node::new_camera(Rc::clone(&camera));
@@ -147,11 +139,7 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
             )?),
             material::texture::create(
                 context,
-                Texture::initialize(
-                    context,
-                    TextureData::load_from_source("images/crate-sim.png").await?,
-                    Default::default(),
-                )?,
+                Texture::fetch(context, "images/crate-sim.png")?,
                 TextureUnit(0),
                 Default::default(),
             )?,
@@ -172,11 +160,7 @@ async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<Re
             )?),
             material::texture::create(
                 context,
-                Texture::initialize(
-                    context,
-                    TextureData::load_from_source("images/version-1.png").await?,
-                    Default::default(),
-                )?,
+                Texture::fetch(context, "images/version-1.png")?,
                 TextureUnit(1),
                 Default::default(),
             )?,

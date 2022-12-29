@@ -5,25 +5,25 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
         color,
-        convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
     },
-    core::texture::TextureUnit,
+    core::{
+        camera::Camera,
+        mesh::Mesh,
+        node::Node,
+        texture::{Texture, TextureUnit},
+    },
     extras::light_helpers::DirectionalLightHelper,
     geometry::{parametric::Sphere, Rectangle},
     legacy::{
-        camera::Camera,
-        geometry::Geometry,
         light::{shadow::Shadow, Light},
-        mesh::Mesh,
-        node::Node,
         renderer::{self, Renderer, RendererOptions},
-        texture::{Texture, TextureData},
-        uniform::data::Sampler2D,
+        texture::Sampler2D,
     },
     material::{self, phong::PhongMaterial},
 };
@@ -88,11 +88,7 @@ impl AsyncCreator for Example {
             context,
             PhongMaterial {
                 texture: Sampler2D::new(
-                    Texture::initialize(
-                        context,
-                        TextureData::load_from_source("images/grid.png").await?,
-                        Default::default(),
-                    )?,
+                    Texture::fetch(context, "images/grid.png")?,
                     TextureUnit(0),
                 )
                 .into(),

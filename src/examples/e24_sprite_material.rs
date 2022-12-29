@@ -5,25 +5,23 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
         color,
-        convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
         web,
     },
-    core::texture::TextureUnit,
-    extras::grid_helper::GridHelper,
-    geometry::Rectangle,
-    legacy::{
+    core::{
         camera::Camera,
-        geometry::Geometry,
         mesh::Mesh,
         node::Node,
-        renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData},
+        texture::{Texture, TextureUnit},
     },
+    extras::grid_helper::GridHelper,
+    geometry::Rectangle,
+    legacy::renderer::{Renderer, RendererOptions},
     material::{self, sprite::SpriteMaterial},
 };
 
@@ -101,11 +99,7 @@ pub fn example() -> Box<dyn Fn()> {
 
 async fn create_sprite(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
     let geometry = Rc::new(Geometry::from_with_context(context, Rectangle::default())?);
-    let tile_set = Texture::initialize(
-        context,
-        TextureData::load_from_source("images/rolling-ball.png").await?,
-        Default::default(),
-    )?;
+    let tile_set = Texture::fetch(context, "images/rolling-ball.png")?;
     let material = material::sprite::create(
         context,
         tile_set,

@@ -7,22 +7,12 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     base::{
         application::{self, Application, AsyncCreator},
-        convert::FromWithContext,
         input::KeyState,
         web,
     },
-    core::texture::TextureUnit,
+    core::{camera::Camera, material::Material, node::Node, texture::TextureUnit},
     geometry::Rectangle,
-    legacy::{
-        camera::Camera,
-        geometry::Geometry,
-        material::{Material, MaterialSettings},
-        mesh::Mesh,
-        node::Node,
-        renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData},
-        uniform::data::{Data, Sampler2D},
-    },
+    legacy::renderer::{Renderer, RendererOptions},
 };
 
 struct Example {

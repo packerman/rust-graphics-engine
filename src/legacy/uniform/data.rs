@@ -9,32 +9,6 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct Sampler2D {
-    pub texture: Rc<Texture>,
-    unit: TextureUnit,
-}
-
-impl Sampler2D {
-    pub fn new(texture: Rc<Texture>, unit: TextureUnit) -> Self {
-        Self { texture, unit }
-    }
-
-    pub fn upload_data(
-        &self,
-        context: &WebGl2RenderingContext,
-        location: Option<&WebGlUniformLocation>,
-    ) {
-        self.unit.active_texture(context);
-        self.texture.bind(context);
-        self.unit.update_uniform_value(context, location);
-    }
-
-    pub fn resolution(&self) -> Resolution {
-        self.texture.resolution()
-    }
-}
-
-#[derive(Debug, Clone)]
 pub enum Basic {
     Boolean(bool),
     Int(i32),

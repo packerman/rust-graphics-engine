@@ -144,10 +144,10 @@ pub enum CameraType {
 
 #[derive(Debug, Clone)]
 pub struct Orthographic {
-    x_mag: f32,
-    y_mag: f32,
-    z_far: f32,
-    z_near: f32,
+    pub x_mag: f32,
+    pub y_mag: f32,
+    pub z_far: f32,
+    pub z_near: f32,
 }
 
 impl Default for Orthographic {
@@ -163,10 +163,10 @@ impl Default for Orthographic {
 
 #[derive(Debug, Clone)]
 pub struct Perspective {
-    aspect_ratio: f32,
-    y_fov: f32,
-    z_far: Option<f32>,
-    z_near: f32,
+    pub aspect_ratio: f32,
+    pub y_fov: f32,
+    pub z_far: Option<f32>,
+    pub z_near: f32,
 }
 
 impl Default for Perspective {
