@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, cell::RefCell, rc::Rc};
+use std::cell::RefCell;
 
 use web_sys::WebGl2RenderingContext;
 
@@ -7,7 +7,7 @@ use crate::{
         color::{self, Color},
         gl,
         math::resolution::Resolution,
-        util::shared_ref::SharedRef,
+        util::{level::Level, shared_ref::SharedRef},
         web,
     },
     core::{
@@ -41,7 +41,6 @@ impl Default for RendererOptions {
 
 #[derive(Debug)]
 pub struct Renderer {
-    default_node: SharedRef<Node>,
     default_light: RefCell<Light>,
     light_count: usize,
     shadow: Option<Shadow>,
@@ -74,10 +73,8 @@ impl Renderer {
         }
 
         let default_light = RefCell::new(Light::default());
-        let default_node = Node::empty();
 
         Self {
-            default_node,
             default_light,
             light_count: options.light_count,
             shadow,
@@ -96,7 +93,17 @@ impl Renderer {
         scene: &Scene,
         camera: &RefCell<Camera>,
     ) {
-        self.render_generic(context, scene, camera, Self::CLEAR_ALL, None);
+        self.render_generic(context, scene, camera, Self::CLEAR_ALL, None, &vec![]);
+    }
+
+    pub fn render_with_lights(
+        &self,
+        context: &WebGl2RenderingContext,
+        scene: &Scene,
+        camera: &RefCell<Camera>,
+        lights: &[Light],
+    ) {
+        self.render_generic(context, scene, camera, Self::CLEAR_ALL, None, lights);
     }
 
     pub fn render_clear(
@@ -105,8 +112,9 @@ impl Renderer {
         scene: &Scene,
         camera: &RefCell<Camera>,
         clear_mask: u32,
+        lights: &[Light],
     ) {
-        self.render_generic(context, scene, camera, clear_mask, None)
+        self.render_generic(context, scene, camera, clear_mask, None, lights)
     }
 
     pub fn render_to_target(
@@ -115,8 +123,16 @@ impl Renderer {
         scene: &Scene,
         camera: &RefCell<Camera>,
         render_target: Option<&RenderTarget>,
+        lights: &[Light],
     ) {
-        self.render_generic(context, scene, camera, Self::CLEAR_ALL, render_target);
+        self.render_generic(
+            context,
+            scene,
+            camera,
+            Self::CLEAR_ALL,
+            render_target,
+            lights,
+        );
     }
 
     pub fn render_generic(
@@ -126,6 +142,7 @@ impl Renderer {
         camera: &RefCell<Camera>,
         clear_mask: u32,
         render_target: Option<&RenderTarget>,
+        lights: &[Light],
     ) {
         let nodes = scene.all_nodes();
 
@@ -138,7 +155,6 @@ impl Renderer {
         let meshes = Self::filter_meshes(&nodes);
         self.shadow_pass(context, &meshes);
 
-        let lights = self.filter_lights(&nodes);
         let camera = &camera.borrow();
 
         self::bind_render_target(context, render_target);
@@ -147,9 +163,14 @@ impl Renderer {
         self::viewport(context, resolution);
 
         meshes.into_iter().for_each(|(mesh, node)| {
-            Self::update_lights(mesh, &lights);
-            self.update_shadow(mesh);
-            mesh.update_uniform(context, "viewPosition", camera.world_position());
+            Self::update_lights(context, mesh, &lights);
+            self.update_shadow(context, mesh);
+            mesh.update_uniform(
+                context,
+                "viewPosition",
+                &camera.world_position(),
+                Level::Ignore,
+            );
             mesh.render(
                 context,
                 &node.as_ref().borrow(),
@@ -167,45 +188,27 @@ impl Renderer {
                 WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT,
             );
             let material = shadow.material();
-            material.use_program(context);
-            shadow.update();
-            meshes
-                .iter()
-                .filter(|(mesh, _)| mesh.is_triangle_based())
-                .for_each(|(mesh, node)| {
-                    mesh.render_with_material(context, material, node.world_matrix());
-                });
+            meshes.iter().for_each(|(mesh, node)| {
+                mesh.render_triangle_based(
+                    context,
+                    &node.as_ref().borrow(),
+                    self.global_uniform_updater.as_ref(),
+                    material,
+                );
+            });
         }
     }
 
-    fn filter_lights<'a>(
-        &'a self,
-        nodes: &'a [Rc<Node>],
-    ) -> Vec<(&RefCell<Light>, &SharedRef<Node>)> {
-        let mut lights: Vec<_> = nodes
-            .iter()
-            .filter_map(|node| node.as_light().map(|light| (light, node)))
-            .collect();
-        lights.resize_with(self.light_count, || {
-            (&self.default_light, &self.default_node)
-        });
-        lights
-    }
-
-    fn update_shadow(&self, mesh: &Mesh) {
+    fn update_shadow(&self, context: &WebGl2RenderingContext, mesh: &Mesh) {
         if let Some(shadow) = self.shadow() {
-            if let Some(uniform) = mesh.material().uniform("shadow0") {
-                shadow.update_uniform(uniform);
-            }
+            mesh.update_uniform(context, "shadow0", shadow, Level::Ignore);
         }
     }
 
-    fn update_lights(mesh: &Mesh, lights: &[(&RefCell<Light>, &Rc<Node>)]) {
-        if mesh.material().has_uniform("light0") {
-            lights.iter().enumerate().for_each(|(i, (light, _))| {
-                if let Some(uniform) = mesh.material().uniform(&format!("light{}", i)) {
-                    light.borrow().update_uniform(uniform);
-                }
+    fn update_lights(context: &WebGl2RenderingContext, mesh: &Mesh, lights: &[Light]) {
+        if mesh.has_uniform("light0") {
+            lights.iter().enumerate().for_each(|(i, light)| {
+                mesh.update_uniform(context, &format!("light{}", i), light, Level::Ignore);
             });
         }
     }
@@ -213,7 +216,7 @@ impl Renderer {
     fn filter_meshes(nodes: &[SharedRef<Node>]) -> Vec<(&Mesh, &SharedRef<Node>)> {
         nodes
             .iter()
-            .filter_map(|node| node.borrow().mesh().map(|mesh| (mesh, node)))
+            .filter_map(|node| node.as_ref().borrow().mesh().map(|mesh| (mesh, node)))
             .collect()
     }
 }

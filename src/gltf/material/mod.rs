@@ -5,7 +5,7 @@ use crate::{
     base::color,
     core::{
         material::{GenericMaterial, TextureRef},
-        program::{Program, UpdateProgramUniforms},
+        program::{Program, UpdateProgramUniforms, UpdateUniform},
         texture::TextureUnit,
     },
 };

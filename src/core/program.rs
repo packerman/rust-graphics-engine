@@ -187,6 +187,10 @@ impl Program {
         self.uniforms.get(name)
     }
 
+    pub fn has_uniform(&self, name: &str) -> bool {
+        self.uniforms.contains_key(name)
+    }
+
     pub fn get_attribute_location(&self, name: &str) -> Option<&u32> {
         self.attributes.get(name)
     }

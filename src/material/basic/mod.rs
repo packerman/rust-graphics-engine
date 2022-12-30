@@ -132,6 +132,15 @@ pub struct SurfaceMaterial {
     pub double_side: bool,
 }
 
+impl Default for SurfaceMaterial {
+    fn default() -> Self {
+        Self {
+            basic: BasicMaterial::default(),
+            double_side: false,
+        }
+    }
+}
+
 impl UpdateProgramUniforms for SurfaceMaterial {
     fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
         self.basic.update_program_uniforms(context, program);

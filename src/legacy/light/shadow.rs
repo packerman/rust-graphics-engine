@@ -5,17 +5,26 @@ use glm::{Mat4, Vec3};
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::{math::resolution::Resolution, util::level::Level},
+    base::{
+        convert::FromWithContext,
+        math::resolution::Resolution,
+        util::{
+            level::Level,
+            shared_ref::{self, SharedRef},
+        },
+    },
     core::{
         camera::{Camera, Orthographic},
         material::Material,
         node::Node,
-        program::{Program, UpdateUniform},
+        program::{self, Program, UpdateUniform},
         texture::TextureUnit,
     },
     legacy::{render_target::RenderTarget, texture::Sampler2D},
-    material,
+    material::depth::DepthMaterial,
 };
+
+use super::Light;
 
 #[derive(Debug, Clone, Copy)]
 pub struct CameraBounds {
@@ -64,13 +73,13 @@ impl Default for ShadowOptions {
 
 #[derive(Debug, Clone)]
 pub struct Shadow {
-    light_source: Rc<Node>,
+    light_source: Light,
     resolution: Resolution,
     options: ShadowOptions,
-    camera: Rc<Node>,
+    camera: SharedRef<Node>,
     render_target: RenderTarget,
     texture_unit: TextureUnit,
-    material: Rc<Material>,
+    material: Material,
 }
 
 impl Shadow {
@@ -83,19 +92,18 @@ impl Shadow {
 
     pub fn initialize(
         context: &WebGl2RenderingContext,
-        light_source: Rc<Node>,
+        light_source: Light,
         resolution: Resolution,
         texture_unit: TextureUnit,
         options: ShadowOptions,
     ) -> Result<Self> {
-        assert!(Self::is_directional_light(&light_source));
-        let camera = Node::new_camera(Camera::new_ortographic(options.camera_bounds.into()));
-        light_source.add_child(&camera);
-
+        assert!(light_source.is_directional());
+        let camera = Node::with_camera(shared_ref::strong(Camera::from(Orthographic::from(
+            options.camera_bounds,
+        ))));
+        light_source.add_child(Rc::clone(&camera));
         let render_target = RenderTarget::initialize(context, resolution)?;
-
-        let material = material::depth::create(context)?;
-
+        let material = Material::from_with_context(context, shared_ref::strong(DepthMaterial))?;
         Ok(Self {
             light_source,
             resolution,
@@ -107,15 +115,16 @@ impl Shadow {
         })
     }
 
-    pub fn update(&self) {
-        self.camera.update();
-        if let Some(camera) = self.camera.as_camera() {
-            let camera = camera.borrow();
-            self.material.set_view_matrix(*camera.view_matrix());
-            self.material
-                .set_projection_matrix(camera.projection_matrix());
-        }
-    }
+    // TODO check whether this is needed somehow
+    // pub fn update(&self) {
+    //     self.camera.update();
+    //     if let Some(camera) = self.camera.as_camera() {
+    //         let camera = camera.borrow();
+    //         self.material.set_view_matrix(*camera.view_matrix());
+    //         self.material
+    //             .set_projection_matrix(camera.projection_matrix());
+    //     }
+    // }
 
     pub fn bind(&self, context: &WebGl2RenderingContext) {
         self.render_target.bind(context);
@@ -127,23 +136,22 @@ impl Shadow {
     }
 
     fn light_direction(&self) -> Vec3 {
-        self.light_source
-            .as_light()
-            .and_then(|light| light.borrow().as_directional().copied())
-            .unwrap()
+        self.light_source.as_directional().copied().unwrap()
     }
 
     fn projection_matrix(&self) -> Mat4 {
         self.camera
-            .as_camera()
+            .borrow()
+            .camera()
             .map(|camera| camera.borrow().projection_matrix())
             .unwrap()
     }
 
     fn view_matrix(&self) -> Mat4 {
         self.camera
-            .as_camera()
-            .map(|camera| *camera.borrow().view_matrix())
+            .borrow()
+            .camera()
+            .map(|camera| camera.borrow().view_matrix())
             .unwrap()
     }
 
@@ -158,11 +166,6 @@ impl Shadow {
     fn bias(&self) -> f32 {
         self.options.bias
     }
-
-    fn is_directional_light(node: &Node) -> bool {
-        node.as_light()
-            .map_or(false, |light| light.borrow().is_directional())
-    }
 }
 
 impl UpdateUniform for Shadow {
@@ -173,35 +176,35 @@ impl UpdateUniform for Shadow {
         program: &Program,
         level: Level,
     ) {
-        todo!()
+        self.light_direction().update_uniform(
+            context,
+            &program::join_name(name, Self::LIGHT_DIRECTION_MEMBER),
+            program,
+        );
+        self.projection_matrix().update_uniform(
+            context,
+            &program::join_name(name, Self::PROJECTION_MATRIX_MEMBER),
+            program,
+        );
+        self.view_matrix().update_uniform(
+            context,
+            &program::join_name(name, Self::VIEW_MATRIX_MEMBER),
+            program,
+        );
+        self.get_sampler().update_uniform(
+            context,
+            &program::join_name(name, Self::DEPTH_TEXTURE_MEMBER),
+            program,
+        );
+        self.strength().update_uniform(
+            context,
+            &program::join_name(name, Self::STRENGTH_MEMBER),
+            program,
+        );
+        self.bias().update_uniform(
+            context,
+            &program::join_name(name, Self::BIAS_MEMBER),
+            program,
+        );
     }
 }
-
-// TODO
-// impl CreateDataFromValue for Shadow {
-//     fn create_data(&self) -> Data {
-//         Data::from([
-//             (Self::LIGHT_DIRECTION_MEMBER, self.light_direction().into()),
-//             (
-//                 Self::PROJECTION_MATRIX_MEMBER,
-//                 self.projection_matrix().into(),
-//             ),
-//             (Self::VIEW_MATRIX_MEMBER, self.view_matrix().into()),
-//             (Self::DEPTH_TEXTURE_MEMBER, self.get_sampler().into()),
-//             (Self::STRENGTH_MEMBER, self.strength().into()),
-//             (Self::BIAS_MEMBER, self.bias().into()),
-//         ])
-//     }
-// }
-
-// impl UpdateUniform for Shadow {
-//     fn update_uniform(&self, uniform: &Uniform) {
-//         if let Some(uniform) = uniform.as_struct() {
-//             uniform.set_vec3_member(Self::LIGHT_DIRECTION_MEMBER, self.light_direction());
-//             uniform.set_mat4_member(Self::PROJECTION_MATRIX_MEMBER, self.projection_matrix());
-//             uniform.set_mat4_member(Self::VIEW_MATRIX_MEMBER, self.view_matrix());
-//             uniform.set_float_member(Self::STRENGTH_MEMBER, self.strength());
-//             uniform.set_float_member(Self::BIAS_MEMBER, self.bias());
-//         }
-//     }
-// }

@@ -35,6 +35,10 @@ impl Texture {
         Self::initialize(context, Rc::default(), image)
     }
 
+    pub fn texture(&self) -> &WebGlTexture {
+        &self.texture
+    }
+
     pub fn bind(&self, context: &WebGl2RenderingContext) {
         context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, Some(&self.texture));
     }

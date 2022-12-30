@@ -5,8 +5,8 @@ use crate::core::{
     program::{Program, UpdateProgramUniforms},
 };
 
-#[derive(Debug)]
-struct DepthMaterial;
+#[derive(Debug, Clone)]
+pub struct DepthMaterial;
 
 impl UpdateProgramUniforms for DepthMaterial {
     fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {}

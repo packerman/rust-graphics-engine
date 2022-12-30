@@ -3,7 +3,10 @@ use std::rc::Rc;
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::base::{convert::FromWithContext, util::shared_ref::SharedRef};
+use crate::base::{
+    convert::FromWithContext,
+    util::{level::Level, shared_ref::SharedRef},
+};
 
 use super::{
     program::{Program, UpdateProgramUniforms, UpdateUniform},
@@ -77,15 +80,28 @@ impl Material {
         &self.program
     }
 
-    pub fn update_uniform<T>(&self, context: &WebGl2RenderingContext, name: &str, value: T)
-    where
+    pub fn use_program(&self, context: &WebGl2RenderingContext) {
+        self.program.use_program(context)
+    }
+
+    pub fn update_uniform<T>(
+        &self,
+        context: &WebGl2RenderingContext,
+        name: &str,
+        value: &T,
+        level: Level,
+    ) where
         T: UpdateUniform,
     {
-        value.update_uniform(context, name, &self.program);
+        value.update_uniform_with_level(context, name, &self.program, level);
     }
 
     pub fn preferred_mode(&self) -> Option<u32> {
         self.generic_material.borrow().preferred_mode()
+    }
+
+    pub fn has_uniform(&self, name: &str) -> bool {
+        self.program.has_uniform(name)
     }
 
     fn update_setting(context: &WebGl2RenderingContext, setting: u32, value: bool) {

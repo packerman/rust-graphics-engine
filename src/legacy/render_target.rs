@@ -84,8 +84,10 @@ impl RenderTarget {
                 Some(WebGl2RenderingContext::LINEAR as i32),
                 WebGl2RenderingContext::CLAMP_TO_EDGE as i32,
                 WebGl2RenderingContext::CLAMP_TO_EDGE as i32,
-            ),
-            Image::new_buffer(resolution),
+            )?
+            .into(),
+            Image::from(resolution).into(),
         )
+        .map(Rc::new)
     }
 }

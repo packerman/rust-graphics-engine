@@ -4,7 +4,10 @@ use anyhow::{anyhow, Result};
 use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
-use crate::base::{gl, util::validate};
+use crate::base::{
+    gl,
+    util::{level::Level, validate},
+};
 
 use super::{
     accessor::Accessor,
@@ -37,12 +40,17 @@ impl Mesh {
         Ok(Self::new(vec![primitive], None))
     }
 
-    pub fn update_uniform<T>(&self, context: &WebGl2RenderingContext, name: &str, value: T)
-    where
+    pub fn update_uniform<T>(
+        &self,
+        context: &WebGl2RenderingContext,
+        name: &str,
+        value: &T,
+        level: Level,
+    ) where
         T: UpdateUniform,
     {
         for primitive in &self.primitives {
-            primitive.update_uniform(context, name, value);
+            primitive.update_uniform(context, name, value, level);
         }
     }
 
@@ -61,6 +69,26 @@ impl Mesh {
                 global_uniform_updater,
             );
         }
+    }
+
+    pub fn render_triangle_based(
+        &self,
+        context: &WebGl2RenderingContext,
+        node: &Node,
+        global_uniform_updater: &dyn UpdateProgramUniforms,
+        material: &Material,
+    ) {
+        for primitive in self.primitives.iter() {
+            if primitive.is_triangle_based() {
+                primitive.render_with_material(context, node, global_uniform_updater, material)
+            }
+        }
+    }
+
+    pub fn has_uniform(&self, name: &str) -> bool {
+        self.primitives
+            .iter()
+            .any(|primitive| primitive.has_uniform(name))
     }
 }
 
@@ -139,11 +167,20 @@ impl Primitive {
         self.attributes.contains_key(name)
     }
 
-    pub fn update_uniform<T>(&self, context: &WebGl2RenderingContext, name: &str, value: T)
-    where
+    pub fn has_uniform(&self, name: &str) -> bool {
+        self.material.has_uniform(name)
+    }
+
+    pub fn update_uniform<T>(
+        &self,
+        context: &WebGl2RenderingContext,
+        name: &str,
+        value: &T,
+        level: Level,
+    ) where
         T: UpdateUniform,
     {
-        self.material.update_uniform(context, name, value);
+        self.material.update_uniform(context, name, value, level);
     }
 
     fn render(
@@ -153,11 +190,37 @@ impl Primitive {
         view_projection_matrix: &Mat4,
         global_uniform_updater: &dyn UpdateProgramUniforms,
     ) {
-        let program = self.material.program();
-        program.use_program(context);
+        self.material.use_program(context);
+        self.material.update_uniform(
+            context,
+            "u_ViewProjectionMatrix",
+            view_projection_matrix,
+            Level::Ignore,
+        );
+        self.render_generic(context, node, global_uniform_updater, &self.material)
+    }
+
+    fn render_with_material(
+        &self,
+        context: &WebGl2RenderingContext,
+        node: &Node,
+        global_uniform_updater: &dyn UpdateProgramUniforms,
+        material: &Material,
+    ) {
+        material.use_program(context);
+        self.render_generic(context, node, global_uniform_updater, material)
+    }
+
+    fn render_generic(
+        &self,
+        context: &WebGl2RenderingContext,
+        node: &Node,
+        global_uniform_updater: &dyn UpdateProgramUniforms,
+        material: &Material,
+    ) {
+        let program = material.program();
         global_uniform_updater.update_program_uniforms(context, program);
-        self.material.update(context);
-        view_projection_matrix.update_uniform(context, "u_ViewProjectionMatrix", program);
+        material.update(context);
         node.global_transform()
             .update_uniform(context, "u_ModelMatrix", program);
         node.normal_transform()

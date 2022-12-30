@@ -7,7 +7,7 @@ use glm::Vec3;
 use crate::{
     base::{
         color::{self, Color},
-        util::level::Level,
+        util::{level::Level, shared_ref::SharedRef},
     },
     core::{
         node::Node,
@@ -43,11 +43,12 @@ impl LightType {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Light {
     pub light_type: Option<LightType>,
     pub color: Color,
     pub attenuation: Attenuation,
+    pub node: SharedRef<Node>,
 }
 
 impl Light {
@@ -61,43 +62,45 @@ impl Light {
     const POSITION_MEMBER: &str = "position";
     const ATTENUATION_MEMBER: &str = "attenuation";
 
-    pub fn directional(color: Color, direction: Vec3) -> RefCell<Self> {
+    pub fn directional(node: SharedRef<Node>, color: Color, direction: Vec3) -> RefCell<Self> {
         RefCell::new(Self {
             light_type: LightType::directional(direction).into(),
             color,
-            ..Default::default()
+            node,
+            attenuation: Attenuation::default(),
         })
     }
 
-    pub fn point(color: Color, position: Vec3) -> RefCell<Self> {
+    pub fn point(node: SharedRef<Node>, color: Color, position: Vec3) -> RefCell<Self> {
         RefCell::new(Self {
             light_type: LightType::point(position).into(),
             color,
+            node,
             attenuation: Attenuation(1.0, 0.0, 0.1),
         })
     }
 
-    pub fn update_from_node(&mut self, node: &Node) {
+    pub fn update_from_node(&mut self) {
         if let Some(light_type) = &mut self.light_type {
             match light_type {
                 LightType::Directional { direction } => {
-                    *direction = node.direction();
+                    *direction = self.node.borrow().direction();
                 }
                 LightType::Point { position } => {
-                    *position = node.position();
+                    *position = self.node.borrow().position();
                 }
             }
         }
     }
 
-    pub fn update_node(&self, node: &Node) {
+    pub fn update_node(&self) {
         if let Some(light_type) = &self.light_type {
             match light_type {
                 LightType::Directional { direction } => {
-                    node.set_direction(direction);
+                    self.node.borrow().set_direction(direction);
                 }
                 LightType::Point { position } => {
-                    node.set_position(position);
+                    self.node.borrow().set_position(position);
                 }
             }
         }
@@ -113,15 +116,9 @@ impl Light {
             .as_ref()
             .and_then(|light_type| light_type.as_directional())
     }
-}
 
-impl Default for Light {
-    fn default() -> Self {
-        Self {
-            light_type: None,
-            color: color::white(),
-            attenuation: Default::default(),
-        }
+    pub fn add_child(&self, child: SharedRef<Node>) {
+        self.node.borrow().add_child(child)
     }
 }
 
@@ -133,7 +130,7 @@ impl UpdateUniform for Light {
         program: &Program,
         level: Level,
     ) {
-        if let Some(light_type) = self.light_type {
+        if let Some(light_type) = &self.light_type {
             match light_type {
                 LightType::Directional { direction } => {
                     Self::DIRECTIONAL_TYPE.update_uniform(
@@ -153,34 +150,43 @@ impl UpdateUniform for Light {
                         &program::join_name(name, Self::LIGHT_TYPE_MEMBER),
                         program,
                     );
+                    position.update_uniform(
+                        context,
+                        &program::join_name(name, Self::POSITION_MEMBER),
+                        program,
+                    )
                 }
             }
+            self.color.update_uniform(
+                context,
+                &program::join_name(name, Self::COLOR_MEMBER),
+                program,
+            );
+            Vec3::from(self.attenuation).update_uniform(
+                context,
+                &program::join_name(name, Self::ATTENUATION_MEMBER),
+                program,
+            );
+        } else {
+            Self::NONE_TYPE.update_uniform(
+                context,
+                &program::join_name(name, Self::LIGHT_TYPE_MEMBER),
+                program,
+            );
         }
     }
 }
 
-// impl UpdateUniform for Light {
-//     fn update_uniform(&self, uniform: &Uniform) {
-//         if let Some(uniform) = uniform.as_struct() {
-//             if let Some(light_type) = self.light_type {
-//                 match light_type {
-//                     LightType::Directional { direction } => {
-//                         uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::DIRECTIONAL_TYPE);
-//                         uniform.set_vec3_member(Self::DIRECTION_MEMBER, direction);
-//                     }
-//                     LightType::Point { position } => {
-//                         uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::POINT_TYPE);
-//                         uniform.set_vec3_member(Self::POSITION_MEMBER, position);
-//                     }
-//                 }
-//                 uniform.set_vec4_member(Self::COLOR_MEMBER, self.color);
-//                 uniform.set_vec3_member(Self::ATTENUATION_MEMBER, self.attenuation.into());
-//             } else {
-//                 uniform.set_int_member(Self::LIGHT_TYPE_MEMBER, Self::NONE_TYPE);
-//             }
-//         }
-//     }
-// }
+impl Default for Light {
+    fn default() -> Self {
+        Self {
+            light_type: None,
+            color: color::white(),
+            attenuation: Attenuation::default(),
+            node: Node::empty(),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct Attenuation(f32, f32, f32);

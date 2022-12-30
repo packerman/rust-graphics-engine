@@ -5,12 +5,15 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use glm::{Mat4, Vec3};
+use glm::{Mat3, Mat4, Vec3};
 use web_sys::WebGl2RenderingContext;
 
-use crate::base::util::{
-    cache::Cached,
-    shared_ref::{self, SharedRef, WeakRef},
+use crate::base::{
+    math::{angle::Angle, matrix},
+    util::{
+        cache::Cached,
+        shared_ref::{self, SharedRef, WeakRef},
+    },
 };
 
 use super::{camera::Camera, mesh::Mesh, program::UpdateProgramUniforms};
@@ -141,11 +144,50 @@ impl Node {
         self.reset_transforms();
     }
 
+    pub fn world_position(&self) -> Vec3 {
+        matrix::get_position(&self.global_transform())
+    }
+
+    pub fn position(&self) -> Vec3 {
+        let transform = self.local_transform;
+        glm::vec3(transform[(0, 3)], transform[(1, 3)], transform[(2, 3)])
+    }
+
     pub fn set_position(&mut self, position: &Vec3) {
         self.local_transform[(0, 3)] = position[0];
         self.local_transform[(1, 3)] = position[1];
         self.local_transform[(2, 3)] = position[2];
         self.reset_transforms();
+    }
+
+    pub fn rotate_x(&self, angle: Angle) {
+        let m = matrix::rotation_x(angle);
+        self.apply_transform(&m);
+    }
+
+    pub fn rotate_y(&self, angle: Angle) {
+        let m = matrix::rotation_y(angle);
+        self.apply_transform(&m);
+    }
+
+    pub fn look_at(&mut self, target: &Vec3) {
+        self.local_transform = matrix::look_at(&self.world_position(), target);
+        self.reset_transforms()
+    }
+
+    pub fn rotation_matrix(&self) -> Mat3 {
+        matrix::get_rotation_matrix(&self.local_transform)
+    }
+
+    pub fn direction(&self) -> Vec3 {
+        let forward = glm::vec3(0.0, 0.0, -1.0);
+        self.rotation_matrix() * forward
+    }
+
+    pub fn set_direction(&self, direction: &Vec3) {
+        let position = self.position();
+        let target_position = position + direction;
+        self.look_at(&target_position);
     }
 
     pub fn transfer_camera(&mut self, destination: &RefCell<Self>) {
