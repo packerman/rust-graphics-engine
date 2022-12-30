@@ -7,7 +7,7 @@ use crate::base::{
     gl, web,
 };
 
-use super::{camera::Camera, program::UpdateUniforms, scene::Scene};
+use super::{camera::Camera, program::UpdateProgramUniforms, scene::Scene};
 
 #[derive(Debug, Clone)]
 pub struct Properties {
@@ -25,14 +25,14 @@ impl Default for Properties {
 #[derive(Debug)]
 pub struct Renderer {
     properties: Properties,
-    global_uniform_updater: Box<dyn UpdateUniforms>,
+    global_uniform_updater: Box<dyn UpdateProgramUniforms>,
 }
 
 impl Renderer {
     pub fn initialize(
         context: &WebGl2RenderingContext,
         properties: Properties,
-        global_uniform_updater: Box<dyn UpdateUniforms>,
+        global_uniform_updater: Box<dyn UpdateProgramUniforms>,
     ) -> Self {
         context.enable(WebGl2RenderingContext::DEPTH_TEST);
         context.pixel_storei(WebGl2RenderingContext::UNPACK_FLIP_Y_WEBGL, 1);

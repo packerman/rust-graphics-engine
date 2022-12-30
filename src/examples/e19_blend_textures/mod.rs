@@ -5,23 +5,24 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
-        convert::FromWithContext,
         input::KeyState,
         web,
     },
-    core::texture::TextureUnit,
-    geometry::Rectangle,
-    legacy::{
+    core::{
         camera::Camera,
-        geometry::Geometry,
-        material::{Material, MaterialSettings},
+        material::{Material, ProgramCreator},
         mesh::Mesh,
         node::Node,
+        program::{Program, UpdateProgramUniforms},
+        texture::{Texture, TextureUnit},
+    },
+    geometry::Rectangle,
+    legacy::{
         renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData},
-        uniform::data::{Data, Sampler2D},
+        texture::Sampler2D,
     },
 };
 
@@ -46,38 +47,18 @@ impl AsyncCreator for Example {
         }
         let blend_material = Rc::new(Material::from_with_context(
             context,
-            MaterialSettings {
-                vertex_shader: include_str!("vertex.glsl"),
-                fragment_shader: include_str!("fragment.glsl"),
-                uniforms: vec![
-                    (
-                        "textureSampler1",
-                        Data::from(Sampler2D::new(
-                            Texture::initialize(
-                                context,
-                                TextureData::load_from_source("images/grid.png").await?,
-                                Default::default(),
-                            )?,
-                            TextureUnit(0),
-                        )),
-                    ),
-                    (
-                        "textureSampler2",
-                        Data::from(Sampler2D::new(
-                            Texture::initialize(
-                                context,
-                                TextureData::load_from_source("images/crate.png").await?,
-                                Default::default(),
-                            )?,
-                            TextureUnit(1),
-                        )),
-                    ),
-                    ("time", Data::from(0.0)),
-                ],
-                render_settings: vec![],
-                draw_style: WebGl2RenderingContext::TRIANGLES,
-            },
-        )?);
+            Rc::new(BlendMaterial {
+                texture_sampler_1: Sampler2D::new(
+                    Texture::fetch(context, "images/grid.png")?,
+                    TextureUnit(0),
+                ),
+                texture_sampler_2: Sampler2D::new(
+                    Texture::fetch(context, "images/crate.png")?,
+                    TextureUnit(1),
+                ),
+                time: 0.0,
+            }),
+        ));
         {
             let geometry = Rc::new(Geometry::from_with_context(
                 context,
@@ -87,7 +68,6 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 },
             )?);
-
             let mesh = Node::new_mesh(Mesh::initialize(
                 context,
                 geometry,
@@ -95,7 +75,6 @@ impl AsyncCreator for Example {
             )?);
             scene.add_child(&mesh);
         }
-
         Ok(Box::new(Example {
             renderer,
             scene,
@@ -116,6 +95,52 @@ impl Application for Example {
 
     fn render(&self, context: &WebGl2RenderingContext) {
         self.renderer.render(context, &self.scene, &self.camera)
+    }
+}
+
+#[derive(Debug, Clone)]
+struct BlendMaterial {
+    texture_sampler_1: Sampler2D,
+    texture_sampler_2: Sampler2D,
+    time: f32,
+}
+
+impl ProgramCreator for BlendMaterial {
+    fn vertex_shader(&self) -> &str {
+        include_str!("vertex.glsl")
+    }
+
+    fn fragment_shader(&self) -> &str {
+        include_str!("fragment.glsl")
+    }
+}
+
+impl UpdateProgramUniforms for BlendMaterial {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        /*
+        texture_sampler_1:
+                        Sampler2D::new(
+                            Texture::fetch(
+                                context,
+                                "images/grid.png"
+                            )?,
+                            TextureUnit(0),
+                        ),
+
+                    (
+                        "textureSampler2",
+                        Data::from(Sampler2D::new(
+                            Texture::initialize(
+                                context,
+                                TextureData::load_from_source("images/crate.png").await?,
+                                Default::default(),
+                            )?,
+                            TextureUnit(1),
+                        )),
+                    ),
+                    ("time", Data::from(0.0)),
+         */
+        todo!()
     }
 }
 

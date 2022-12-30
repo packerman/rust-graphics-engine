@@ -11,6 +11,10 @@ pub struct Geometry {
 }
 
 impl Geometry {
+    pub fn new(attributes: HashMap<String, Rc<Accessor>>) -> Self {
+        Self { attributes }
+    }
+
     pub fn create_mesh(
         &self,
         context: &WebGl2RenderingContext,
@@ -29,12 +33,12 @@ impl Geometry {
     }
 }
 
-impl<const N: usize> From<[(&str, Accessor); N]> for Geometry {
-    fn from(accessors: [(&str, Accessor); N]) -> Result<Self> {
+impl<const N: usize> From<[(&str, Rc<Accessor>); N]> for Geometry {
+    fn from(accessors: [(&str, Rc<Accessor>); N]) -> Self {
         let mut map = HashMap::new();
         for (name, accessor) in accessors {
             map.insert(String::from(name), accessor);
         }
-        Ok(Geometry::new(map))
+        Geometry::new(map)
     }
 }

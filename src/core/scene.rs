@@ -4,7 +4,7 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::base::util::shared_ref::SharedRef;
 
-use super::{camera::Camera, node::Node, program::UpdateUniforms};
+use super::{camera::Camera, node::Node, program::UpdateProgramUniforms};
 
 #[derive(Debug, Clone)]
 pub struct Scene {
@@ -16,11 +16,15 @@ impl Scene {
         Self { nodes }
     }
 
+    pub fn empty() -> Self {
+        Self::new(vec![])
+    }
+
     pub fn render(
         &self,
         context: &WebGl2RenderingContext,
         camera: &RefCell<Camera>,
-        global_uniform_updater: &dyn UpdateUniforms,
+        global_uniform_updater: &dyn UpdateProgramUniforms,
     ) {
         let projection_matrix = camera.borrow().projection_matrix();
         let view_matrix = camera.borrow().view_matrix();

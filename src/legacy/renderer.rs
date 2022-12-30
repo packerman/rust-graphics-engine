@@ -10,7 +10,7 @@ use crate::{
         util::shared_ref::SharedRef,
         web,
     },
-    core::{camera::Camera, material, mesh::Mesh, node::Node, program::UpdateUniforms},
+    core::{camera::Camera, material, mesh::Mesh, node::Node, program::UpdateProgramUniforms},
 };
 
 use super::{
@@ -43,7 +43,7 @@ pub struct Renderer {
     light_count: usize,
     shadow: Option<Shadow>,
     clear_color: Color,
-    global_uniform_updater: Box<dyn UpdateUniforms>,
+    global_uniform_updater: Box<dyn UpdateProgramUniforms>,
 }
 
 impl Renderer {

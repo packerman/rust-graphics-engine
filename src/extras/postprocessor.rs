@@ -4,11 +4,19 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::math::resolution::Resolution,
-    core::texture::TextureUnit,
+    core::{
+        camera::Camera,
+        material::Material,
+        mesh::{Mesh, Primitive},
+        node::Node,
+        texture::{Texture, TextureUnit},
+    },
     legacy::{
         render_target::RenderTarget,
         renderer::{self, Renderer},
+        texture::Sampler2D,
     },
 };
 
@@ -103,8 +111,8 @@ fn create_geometry(context: &WebGl2RenderingContext) -> Result<Geometry> {
     Geometry::from_with_context(
         context,
         [
-            ("vertexPosition", AttributeData::from(&position_data)),
-            ("vertexUV", AttributeData::from(&uv_data)),
+            (Primitive::POSITION_ATTRIBUTE, &position_data),
+            (Primitive::TEXCOORD_0_ATTRIBUTE, &uv_data),
         ],
     )
 }

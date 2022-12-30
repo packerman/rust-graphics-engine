@@ -4,7 +4,10 @@ use web_sys::{WebGl2RenderingContext, WebGlUniformLocation};
 
 use crate::{
     base::math::resolution::Resolution,
-    core::texture::{Texture, TextureUnit},
+    core::{
+        program::UpdateUniformValue,
+        texture::{Texture, TextureUnit},
+    },
 };
 
 #[derive(Debug, Clone)]
@@ -18,7 +21,13 @@ impl Sampler2D {
         Self { texture, unit }
     }
 
-    pub fn upload_data(
+    pub fn resolution(&self) -> Resolution {
+        self.texture.resolution()
+    }
+}
+
+impl UpdateUniformValue for Sampler2D {
+    fn update_uniform_value(
         &self,
         context: &WebGl2RenderingContext,
         location: Option<&WebGlUniformLocation>,
@@ -28,8 +37,8 @@ impl Sampler2D {
         self.unit.update_uniform_value(context, location);
     }
 
-    pub fn resolution(&self) -> Resolution {
-        self.texture.resolution()
+    fn value_type(&self) -> u32 {
+        WebGl2RenderingContext::SAMPLER_2D
     }
 }
 

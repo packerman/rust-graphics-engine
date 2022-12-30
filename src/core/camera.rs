@@ -53,8 +53,10 @@ impl Camera {
     ) -> Self {
         Self::new(
             CameraType::Orthographic(Orthographic {
-                x_mag,
-                y_mag,
+                x_left: -x_mag,
+                x_right: x_mag,
+                y_bottom: -y_mag,
+                y_top: y_mag,
                 z_far,
                 z_near,
             }),
@@ -81,10 +83,10 @@ impl Camera {
                 }
             }
             CameraType::Orthographic(orthographic) => glm::ortho(
-                -orthographic.x_mag,
-                orthographic.x_mag,
-                -orthographic.y_mag,
-                orthographic.y_mag,
+                orthographic.x_left,
+                orthographic.x_right,
+                orthographic.y_bottom,
+                orthographic.y_top,
                 orthographic.z_near,
                 orthographic.z_far,
             ),
@@ -136,6 +138,18 @@ impl Default for Camera {
     }
 }
 
+impl From<Perspective> for Camera {
+    fn from(value: Perspective) -> Self {
+        Self::new(CameraType::Perspective(value), None)
+    }
+}
+
+impl From<Orthographic> for Camera {
+    fn from(value: Orthographic) -> Self {
+        Self::new(CameraType::Orthographic(value), None)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum CameraType {
     Orthographic(Orthographic),
@@ -144,8 +158,10 @@ pub enum CameraType {
 
 #[derive(Debug, Clone)]
 pub struct Orthographic {
-    pub x_mag: f32,
-    pub y_mag: f32,
+    pub x_left: f32,
+    pub x_right: f32,
+    pub y_bottom: f32,
+    pub y_top: f32,
     pub z_far: f32,
     pub z_near: f32,
 }
@@ -153,8 +169,10 @@ pub struct Orthographic {
 impl Default for Orthographic {
     fn default() -> Self {
         Self {
-            x_mag: 1.0,
-            y_mag: 1.0,
+            x_left: -1.0,
+            x_right: 1.0,
+            y_bottom: -1.0,
+            y_top: 1.0,
             z_far: 1.0,
             z_near: -1.0,
         }

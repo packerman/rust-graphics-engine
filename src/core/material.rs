@@ -1,14 +1,16 @@
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
+use crate::base::convert::FromWithContext;
+
 use super::{
-    program::{Program, UpdateUniforms},
+    program::{Program, UpdateProgramUniforms, UpdateUniform},
     texture::Texture,
 };
 
-pub trait MaterialLifecycle: UpdateUniforms {
+pub trait ProgramCreator: UpdateProgramUniforms {
     fn vertex_shader(&self) -> &str;
 
     fn fragment_shader(&self) -> &str;
@@ -20,7 +22,7 @@ pub struct Material {
     name: Option<String>,
     double_sided: bool,
     program: Program,
-    uniform_updater: Rc<dyn MaterialLifecycle>,
+    uniform_updater: Rc<RefCell<dyn ProgramCreator>>,
     alpha_mode: AlphaMode,
 }
 
@@ -29,7 +31,7 @@ impl Material {
         context: &WebGl2RenderingContext,
         name: Option<String>,
         double_sided: bool,
-        uniform_updater: Rc<dyn MaterialLifecycle>,
+        uniform_updater: Rc<dyn ProgramCreator>,
         alpha_mode: AlphaMode,
     ) -> Result<Self> {
         let program = Program::initialize(
@@ -48,9 +50,10 @@ impl Material {
 
     pub fn update(&self, context: &WebGl2RenderingContext) {
         self.update_settings(context);
-        self.alpha_mode.update_uniforms(context, self.program());
+        self.alpha_mode
+            .update_program_uniforms(context, self.program());
         self.uniform_updater
-            .update_uniforms(context, self.program());
+            .update_program_uniforms(context, self.program());
     }
 
     pub fn update_settings(&self, context: &WebGl2RenderingContext) {
@@ -71,6 +74,15 @@ impl Material {
         } else {
             context.disable(setting);
         }
+    }
+}
+
+impl FromWithContext<WebGl2RenderingContext, Rc<dyn ProgramCreator>> for Material {
+    fn from_with_context(
+        context: &WebGl2RenderingContext,
+        value: Rc<dyn ProgramCreator>,
+    ) -> Result<Self> {
+        Self::initialize(context, None, false, value, AlphaMode::default())
     }
 }
 
@@ -109,8 +121,8 @@ impl Default for AlphaMode {
     }
 }
 
-impl UpdateUniforms for AlphaMode {
-    fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+impl UpdateProgramUniforms for AlphaMode {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
         match self {
             Self::Opaque => {
                 context.disable(WebGl2RenderingContext::BLEND);
@@ -139,10 +151,10 @@ impl UpdateUniforms for AlphaMode {
 #[derive(Debug, Clone)]
 struct DefaultGlobalUniformUpdater;
 
-impl UpdateUniforms for DefaultGlobalUniformUpdater {
-    fn update_uniforms(&self, _context: &WebGl2RenderingContext, _program: &Program) {}
+impl UpdateProgramUniforms for DefaultGlobalUniformUpdater {
+    fn update_program_uniforms(&self, _context: &WebGl2RenderingContext, _program: &Program) {}
 }
 
-pub fn default_uniform_updater() -> Box<dyn UpdateUniforms> {
+pub fn default_uniform_updater() -> Box<dyn UpdateProgramUniforms> {
     Box::new(DefaultGlobalUniformUpdater)
 }

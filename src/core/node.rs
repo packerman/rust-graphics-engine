@@ -4,7 +4,7 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use glm::Mat4;
+use glm::{Mat4, Vec3};
 use web_sys::WebGl2RenderingContext;
 
 use crate::base::util::{
@@ -12,7 +12,7 @@ use crate::base::util::{
     shared_ref::{self, SharedRef, WeakRef},
 };
 
-use super::{camera::Camera, mesh::Mesh, program::UpdateUniforms};
+use super::{camera::Camera, mesh::Mesh, program::UpdateProgramUniforms};
 
 #[derive(Debug, Clone)]
 pub struct Node {
@@ -60,7 +60,11 @@ impl Node {
         Self::new(glm::identity(), None, camera.into(), Some(name.into()))
     }
 
-    pub fn with_mesh(mesh: Mesh) -> SharedRef<Self> {
+    pub fn with_camera(camera: SharedRef<Camera>) -> SharedRef<Self> {
+        Self::new(glm::identity(), None, camera.into(), None)
+    }
+
+    pub fn with_mesh(mesh: Rc<Mesh>) -> SharedRef<Self> {
         Self::new(glm::identity(), Some(mesh), None, None)
     }
 
@@ -68,7 +72,7 @@ impl Node {
         &self,
         context: &WebGl2RenderingContext,
         view_projection_matrix: &Mat4,
-        global_uniform_updater: &dyn UpdateUniforms,
+        global_uniform_updater: &dyn UpdateProgramUniforms,
     ) {
         if let Some(mesh) = &self.mesh {
             mesh.render(
@@ -129,7 +133,14 @@ impl Node {
 
     pub fn apply_transform(&mut self, transform: &Mat4) {
         self.local_transform *= transform;
-        self.reset_transforms()
+        self.reset_transforms();
+    }
+
+    pub fn set_position(&mut self, position: &Vec3) {
+        self.local_transform[(0, 3)] = position[0];
+        self.local_transform[(1, 3)] = position[1];
+        self.local_transform[(2, 3)] = position[2];
+        self.reset_transforms();
     }
 
     pub fn transfer_camera(&mut self, destination: &RefCell<Self>) {
@@ -144,7 +155,7 @@ impl Node {
     }
 
     pub fn camera(&self) -> Option<&RefCell<Camera>> {
-        self.camera.as_ref()
+        self.camera.as_deref()
     }
 
     pub fn max_by_key<K>(nodes: &[SharedRef<Node>], key: K) -> usize

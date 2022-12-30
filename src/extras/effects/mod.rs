@@ -1,10 +1,15 @@
+use std::rc::Rc;
+
 use anyhow::Result;
 use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
     base::{color::Color, math::resolution::Resolution},
-    core::material::Material,
+    core::{
+        material::{Material, ProgramCreator},
+        program::{Program, UpdateProgramUniforms},
+    },
     legacy::texture::Sampler2D,
 };
 
@@ -17,14 +22,38 @@ fn create_basic(
 ) -> Result<Effect> {
     Material::from_with_context(
         context,
-        MaterialSettings {
-            vertex_shader: include_str!("effect.vert"),
+        Rc::new(BaseEffect {
+            texture_0: sampler_2d,
             fragment_shader,
-            uniforms: vec![("texture0", Data::from(sampler_2d))],
-            render_settings: vec![],
-            draw_style: WebGl2RenderingContext::TRIANGLES,
-        },
+        }), // TODO
+            // MaterialSettings {
+            //     vertex_shader: include_str!("effect.vert"),
+            //     fragment_shader,
+            //     uniforms: vec![("texture0", Data::from(sampler_2d))],
+            //     render_settings: vec![],
+            //     draw_style: WebGl2RenderingContext::TRIANGLES,
+            // },
     )
+}
+
+#[derive(Debug, Clone)]
+struct BaseEffect<'a> {
+    texture_0: Sampler2D,
+    fragment_shader: &'a str,
+}
+
+impl ProgramCreator for BaseEffect<'_> {
+    fn vertex_shader(&self) -> &str {
+        include_str!("effect.vert")
+    }
+
+    fn fragment_shader(&self) -> &str {
+        self.fragment_shader
+    }
+}
+
+impl UpdateProgramUniforms for BaseEffect<'_> {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {}
 }
 
 pub fn tint(
@@ -100,11 +129,7 @@ pub fn horizontal_blur(
     blur: Blur,
 ) -> Result<Effect> {
     let mut effect = create_basic(context, include_str!("horizontal_blur.frag"), sampler_2d)?;
-    effect.add_uniform(
-        context,
-        "textureSize",
-        Data::from(Vec2::from(blur.texture_size)),
-    );
+    effect.add_uniform(context, "textureSize", Vec2::from(blur.texture_size));
     effect.add_uniform(context, "blurRadius", blur.blur_radius);
     Ok(effect)
 }
@@ -115,11 +140,7 @@ pub fn vertical_blur(
     blur: Blur,
 ) -> Result<Effect> {
     let mut effect = create_basic(context, include_str!("vertical_blur.frag"), sampler_2d)?;
-    effect.add_uniform(
-        context,
-        "textureSize",
-        Data::from(Vec2::from(blur.texture_size)),
-    );
+    effect.add_uniform(context, "textureSize", Vec2::from(blur.texture_size));
     effect.add_uniform(context, "blurRadius", blur.blur_radius);
     Ok(effect)
 }
@@ -150,11 +171,7 @@ pub fn additive_blend(
         original_texture,
     )?;
     effect.add_uniform(context, "blendTexture", blend_texture);
-    effect.add_uniform(
-        context,
-        "originalStrength",
-        Data::from(blend.original_strength),
-    );
+    effect.add_uniform(context, "originalStrength", blend.original_strength);
     effect.add_uniform(context, "blendStrength", blend.blend_strength);
     Ok(effect)
 }

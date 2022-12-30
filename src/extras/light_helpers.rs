@@ -4,11 +4,11 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::{color, convert::FromWithContext},
+    api::geometry::Geometry,
+    base::color,
+    core::{material::Material, mesh::Mesh},
     geometry::parametric::Sphere,
-    legacy::{
-        attribute::AttributeData, geometry::Geometry, light::Light, material::Material, mesh::Mesh,
-    },
+    legacy::light::Light,
     material::basic::{BasicMaterial, SurfaceMaterial},
 };
 
@@ -45,13 +45,12 @@ impl DirectionalLightHelper {
         let geometry = mesh.geometry_mut().expect(
             "DirectionalLightHelper::create_mesh: expected only one reference to the geometry",
         );
-        geometry.attribute_mut("vertexPosition")?.concat_data_mut(
-            context,
-            &AttributeData::from(&[[0.0, 0.0, 0.0, 1.0], [0.0, 0.0, -10.0, 1.0]]),
-        )?;
+        geometry
+            .attribute_mut("vertexPosition")?
+            .concat_data_mut(context, &[[0.0, 0.0, 0.0, 1.0], [0.0, 0.0, -10.0, 1.0]])?;
         geometry
             .attribute_mut("vertexColor")?
-            .concat_data_mut(context, &AttributeData::from(&[color, color]))?;
+            .concat_data_mut(context, &[color, color])?;
         Ok(mesh)
     }
 }

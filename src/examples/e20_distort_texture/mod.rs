@@ -5,23 +5,25 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
         convert::FromWithContext,
         input::KeyState,
         web,
     },
-    core::texture::TextureUnit,
-    geometry::Rectangle,
-    legacy::{
+    core::{
         camera::Camera,
-        geometry::Geometry,
-        material::{Material, MaterialSettings},
+        material::{Material, ProgramCreator},
         mesh::Mesh,
         node::Node,
+        program::UpdateProgramUniforms,
+        texture::{Texture, TextureUnit},
+    },
+    geometry::Rectangle,
+    legacy::{
         renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData},
-        uniform::data::{Data, Sampler2D},
+        texture::Sampler2D,
     },
 };
 
@@ -46,37 +48,41 @@ impl AsyncCreator for Example {
         }
         let distort_material = Rc::new(Material::from_with_context(
             context,
-            MaterialSettings {
-                vertex_shader: include_str!("vertex.glsl"),
-                fragment_shader: include_str!("fragment.glsl"),
-                uniforms: vec![
-                    (
-                        "noise",
-                        Data::from(Sampler2D::new(
-                            Texture::initialize(
-                                context,
-                                TextureData::load_from_source("images/noise.png").await?,
-                                Default::default(),
-                            )?,
-                            TextureUnit(0),
-                        )),
-                    ),
-                    (
-                        "image",
-                        Data::from(Sampler2D::new(
-                            Texture::initialize(
-                                context,
-                                TextureData::load_from_source("images/grid.png").await?,
-                                Default::default(),
-                            )?,
-                            TextureUnit(1),
-                        )),
-                    ),
-                    ("time", Data::from(0.0)),
-                ],
-                render_settings: vec![],
-                draw_style: WebGl2RenderingContext::TRIANGLES,
-            },
+            DistortMaterial {
+                noise: Sampler2D::new(Texture::fetch(context, "images/noise.png")?, TextureUnit(0)),
+                image: Sampler2D::new(Texture::fetch(context, "images/grid.png")?, TextureUnit(1)),
+                time: 0.0, // TODO
+            }, // MaterialSettings {
+               //     vertex_shader: include_str!("vertex.glsl"),
+               //     fragment_shader: include_str!("fragment.glsl"),
+               //     uniforms: vec![
+               //         (
+               //             "noise",
+               //             Data::from(Sampler2D::new(
+               //                 Texture::initialize(
+               //                     context,
+               //                     TextureData::load_from_source("images/noise.png").await?,
+               //                     Default::default(),
+               //                 )?,
+               //                 TextureUnit(0),
+               //             )),
+               //         ),
+               //         (
+               //             "image",
+               //             Data::from(Sampler2D::new(
+               //                 Texture::initialize(
+               //                     context,
+               //                     TextureData::load_from_source("images/grid.png").await?,
+               //                     Default::default(),
+               //                 )?,
+               //                 TextureUnit(1),
+               //             )),
+               //         ),
+               //         ("time", Data::from(0.0)),
+               //     ],
+               //     render_settings: vec![],
+               //     draw_style: WebGl2RenderingContext::TRIANGLES,
+               // },
         )?);
         {
             let geometry = Rc::new(Geometry::from_with_context(
@@ -116,6 +122,33 @@ impl Application for Example {
 
     fn render(&self, context: &WebGl2RenderingContext) {
         self.renderer.render(context, &self.scene, &self.camera)
+    }
+}
+
+#[derive(Debug, Clone)]
+struct DistortMaterial {
+    noise: Sampler2D,
+    image: Sampler2D,
+    time: f32,
+}
+
+impl ProgramCreator for DistortMaterial {
+    fn vertex_shader(&self) -> &str {
+        todo!()
+    }
+
+    fn fragment_shader(&self) -> &str {
+        todo!()
+    }
+}
+
+impl UpdateProgramUniforms for DistortMaterial {
+    fn update_program_uniforms(
+        &self,
+        context: &WebGl2RenderingContext,
+        program: &crate::core::program::Program,
+    ) {
+        todo!()
     }
 }
 

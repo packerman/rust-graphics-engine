@@ -95,7 +95,7 @@ impl AsyncCreator for Example {
                     LambertMaterial {
                         ambient: color::rgb(0.1, 0.1, 0.1),
                         texture: Sampler2D::new(
-                            Texture::initialize(context, "images/grid.png")?,
+                            Texture::fetch(context, "images/grid.png").await?,
                             TextureUnit(0),
                         )
                         .into(),

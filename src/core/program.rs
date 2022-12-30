@@ -12,8 +12,8 @@ pub struct Uniform {
     pub uniform_type: u32,
 }
 
-pub trait UpdateUniforms: Debug {
-    fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program);
+pub trait UpdateProgramUniforms: Debug {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program);
 }
 
 pub trait UpdateUniform {

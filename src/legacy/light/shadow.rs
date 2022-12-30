@@ -5,18 +5,15 @@ use glm::{Mat4, Vec3};
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::math::resolution::Resolution,
-    core::texture::TextureUnit,
-    legacy::{
-        camera::{Camera, Ortographic},
+    base::{math::resolution::Resolution, util::level::Level},
+    core::{
+        camera::{Camera, Orthographic},
         material::Material,
         node::Node,
-        render_target::RenderTarget,
-        uniform::{
-            data::{CreateDataFromValue, Data, Sampler2D},
-            Uniform, UpdateUniform,
-        },
+        program::{Program, UpdateUniform},
+        texture::TextureUnit,
     },
+    legacy::{render_target::RenderTarget, texture::Sampler2D},
     material,
 };
 
@@ -35,15 +32,15 @@ impl Default for CameraBounds {
     }
 }
 
-impl From<CameraBounds> for Ortographic {
+impl From<CameraBounds> for Orthographic {
     fn from(camera_bounds: CameraBounds) -> Self {
-        Ortographic {
-            left: camera_bounds.min.x,
-            right: camera_bounds.max.x,
-            bottom: camera_bounds.min.y,
-            top: camera_bounds.max.y,
-            near: camera_bounds.min.z,
-            far: camera_bounds.max.z,
+        Orthographic {
+            x_left: camera_bounds.min.x,
+            x_right: camera_bounds.max.x,
+            y_bottom: camera_bounds.min.y,
+            y_top: camera_bounds.max.y,
+            z_near: camera_bounds.min.z,
+            z_far: camera_bounds.max.z,
         }
     }
 }
@@ -168,30 +165,43 @@ impl Shadow {
     }
 }
 
-impl CreateDataFromValue for Shadow {
-    fn create_data(&self) -> Data {
-        Data::from([
-            (Self::LIGHT_DIRECTION_MEMBER, self.light_direction().into()),
-            (
-                Self::PROJECTION_MATRIX_MEMBER,
-                self.projection_matrix().into(),
-            ),
-            (Self::VIEW_MATRIX_MEMBER, self.view_matrix().into()),
-            (Self::DEPTH_TEXTURE_MEMBER, self.get_sampler().into()),
-            (Self::STRENGTH_MEMBER, self.strength().into()),
-            (Self::BIAS_MEMBER, self.bias().into()),
-        ])
+impl UpdateUniform for Shadow {
+    fn update_uniform_with_level(
+        &self,
+        context: &WebGl2RenderingContext,
+        name: &str,
+        program: &Program,
+        level: Level,
+    ) {
+        todo!()
     }
 }
 
-impl UpdateUniform for Shadow {
-    fn update_uniform(&self, uniform: &Uniform) {
-        if let Some(uniform) = uniform.as_struct() {
-            uniform.set_vec3_member(Self::LIGHT_DIRECTION_MEMBER, self.light_direction());
-            uniform.set_mat4_member(Self::PROJECTION_MATRIX_MEMBER, self.projection_matrix());
-            uniform.set_mat4_member(Self::VIEW_MATRIX_MEMBER, self.view_matrix());
-            uniform.set_float_member(Self::STRENGTH_MEMBER, self.strength());
-            uniform.set_float_member(Self::BIAS_MEMBER, self.bias());
-        }
-    }
-}
+// TODO
+// impl CreateDataFromValue for Shadow {
+//     fn create_data(&self) -> Data {
+//         Data::from([
+//             (Self::LIGHT_DIRECTION_MEMBER, self.light_direction().into()),
+//             (
+//                 Self::PROJECTION_MATRIX_MEMBER,
+//                 self.projection_matrix().into(),
+//             ),
+//             (Self::VIEW_MATRIX_MEMBER, self.view_matrix().into()),
+//             (Self::DEPTH_TEXTURE_MEMBER, self.get_sampler().into()),
+//             (Self::STRENGTH_MEMBER, self.strength().into()),
+//             (Self::BIAS_MEMBER, self.bias().into()),
+//         ])
+//     }
+// }
+
+// impl UpdateUniform for Shadow {
+//     fn update_uniform(&self, uniform: &Uniform) {
+//         if let Some(uniform) = uniform.as_struct() {
+//             uniform.set_vec3_member(Self::LIGHT_DIRECTION_MEMBER, self.light_direction());
+//             uniform.set_mat4_member(Self::PROJECTION_MATRIX_MEMBER, self.projection_matrix());
+//             uniform.set_mat4_member(Self::VIEW_MATRIX_MEMBER, self.view_matrix());
+//             uniform.set_float_member(Self::STRENGTH_MEMBER, self.strength());
+//             uniform.set_float_member(Self::BIAS_MEMBER, self.bias());
+//         }
+//     }
+// }

@@ -8,7 +8,7 @@ use crate::{
     core::{
         camera::Camera,
         node::Node,
-        program::{Program, UpdateUniforms},
+        program::{Program, UpdateProgramUniforms},
         renderer::Renderer,
         scene::Scene,
     },
@@ -144,8 +144,8 @@ impl GlobalUniformUpdater {
     }
 }
 
-impl UpdateUniforms for GlobalUniformUpdater {
-    fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+impl UpdateProgramUniforms for GlobalUniformUpdater {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
         let light_direction = self.light_controller.borrow().get_light_direction();
         light_direction.update_uniform(context, "u_Light", program);
     }

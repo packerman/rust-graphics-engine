@@ -8,12 +8,13 @@ use glm::Vec3;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         color,
         convert::FromWithContext,
         math::{angle::Angle, matrix},
     },
-    legacy::{attribute::AttributeData, geometry::Geometry},
+    core::mesh,
 };
 
 use super::Polygon;
@@ -24,6 +25,7 @@ struct ParametricSurface {
     v_range: RangeInclusive<f32>,
     v_resolution: u16,
     function: Box<dyn Fn(f32, f32) -> Vec3>,
+    face_normal: bool,
 }
 
 impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
@@ -126,11 +128,17 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
         Self::from_with_context(
             context,
             [
-                ("vertexPosition", AttributeData::from(&position_data)),
-                ("vertexColor", AttributeData::from(&color_data)),
-                ("vertexUV", AttributeData::from(&texture_data)),
-                ("vertexNormal", AttributeData::from(&vertex_normal_data)),
-                ("faceNormal", AttributeData::from(&face_normal_data)),
+                (mesh::POSITION_ATTRIBUTE, &position_data),
+                (mesh::COLOR_0_ATTRIBUTE, &color_data),
+                (mesh::TEXCOORD_0_ATTRIBUTE, &texture_data),
+                (
+                    mesh::NORMAL_ATTRIBUTE,
+                    if surface.face_normal {
+                        &face_normal_data
+                    } else {
+                        &vertex_normal_data
+                    },
+                ),
             ],
         )
     }
@@ -162,6 +170,7 @@ impl From<Plane> for ParametricSurface {
             v_range: (-plane.height / 2.0)..=(plane.height / 2.0),
             v_resolution: plane.height_segments,
             function: Box::new(|u, v| glm::vec3(u, v, 0.0)),
+            face_normal: false,
         }
     }
 }
@@ -206,6 +215,7 @@ impl From<Ellipsoid> for ParametricSurface {
                     ellipsoid.depth / 2.0 * u.cos() * v.cos(),
                 )
             }),
+            face_normal: false,
         }
     }
 }
@@ -293,6 +303,7 @@ impl From<Cylindrical> for ParametricSurface {
             v_range: 0.0..=1.0,
             v_resolution: cylinder.height_segments,
             function: Box::new(move |u, v| cylinder.function(u, v)),
+            face_normal: false,
         }
     }
 }

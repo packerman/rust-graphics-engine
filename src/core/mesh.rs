@@ -7,8 +7,11 @@ use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 use crate::base::{gl, util::validate};
 
 use super::{
-    accessor::Accessor, buffer_view::BufferView, material::Material, node::Node,
-    program::UpdateUniforms,
+    accessor::Accessor,
+    buffer_view::BufferView,
+    material::Material,
+    node::Node,
+    program::{UpdateProgramUniforms, UpdateUniform},
 };
 
 #[derive(Debug, Clone)]
@@ -39,7 +42,7 @@ impl Mesh {
         context: &WebGl2RenderingContext,
         node: &Node,
         view_projection_matrix: &Mat4,
-        global_uniform_updater: &dyn UpdateUniforms,
+        global_uniform_updater: &dyn UpdateProgramUniforms,
     ) {
         for primitive in self.primitives.iter() {
             primitive.render(
@@ -62,12 +65,12 @@ pub struct Primitive {
     vertex_count: i32,
 }
 
-impl Primitive {
-    pub const POSITION_ATTRIBUTE: &str = "POSITION";
-    pub const NORMAL_ATTRIBUTE: &str = "NORMAL";
-    pub const TEXCOORD_0_ATTRIBUTE: &str = "TEXCOORD_0";
-    pub const COLOR_0_ATTRIBUTE: &str = "COLOR_0";
+pub const POSITION_ATTRIBUTE: &str = "POSITION";
+pub const NORMAL_ATTRIBUTE: &str = "NORMAL";
+pub const TEXCOORD_0_ATTRIBUTE: &str = "TEXCOORD_0";
+pub const COLOR_0_ATTRIBUTE: &str = "COLOR_0";
 
+impl Primitive {
     const MODES: [u32; 7] = [
         WebGl2RenderingContext::POINTS,
         WebGl2RenderingContext::LINES,
@@ -88,8 +91,8 @@ impl Primitive {
         validate::contains(&mode, &Self::MODES, |value| {
             anyhow!("Unknown mode: {}", value)
         })?;
-        validate::assert(attributes.contains_key(Self::POSITION_ATTRIBUTE), || {
-            anyhow!("Missing attribute {}", Self::POSITION_ATTRIBUTE)
+        validate::assert(attributes.contains_key(POSITION_ATTRIBUTE), || {
+            anyhow!("Missing attribute {}", POSITION_ATTRIBUTE)
         })?;
         let vertex_array = gl::create_vertex_array(context)?;
         let vertex_count = Self::get_vertex_count(&attributes)?;
@@ -131,22 +134,19 @@ impl Primitive {
         context: &WebGl2RenderingContext,
         node: &Node,
         view_projection_matrix: &Mat4,
-        global_uniform_updater: &dyn UpdateUniforms,
+        global_uniform_updater: &dyn UpdateProgramUniforms,
     ) {
         let program = self.material.program();
         program.use_program(context);
-        global_uniform_updater.update_uniforms(context, program);
+        global_uniform_updater.update_program_uniforms(context, program);
         self.material.update(context);
         view_projection_matrix.update_uniform(context, "u_ViewProjectionMatrix", program);
         node.global_transform()
             .update_uniform(context, "u_ModelMatrix", program);
         node.normal_transform()
             .update_uniform(context, "u_NormalMatrix", program);
-        self.has_attribute(Self::COLOR_0_ATTRIBUTE).update_uniform(
-            context,
-            "u_UseColor_0",
-            program,
-        );
+        self.has_attribute(COLOR_0_ATTRIBUTE)
+            .update_uniform(context, "u_UseColor_0", program);
         self.draw(context);
     }
 

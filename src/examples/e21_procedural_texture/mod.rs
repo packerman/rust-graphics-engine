@@ -6,20 +6,20 @@ use glm::Vec3;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
-        convert::FromWithContext,
         input::KeyState,
     },
-    geometry::Rectangle,
-    legacy::{
+    core::{
         camera::Camera,
-        geometry::Geometry,
-        material::{Material, MaterialSettings},
+        material::{Material, ProgramCreator},
         mesh::Mesh,
         node::Node,
-        renderer::{Renderer, RendererOptions},
+        program::{Program, UpdateProgramUniforms},
     },
+    geometry::Rectangle,
+    legacy::renderer::{Renderer, RendererOptions},
 };
 
 struct Example {
@@ -90,16 +90,7 @@ fn wood(context: &WebGl2RenderingContext) -> Result<Material> {
 }
 
 fn fractal_material(context: &WebGl2RenderingContext, main_file: &str) -> Result<Material> {
-    Material::from_with_context(
-        context,
-        MaterialSettings {
-            vertex_shader: include_str!("vertex.glsl"),
-            fragment_shader: &format!("{}\n\n{}\n", include_str!("fragment.glsl"), main_file),
-            uniforms: vec![],
-            render_settings: vec![],
-            draw_style: WebGl2RenderingContext::TRIANGLES,
-        },
-    )
+    Material::from_with_context(context, Rc::new(FractalMaterial { main_file }))
 }
 
 impl Application for Example {
@@ -108,6 +99,25 @@ impl Application for Example {
     fn render(&self, context: &WebGl2RenderingContext) {
         self.renderer.render(context, &self.scene, &self.camera)
     }
+}
+
+#[derive(Debug, Clone)]
+struct FractalMaterial<'a> {
+    main_file: &'a str,
+}
+
+impl ProgramCreator for FractalMaterial<'_> {
+    fn vertex_shader(&self) -> &str {
+        include_str!("vertex.glsl")
+    }
+
+    fn fragment_shader(&self) -> &str {
+        &format!("{}\n\n{}\n", include_str!("fragment.glsl"), self.main_file)
+    }
+}
+
+impl UpdateProgramUniforms for FractalMaterial<'_> {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {}
 }
 
 pub fn example() -> Box<dyn Fn()> {

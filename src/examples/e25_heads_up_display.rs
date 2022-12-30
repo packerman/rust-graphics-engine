@@ -116,8 +116,10 @@ pub fn example() -> Box<dyn Fn()> {
 async fn create_hud(context: &WebGl2RenderingContext) -> Result<(Rc<Node>, Rc<RefCell<Camera>>)> {
     let scene = Node::new_group();
     let camera = Camera::new_ortographic(Orthographic {
-        x_mag: 800.0,
-        y_mag: 600.0,
+        x_left: 0.0,
+        x_right: 800.0,
+        y_bottom: 0.0,
+        y_top: 600.0,
         z_near: 1.0,
         z_far: -1.0,
     });

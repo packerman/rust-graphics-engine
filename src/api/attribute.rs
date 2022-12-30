@@ -70,7 +70,7 @@ fn create_accessor(
     size: usize,
     length: usize,
 ) -> Result<Accessor> {
-    let array = Float32Array::new_with_length(data.len());
+    let array = Float32Array::new_with_length(data.len().try_into().unwrap());
     array.copy_from(&data);
     let byte_length = array.byte_length();
     let buffer = Rc::new(Buffer::from(array));
@@ -84,8 +84,8 @@ fn create_accessor(
     let properties = AccessorProperties {
         byte_offset: 0,
         component_type: WebGl2RenderingContext::FLOAT,
-        count: length,
-        accessor_type: AccessorType::vec(size),
+        count: length.try_into().unwrap(),
+        accessor_type: AccessorType::vec(size.try_into().unwrap()),
         min: None,
         max: None,
         normalized: false,

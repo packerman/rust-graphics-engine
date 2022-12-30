@@ -4,8 +4,8 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     base::color,
     core::{
-        material::{MaterialLifecycle, TextureRef},
-        program::{Program, UpdateUniforms},
+        material::{ProgramCreator, TextureRef},
+        program::{Program, UpdateProgramUniforms},
         texture::TextureUnit,
     },
 };
@@ -31,7 +31,7 @@ impl Default for TestMaterial {
     }
 }
 
-impl MaterialLifecycle for TestMaterial {
+impl ProgramCreator for TestMaterial {
     fn vertex_shader(&self) -> &str {
         include_str!("test.vert")
     }
@@ -41,8 +41,8 @@ impl MaterialLifecycle for TestMaterial {
     }
 }
 
-impl UpdateUniforms for TestMaterial {
-    fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+impl UpdateProgramUniforms for TestMaterial {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
         self.base_color_factor
             .update_uniform(context, "u_BaseColorFactor", program);
         self.use_light
