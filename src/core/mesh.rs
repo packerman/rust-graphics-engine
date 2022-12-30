@@ -104,13 +104,14 @@ impl Primitive {
             anyhow!("Missing attribute {}", POSITION_ATTRIBUTE)
         })?;
         let vertex_array = gl::create_vertex_array(context)?;
+        let effective_mode = material.preferred_mode().unwrap_or(mode);
         let vertex_count = Self::get_vertex_count(&attributes)?;
         let me = Self {
             vertex_array,
             attributes,
             indices,
             material,
-            mode,
+            mode: effective_mode,
             vertex_count,
         };
         me.set_vertex_array(context);

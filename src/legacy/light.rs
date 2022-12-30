@@ -5,8 +5,14 @@ use std::cell::RefCell;
 use glm::Vec3;
 
 use crate::{
-    base::color::{self, Color},
-    core::{node::Node, program::UpdateUniform},
+    base::{
+        color::{self, Color},
+        util::level::Level,
+    },
+    core::{
+        node::Node,
+        program::{self, Program, UpdateUniform},
+    },
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -119,19 +125,39 @@ impl Default for Light {
     }
 }
 
-impl UpdateUniform for Light {}
-
-// impl CreateDataFromType for Light {
-//     fn create_data() -> Data {
-//         Data::from([
-//             (Self::LIGHT_TYPE_MEMBER, Data::default::<i32>()),
-//             (Self::COLOR_MEMBER, Data::from(color::white())),
-//             (Self::DIRECTION_MEMBER, Data::default::<Vec3>()),
-//             (Self::POSITION_MEMBER, Data::default::<Vec3>()),
-//             (Self::ATTENUATION_MEMBER, Data::default::<Vec3>()),
-//         ])
-//     }
-// }
+impl UpdateUniform for Light {
+    fn update_uniform_with_level(
+        &self,
+        context: &web_sys::WebGl2RenderingContext,
+        name: &str,
+        program: &Program,
+        level: Level,
+    ) {
+        if let Some(light_type) = self.light_type {
+            match light_type {
+                LightType::Directional { direction } => {
+                    Self::DIRECTIONAL_TYPE.update_uniform(
+                        context,
+                        &program::join_name(name, Self::LIGHT_TYPE_MEMBER),
+                        program,
+                    );
+                    direction.update_uniform(
+                        context,
+                        &program::join_name(name, Self::DIRECTION_MEMBER),
+                        program,
+                    );
+                }
+                LightType::Point { position } => {
+                    Self::POINT_TYPE.update_uniform(
+                        context,
+                        &program::join_name(name, Self::LIGHT_TYPE_MEMBER),
+                        program,
+                    );
+                }
+            }
+        }
+    }
+}
 
 // impl UpdateUniform for Light {
 //     fn update_uniform(&self, uniform: &Uniform) {

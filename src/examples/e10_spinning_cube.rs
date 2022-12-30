@@ -8,11 +8,17 @@ use crate::{
     api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
+        convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
-        util::shared_ref::SharedRef,
+        util::shared_ref::{self, SharedRef},
     },
-    core::{camera::Camera, material::Material, node::Node},
+    core::{
+        camera::{Camera, Perspective},
+        material::Material,
+        node::Node,
+        scene::Scene,
+    },
     geometry::BoxGeometry,
     legacy::renderer::{Renderer, RendererOptions},
     material::basic::{BasicMaterial, SurfaceMaterial},
@@ -20,7 +26,7 @@ use crate::{
 
 struct Example {
     renderer: Renderer,
-    scene: SharedRef<Node>,
+    scene: Scene,
     mesh: SharedRef<Node>,
     camera: SharedRef<Camera>,
 }
@@ -29,12 +35,14 @@ struct Example {
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
-        let scene = Node::new_group();
+        let scene = Scene::empty();
 
-        let camera = Camera::new_perspective(Default::default());
-        let camera_node = Node::new_camera(Rc::clone(&camera));
-        camera_node.set_position(&glm::vec3(0.0, 0.0, 2.0));
-        scene.add_child(&camera_node);
+        let camera = shared_ref::strong(Camera::from(Perspective::default()));
+        let camera_node = Node::with_camera(Rc::clone(&camera));
+        camera_node
+            .borrow_mut()
+            .set_position(&glm::vec3(0.0, 0.0, 2.0));
+        scene.add_root_node(camera_node);
 
         let geometry = Rc::new(Geometry::from_with_context(
             context,
@@ -50,9 +58,9 @@ impl AsyncCreator for Example {
                 ..Default::default()
             },
         )?);
-        let mesh = geometry.create_mesh(context, material)?;
+        let mesh = Rc::new(geometry.create_mesh(context, material)?);
         let mesh = Node::with_mesh(mesh);
-        scene.add_child(&mesh);
+        scene.add_root_node(mesh);
 
         Ok(Box::new(Example {
             renderer,

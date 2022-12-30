@@ -4,7 +4,7 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     base::color,
     core::{
-        material::{ProgramCreator, TextureRef},
+        material::{GenericMaterial, TextureRef},
         program::{Program, UpdateProgramUniforms},
         texture::TextureUnit,
     },
@@ -31,7 +31,7 @@ impl Default for TestMaterial {
     }
 }
 
-impl ProgramCreator for TestMaterial {
+impl GenericMaterial for TestMaterial {
     fn vertex_shader(&self) -> &str {
         include_str!("test.vert")
     }

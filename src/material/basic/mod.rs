@@ -1,11 +1,14 @@
-use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::base::{
-    color::{self, Color},
-    convert::FromWithContext,
+use crate::{
+    base::color::{self, Color},
+    core::{
+        material::GenericMaterial,
+        program::{Program, UpdateProgramUniforms, UpdateUniform},
+    },
 };
 
+#[derive(Debug)]
 pub struct BasicMaterial {
     pub base_color: Color,
     pub use_vertex_colors: bool,
@@ -20,33 +23,29 @@ impl Default for BasicMaterial {
     }
 }
 
-fn basic_material(
-    context: &WebGl2RenderingContext,
-    draw_style: u32,
-    basic_material: BasicMaterial,
-) -> Result<Material> {
-    Material::from_with_context(
-        context,
-        MaterialSettings {
-            vertex_shader: include_str!("vertex.glsl"),
-            fragment_shader: include_str!("fragment.glsl"),
-            uniforms: vec![
-                ("baseColor", Data::from(basic_material.base_color)),
-                (
-                    "useVertexColors",
-                    Data::from(basic_material.use_vertex_colors),
-                ),
-            ],
-            render_settings: vec![],
-            draw_style,
-        },
-    )
+impl GenericMaterial for BasicMaterial {
+    fn vertex_shader(&self) -> &str {
+        include_str!("vertex.glsl")
+    }
+
+    fn fragment_shader(&self) -> &str {
+        include_str!("fragment.glsl")
+    }
 }
 
+impl UpdateProgramUniforms for BasicMaterial {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        self.base_color
+            .update_uniform(context, "baseColor", program);
+        self.use_vertex_colors
+            .update_uniform(context, "useVertexColors", program);
+    }
+}
+
+#[derive(Debug)]
 pub struct PointMaterial {
     pub basic: BasicMaterial,
     pub point_size: f32,
-    pub rounded_points: bool,
 }
 
 impl Default for PointMaterial {
@@ -54,31 +53,39 @@ impl Default for PointMaterial {
         Self {
             basic: Default::default(),
             point_size: 8.0,
-            rounded_points: false,
         }
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, PointMaterial> for Material {
-    fn from_with_context(
-        context: &WebGl2RenderingContext,
-        point_material: PointMaterial,
-    ) -> Result<Self> {
-        let mut material = self::basic_material(
-            context,
-            WebGl2RenderingContext::POINTS,
-            point_material.basic,
-        )?;
-        material.add_uniform(context, "pointSize", point_material.point_size);
-        Ok(material)
+impl GenericMaterial for PointMaterial {
+    fn vertex_shader(&self) -> &str {
+        self.basic.vertex_shader()
+    }
+
+    fn fragment_shader(&self) -> &str {
+        self.basic.fragment_shader()
+    }
+
+    fn preferred_mode(&self) -> Option<u32> {
+        Some(WebGl2RenderingContext::POINTS)
     }
 }
 
+impl UpdateProgramUniforms for PointMaterial {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        self.basic.update_program_uniforms(context, program);
+        self.point_size
+            .update_uniform(context, "pointSize", program);
+    }
+}
+
+#[derive(Debug)]
 pub enum LineType {
     Connected,
     Segments,
 }
 
+#[derive(Debug)]
 pub struct LineMaterial {
     pub basic: BasicMaterial,
     pub line_width: f32,
@@ -95,38 +102,56 @@ impl Default for LineMaterial {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, LineMaterial> for Material {
-    fn from_with_context(
-        context: &WebGl2RenderingContext,
-        line_material: LineMaterial,
-    ) -> Result<Self> {
-        let draw_style = match line_material.line_type {
-            LineType::Connected => WebGl2RenderingContext::LINE_STRIP,
-            LineType::Segments => WebGl2RenderingContext::LINES,
-        };
-        let mut material = self::basic_material(context, draw_style, line_material.basic)?;
-        material.add_render_setting(RenderSetting::LineWidth(line_material.line_width));
-        Ok(material)
+impl UpdateProgramUniforms for LineMaterial {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        self.basic.update_program_uniforms(context, program);
+        context.line_width(self.line_width);
     }
 }
 
-#[derive(Default)]
+impl GenericMaterial for LineMaterial {
+    fn vertex_shader(&self) -> &str {
+        self.basic.vertex_shader()
+    }
+
+    fn fragment_shader(&self) -> &str {
+        self.basic.fragment_shader()
+    }
+
+    fn preferred_mode(&self) -> Option<u32> {
+        Some(match self.line_type {
+            LineType::Connected => WebGl2RenderingContext::LINE_STRIP,
+            LineType::Segments => WebGl2RenderingContext::LINES,
+        })
+    }
+}
+
+#[derive(Debug)]
 pub struct SurfaceMaterial {
     pub basic: BasicMaterial,
     pub double_side: bool,
 }
 
-impl FromWithContext<WebGl2RenderingContext, SurfaceMaterial> for Material {
-    fn from_with_context(
-        context: &WebGl2RenderingContext,
-        surface_material: SurfaceMaterial,
-    ) -> Result<Self> {
-        let mut material = self::basic_material(
-            context,
-            WebGl2RenderingContext::TRIANGLES,
-            surface_material.basic,
-        )?;
-        material.add_render_setting(RenderSetting::CullFace(!surface_material.double_side));
-        Ok(material)
+impl UpdateProgramUniforms for SurfaceMaterial {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        self.basic.update_program_uniforms(context, program);
+    }
+}
+
+impl GenericMaterial for SurfaceMaterial {
+    fn vertex_shader(&self) -> &str {
+        self.basic.vertex_shader()
+    }
+
+    fn fragment_shader(&self) -> &str {
+        self.basic.fragment_shader()
+    }
+
+    fn preferred_mode(&self) -> Option<u32> {
+        Some(WebGl2RenderingContext::TRIANGLES)
+    }
+
+    fn double_sided(&self) -> bool {
+        self.double_side
     }
 }

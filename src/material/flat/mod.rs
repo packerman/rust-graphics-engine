@@ -4,15 +4,8 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::{
-        color::{self, Color},
-        convert::FromWithContext,
-    },
-    legacy::{
-        light::Light,
-        material::{Material, MaterialSettings, RenderSetting},
-        uniform::data::{CreateDataFromType, Data, Sampler2D},
-    },
+    base::color::{self, Color},
+    legacy::{light::Light, texture::Sampler2D},
 };
 
 pub struct FlatMaterial {

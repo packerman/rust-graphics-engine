@@ -7,7 +7,7 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     base::{color::Color, math::resolution::Resolution},
     core::{
-        material::{Material, ProgramCreator},
+        material::{GenericMaterial, Material},
         program::{Program, UpdateProgramUniforms},
     },
     legacy::texture::Sampler2D,
@@ -42,7 +42,7 @@ struct BaseEffect<'a> {
     fragment_shader: &'a str,
 }
 
-impl ProgramCreator for BaseEffect<'_> {
+impl GenericMaterial for BaseEffect<'_> {
     fn vertex_shader(&self) -> &str {
         include_str!("effect.vert")
     }

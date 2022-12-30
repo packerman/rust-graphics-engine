@@ -248,3 +248,7 @@ impl FromWithContext<WebGl2RenderingContext, WebGlProgram> for Program {
         })
     }
 }
+
+pub fn join_name(base: &str, relative: &str) -> String {
+    format!("{}.{}", base, relative)
+}

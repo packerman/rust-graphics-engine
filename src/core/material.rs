@@ -10,10 +10,18 @@ use super::{
     texture::Texture,
 };
 
-pub trait ProgramCreator: UpdateProgramUniforms {
+pub trait GenericMaterial: UpdateProgramUniforms {
     fn vertex_shader(&self) -> &str;
 
     fn fragment_shader(&self) -> &str;
+
+    fn preferred_mode(&self) -> Option<u32> {
+        None
+    }
+
+    fn double_sided(&self) -> bool {
+        false
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -22,7 +30,7 @@ pub struct Material {
     name: Option<String>,
     double_sided: bool,
     program: Program,
-    uniform_updater: SharedRef<dyn ProgramCreator>,
+    generic_material: SharedRef<dyn GenericMaterial>,
     alpha_mode: AlphaMode,
 }
 
@@ -31,18 +39,18 @@ impl Material {
         context: &WebGl2RenderingContext,
         name: Option<String>,
         double_sided: bool,
-        uniform_updater: SharedRef<dyn ProgramCreator>,
+        generic_material: SharedRef<dyn GenericMaterial>,
         alpha_mode: AlphaMode,
     ) -> Result<Self> {
         let program = Program::initialize(
             context,
-            uniform_updater.borrow().vertex_shader(),
-            uniform_updater.borrow().fragment_shader(),
+            generic_material.borrow().vertex_shader(),
+            generic_material.borrow().fragment_shader(),
         )?;
         Ok(Self {
             name,
             double_sided,
-            uniform_updater,
+            generic_material,
             program,
             alpha_mode,
         })
@@ -52,7 +60,7 @@ impl Material {
         self.update_settings(context);
         self.alpha_mode
             .update_program_uniforms(context, self.program());
-        self.uniform_updater
+        self.generic_material
             .borrow()
             .update_program_uniforms(context, self.program());
     }
@@ -76,6 +84,10 @@ impl Material {
         value.update_uniform(context, name, &self.program);
     }
 
+    pub fn preferred_mode(&self) -> Option<u32> {
+        self.generic_material.borrow().preferred_mode()
+    }
+
     fn update_setting(context: &WebGl2RenderingContext, setting: u32, value: bool) {
         if value {
             context.enable(setting);
@@ -87,10 +99,16 @@ impl Material {
 
 impl<T> FromWithContext<WebGl2RenderingContext, SharedRef<T>> for Material
 where
-    T: ProgramCreator,
+    T: GenericMaterial,
 {
     fn from_with_context(context: &WebGl2RenderingContext, value: SharedRef<T>) -> Result<Self> {
-        Self::initialize(context, None, false, value, AlphaMode::default())
+        Self::initialize(
+            context,
+            None,
+            value.borrow().double_sided(),
+            value,
+            AlphaMode::default(),
+        )
     }
 }
 
