@@ -37,6 +37,15 @@ impl Mesh {
         Ok(Self::new(vec![primitive], None))
     }
 
+    pub fn update_uniform<T>(&self, context: &WebGl2RenderingContext, name: &str, value: T)
+    where
+        T: UpdateUniform,
+    {
+        for primitive in &self.primitives {
+            primitive.update_uniform(context, name, value);
+        }
+    }
+
     pub fn render(
         &self,
         context: &WebGl2RenderingContext,
@@ -129,6 +138,13 @@ impl Primitive {
         self.attributes.contains_key(name)
     }
 
+    pub fn update_uniform<T>(&self, context: &WebGl2RenderingContext, name: &str, value: T)
+    where
+        T: UpdateUniform,
+    {
+        self.material.update_uniform(context, name, value);
+    }
+
     fn render(
         &self,
         context: &WebGl2RenderingContext,
@@ -158,6 +174,12 @@ impl Primitive {
             context.draw_arrays(self.mode, 0, self.vertex_count);
         }
         context.bind_vertex_array(None);
+    }
+
+    fn is_triangle_based(&self) -> bool {
+        self.mode == WebGl2RenderingContext::TRIANGLES
+            || self.mode == WebGl2RenderingContext::TRIANGLE_STRIP
+            || self.mode == WebGl2RenderingContext::TRIANGLE_STRIP
     }
 
     fn get_vertex_count(atttributes: &HashMap<String, Rc<Accessor>>) -> Result<i32> {

@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{borrow::Borrow, cell::RefCell, rc::Rc};
 
 use web_sys::WebGl2RenderingContext;
 
@@ -10,7 +10,10 @@ use crate::{
         util::shared_ref::SharedRef,
         web,
     },
-    core::{camera::Camera, material, mesh::Mesh, node::Node, program::UpdateProgramUniforms},
+    core::{
+        camera::Camera, material, mesh::Mesh, node::Node, program::UpdateProgramUniforms,
+        scene::Scene,
+    },
 };
 
 use super::{
@@ -36,7 +39,7 @@ impl Default for RendererOptions {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Renderer {
     default_node: SharedRef<Node>,
     default_light: RefCell<Light>,
@@ -71,7 +74,7 @@ impl Renderer {
         }
 
         let default_light = RefCell::new(Light::default());
-        let default_node = Node::new_group();
+        let default_node = Node::empty();
 
         Self {
             default_node,
@@ -90,7 +93,7 @@ impl Renderer {
     pub fn render(
         &self,
         context: &WebGl2RenderingContext,
-        scene: &RefCell<Node>,
+        scene: &Scene,
         camera: &RefCell<Camera>,
     ) {
         self.render_generic(context, scene, camera, Self::CLEAR_ALL, None);
@@ -99,7 +102,7 @@ impl Renderer {
     pub fn render_clear(
         &self,
         context: &WebGl2RenderingContext,
-        scene: &Node,
+        scene: &Scene,
         camera: &RefCell<Camera>,
         clear_mask: u32,
     ) {
@@ -109,7 +112,7 @@ impl Renderer {
     pub fn render_to_target(
         &self,
         context: &WebGl2RenderingContext,
-        scene: &Node,
+        scene: &Scene,
         camera: &RefCell<Camera>,
         render_target: Option<&RenderTarget>,
     ) {
@@ -119,18 +122,18 @@ impl Renderer {
     pub fn render_generic(
         &self,
         context: &WebGl2RenderingContext,
-        scene: &Node,
+        scene: &Scene,
         camera: &RefCell<Camera>,
         clear_mask: u32,
         render_target: Option<&RenderTarget>,
     ) {
-        let nodes = scene.descendants();
+        let nodes = scene.all_nodes();
 
         let resolution = self::get_resolution(context, render_target);
-        nodes.iter().for_each(|node| {
-            node.update_resolution(&resolution);
-            node.update();
-        });
+        //TODO update light
+        camera
+            .borrow_mut()
+            .set_aspect_ratio(resolution.aspect_ratio());
 
         let meshes = Self::filter_meshes(&nodes);
         self.shadow_pass(context, &meshes);
@@ -143,22 +146,20 @@ impl Renderer {
         context.clear(clear_mask);
         self::viewport(context, resolution);
 
-        meshes.iter().for_each(|(mesh, node)| {
+        meshes.into_iter().for_each(|(mesh, node)| {
             Self::update_lights(mesh, &lights);
             self.update_shadow(mesh);
-            if let Some(mut view_position) = mesh.material().vec3_mut("viewPosition") {
-                *view_position = camera.world_position();
-            }
+            mesh.update_uniform(context, "viewPosition", camera.world_position());
             mesh.render(
                 context,
-                camera,
-                node.world_matrix(),
-                &self.global_uniform_updater,
+                &node.as_ref().borrow(),
+                &camera.view_projection_matrix(),
+                self.global_uniform_updater.as_ref(),
             );
         });
     }
 
-    fn shadow_pass(&self, context: &WebGl2RenderingContext, meshes: &[(&Mesh, &Rc<Node>)]) {
+    fn shadow_pass(&self, context: &WebGl2RenderingContext, meshes: &[(&Mesh, &SharedRef<Node>)]) {
         if let Some(shadow) = self.shadow() {
             shadow.bind(context);
             context.clear_color(1.0, 0.0, 0.0, 1.0);
@@ -177,7 +178,10 @@ impl Renderer {
         }
     }
 
-    fn filter_lights<'a>(&'a self, nodes: &'a [Rc<Node>]) -> Vec<(&RefCell<Light>, &Rc<Node>)> {
+    fn filter_lights<'a>(
+        &'a self,
+        nodes: &'a [Rc<Node>],
+    ) -> Vec<(&RefCell<Light>, &SharedRef<Node>)> {
         let mut lights: Vec<_> = nodes
             .iter()
             .filter_map(|node| node.as_light().map(|light| (light, node)))
@@ -206,10 +210,10 @@ impl Renderer {
         }
     }
 
-    fn filter_meshes(nodes: &[Rc<Node>]) -> Vec<(&Mesh, &Rc<Node>)> {
+    fn filter_meshes(nodes: &[SharedRef<Node>]) -> Vec<(&Mesh, &SharedRef<Node>)> {
         nodes
             .iter()
-            .filter_map(|node| node.as_mesh().map(|mesh| (mesh, node)))
+            .filter_map(|node| node.borrow().mesh().map(|mesh| (mesh, node)))
             .collect()
     }
 }

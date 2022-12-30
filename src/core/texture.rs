@@ -3,7 +3,7 @@ use std::rc::Rc;
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlTexture};
 
-use crate::base::gl;
+use crate::base::{gl, math::resolution::Resolution};
 
 use super::{image::Image, program::UpdateUniformValue, sampler::Sampler};
 
@@ -45,6 +45,10 @@ impl Texture {
         self.sampler.set_texture_parameters(context);
         self.sampler.generate_mipmap(context);
         Ok(())
+    }
+
+    pub fn resolution(&self) -> Resolution {
+        self.source.resolution()
     }
 }
 

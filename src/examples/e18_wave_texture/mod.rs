@@ -47,16 +47,13 @@ impl AsyncCreator for Example {
             camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 1.5));
             scene.add_root_node(camera);
         }
-        let wave_material = shared_ref::strong(Material::from_with_context(
-            context,
-            Rc::new(WaveMaterial {
-                texture_sampler: Sampler2D::new(
-                    Rc::new(Texture::fetch(context, "images/grid.png").await?),
-                    TextureUnit(0),
-                ),
-                time: 0.0,
-            }),
-        )?);
+        let wave_material = shared_ref::strong(WaveMaterial {
+            texture_sampler: Sampler2D::new(
+                Rc::new(Texture::fetch(context, "images/grid.png").await?),
+                TextureUnit(0),
+            ),
+            time: 0.0,
+        });
         //     context,
         //     MaterialSettings {
         //         vertex_shader: include_str!("vertex.glsl"),
@@ -82,9 +79,13 @@ impl AsyncCreator for Example {
                 },
             )?);
 
-            let mesh = Node::with_mesh(Rc::new(
-                geometry.create_mesh(context, Rc::clone(&wave_material))?,
-            ));
+            let mesh = Node::with_mesh(Rc::new(geometry.create_mesh(
+                context,
+                Rc::new(Material::from_with_context(
+                    context,
+                    Rc::clone(&wave_material),
+                )?),
+            )?));
             scene.add_root_node(mesh);
         }
 

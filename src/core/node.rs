@@ -1,5 +1,6 @@
 use std::{
     cell::{Ref, RefCell},
+    collections::VecDeque,
     ptr,
     rc::{Rc, Weak},
 };
@@ -50,6 +51,10 @@ impl Node {
             camera.borrow_mut().set_node(&node.borrow().me);
         }
         node
+    }
+
+    pub fn empty() -> SharedRef<Self> {
+        Self::new(glm::identity(), None, None, None)
     }
 
     pub fn with_name(name: &str) -> SharedRef<Self> {
@@ -156,6 +161,28 @@ impl Node {
 
     pub fn camera(&self) -> Option<&RefCell<Camera>> {
         self.camera.as_deref()
+    }
+
+    pub fn mesh(&self) -> Option<&Mesh> {
+        self.mesh.as_deref()
+    }
+
+    pub fn descendants(&self) -> Vec<SharedRef<Node>> {
+        fn extend_queue(queue: &mut VecDeque<WeakRef<Node>>, nodes: &[SharedRef<Node>]) {
+            queue.extend(nodes.iter().map(Rc::downgrade));
+        }
+        fn pop_front(queue: &mut VecDeque<WeakRef<Node>>) -> SharedRef<Node> {
+            queue.pop_front().unwrap().upgrade().unwrap()
+        }
+        let mut result = vec![];
+        let mut queue = VecDeque::new();
+        queue.push_back(self.me.clone());
+        while !queue.is_empty() {
+            let node = pop_front(&mut queue);
+            result.push(Rc::clone(&node));
+            extend_queue(&mut queue, &node.borrow().children);
+        }
+        result
     }
 
     pub fn max_by_key<K>(nodes: &[SharedRef<Node>], key: K) -> usize

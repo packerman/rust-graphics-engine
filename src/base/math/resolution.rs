@@ -11,7 +11,7 @@ impl Resolution {
         Self { width, height }
     }
 
-    pub fn ratio(&self) -> f32 {
+    pub fn aspect_ratio(&self) -> f32 {
         self.width as f32 / self.height as f32
     }
 }
@@ -29,6 +29,6 @@ mod tests {
     #[test]
     fn ratio_works() {
         let resolution = Resolution::new(800, 600);
-        assert_eq!(resolution.ratio(), 1.3333334);
+        assert_eq!(resolution.aspect_ratio(), 1.3333334);
     }
 }

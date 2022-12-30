@@ -113,6 +113,12 @@ impl Camera {
         }
     }
 
+    pub fn view_projection_matrix(&self) -> Mat4 {
+        let projection_matrix = self.projection_matrix();
+        let view_matrix = self.view_matrix();
+        projection_matrix * view_matrix
+    }
+
     pub fn world_position(&self) -> Vec3 {
         matrix::get_position(&self.model_matrix())
     }

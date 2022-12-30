@@ -58,6 +58,14 @@ impl Scene {
             .any(|node| node.borrow().has_some_camera())
     }
 
+    pub fn all_nodes(&self) -> Vec<SharedRef<Node>> {
+        let mut result = vec![];
+        for node in self.nodes.iter() {
+            result.extend(node.borrow().descendants())
+        }
+        result
+    }
+
     pub fn depth(&self) -> usize {
         Node::max_by_key(&self.nodes, |node| node.depth())
     }

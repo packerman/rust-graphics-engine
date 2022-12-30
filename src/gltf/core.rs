@@ -8,7 +8,7 @@ use crate::{
     core::{
         camera::Camera,
         node::Node,
-        program::{Program, UpdateProgramUniforms},
+        program::{Program, UpdateProgramUniforms, UpdateUniform},
         renderer::Renderer,
         scene::Scene,
     },
