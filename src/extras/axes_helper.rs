@@ -8,11 +8,12 @@ use crate::{
     base::{
         color::{self, Color},
         convert::FromWithContext,
+        util::shared_ref,
     },
     core::{
         accessor::Accessor,
         material::Material,
-        mesh::{Mesh, Primitive},
+        mesh::{self, Mesh},
     },
     material::basic::{BasicMaterial, LineMaterial, LineType},
 };
@@ -56,25 +57,25 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
         ];
         let geometry = Rc::new(Geometry::from([
             (
-                Primitive::POSITION_ATTRIBUTE,
-                Accessor::from_with_context(context, &position_data)?,
+                mesh::POSITION_ATTRIBUTE,
+                Rc::new(Accessor::from_with_context(context, &position_data)?),
             ),
             (
-                Primitive::COLOR_0_ATTRIBUTE,
-                Accessor::from_with_context(context, &color_data)?,
+                mesh::COLOR_0_ATTRIBUTE,
+                Rc::new(Accessor::from_with_context(context, &color_data)?),
             ),
-        ])?);
+        ]));
         let material = Rc::new(Material::from_with_context(
             context,
-            LineMaterial {
+            shared_ref::strong(LineMaterial {
                 basic: BasicMaterial {
                     use_vertex_colors: true,
                     ..Default::default()
                 },
                 line_width: axes_helper.line_width,
                 line_type: LineType::Segments,
-            },
+            }),
         )?);
-        Mesh::initialize(context, geometry, material)
+        geometry.create_mesh(context, material)
     }
 }
