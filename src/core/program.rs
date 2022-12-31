@@ -30,6 +30,20 @@ pub trait UpdateUniform {
     );
 }
 
+impl<T: UpdateUniform> UpdateUniform for Option<T> {
+    fn update_uniform_with_level(
+        &self,
+        context: &WebGl2RenderingContext,
+        name: &str,
+        program: &Program,
+        level: Level,
+    ) {
+        if let Some(value) = self {
+            value.update_uniform_with_level(context, name, program, level)
+        }
+    }
+}
+
 pub trait UpdateUniformValue {
     fn update_uniform_value(
         &self,

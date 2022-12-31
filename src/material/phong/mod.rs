@@ -1,21 +1,16 @@
-use std::{collections::HashMap, rc::Rc};
-
-use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::{
-        color::{self, Color},
-        convert::FromWithContext,
+    base::color::{self, Color},
+    core::{
+        material::GenericMaterial,
+        program::{self, Program, UpdateProgramUniforms, UpdateUniform},
     },
-    legacy::{
-        light::{shadow::Shadow, Light},
-        material::{Material, MaterialSettings, RenderSetting},
-        uniform::data::{CreateDataFromType, CreateDataFromValue, Data, Sampler2D},
-    },
+    legacy::texture::Sampler2D,
 };
 
-pub struct PhongMaterial<'a> {
+#[derive(Debug)]
+pub struct PhongMaterial {
     pub double_side: bool,
     pub texture: Option<Sampler2D>,
     pub ambient: Color,
@@ -24,20 +19,49 @@ pub struct PhongMaterial<'a> {
     pub shininess: f32,
     pub bump_texture: Option<Sampler2D>,
     pub bump_strength: f32,
-    pub shadow: Option<&'a Shadow>,
+    pub use_shadow: bool,
 }
 
-impl PhongMaterial<'_> {
-    fn texture(&self) -> Option<Sampler2D> {
-        self.texture.clone()
-    }
-
-    fn bump_texture(&self) -> Option<Sampler2D> {
-        self.bump_texture.clone()
+impl PhongMaterial {
+    fn update_struct_uniform(
+        &self,
+        context: &WebGl2RenderingContext,
+        name: &str,
+        program: &Program,
+    ) {
+        self.ambient
+            .update_uniform(context, &program::join_name(name, "ambient"), program);
+        self.diffuse
+            .update_uniform(context, &program::join_name(name, "diffuse"), program);
+        self.specular_strength
+            .update_uniform(context, "specularStrength", program);
+        self.shininess.update_uniform(context, "shininess", program);
+        self.texture
+            .update_uniform(context, &program::join_name(name, "texture0"), program);
+        self.texture.is_some().update_uniform(
+            context,
+            &program::join_name(name, "useTexture"),
+            program,
+        );
+        self.bump_texture.update_uniform(
+            context,
+            &program::join_name(name, "bumpTexture"),
+            program,
+        );
+        self.bump_texture.is_some().update_uniform(
+            context,
+            &program::join_name(name, "useBumpTexture"),
+            program,
+        );
+        self.bump_strength.update_uniform(
+            context,
+            &program::join_name(name, "bumpStrength"),
+            program,
+        );
     }
 }
 
-impl Default for PhongMaterial<'_> {
+impl Default for PhongMaterial {
     fn default() -> Self {
         Self {
             double_side: true,
@@ -48,67 +72,25 @@ impl Default for PhongMaterial<'_> {
             shininess: 32.0,
             bump_texture: None,
             bump_strength: 1.0,
-            shadow: None,
+            use_shadow: false,
         }
     }
 }
 
-pub fn create(
-    context: &WebGl2RenderingContext,
-    phong_material: PhongMaterial,
-) -> Result<Rc<Material>> {
-    let render_settings = vec![RenderSetting::CullFace(!phong_material.double_side)];
-    let mut material = Material::from_with_context(
-        context,
-        MaterialSettings {
-            vertex_shader: include_str!("vertex.glsl"),
-            fragment_shader: include_str!("fragment.glsl"),
-            uniforms: vec![
-                ("material", self::create_material_struct(&phong_material)),
-                ("viewPosition", Data::from(glm::vec3(0.0, 0.0, 0.0))),
-                ("light0", Light::create_data()),
-                ("light1", Light::create_data()),
-                ("light2", Light::create_data()),
-                ("light3", Light::create_data()),
-            ],
-            render_settings,
-            draw_style: WebGl2RenderingContext::TRIANGLES,
-        },
-    )?;
-    if let Some(shadow) = phong_material.shadow {
-        material.add_uniform(context, "useShadow", true);
-        material.add_uniform(context, "shadow0", shadow.create_data());
-    } else {
-        material.add_uniform(context, "useShadow", false);
+impl UpdateProgramUniforms for PhongMaterial {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        self.update_struct_uniform(context, "material", program);
+        self.use_shadow
+            .update_uniform(context, "useShadow", program);
     }
-    Ok(Rc::new(material))
 }
 
-fn create_material_struct(material: &PhongMaterial) -> Data {
-    let mut members = HashMap::from([
-        ("ambient", Data::from(material.ambient)),
-        ("diffuse", Data::from(material.diffuse)),
-        ("specularStrength", Data::from(material.specular_strength)),
-        ("shininess", Data::from(material.shininess)),
-    ]);
-    let use_texture: bool;
-    if let Some(sampler) = material.texture() {
-        use_texture = true;
-        members.insert("texture0", Data::from(sampler));
-    } else {
-        use_texture = false;
+impl GenericMaterial for PhongMaterial {
+    fn vertex_shader(&self) -> &str {
+        include_str!("vertex.glsl")
     }
-    members.insert("useTexture", Data::from(use_texture));
 
-    let use_bump_texture: bool;
-    if let Some(sampler) = material.bump_texture() {
-        use_bump_texture = true;
-        members.insert("bumpTexture", Data::from(sampler));
-    } else {
-        use_bump_texture = false;
+    fn fragment_shader(&self) -> &str {
+        include_str!("fragment.glsl")
     }
-    members.insert("useBumpTexture", Data::from(use_bump_texture));
-    members.insert("bumpStrength", Data::from(material.bump_strength));
-
-    Data::from(members)
 }

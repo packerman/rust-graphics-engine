@@ -1,18 +1,42 @@
-use std::{collections::HashMap, rc::Rc};
-
-use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
     base::color::{self, Color},
-    legacy::{light::Light, texture::Sampler2D},
+    core::{
+        material::GenericMaterial,
+        program::{self, Program, UpdateProgramUniforms, UpdateUniform},
+    },
+    legacy::texture::Sampler2D,
 };
 
+#[derive(Debug)]
 pub struct FlatMaterial {
     pub double_side: bool,
     pub texture: Option<Sampler2D>,
     pub ambient: Color,
     pub diffuse: Color,
+}
+
+impl FlatMaterial {
+    fn update_struct_uniform(
+        &self,
+        context: &WebGl2RenderingContext,
+        name: &str,
+        program: &Program,
+    ) {
+        self.ambient
+            .update_uniform(context, &program::join_name(name, "ambient"), program);
+        self.diffuse
+            .update_uniform(context, &program::join_name(name, "diffuse"), program);
+        if let Some(texture) = self.texture {
+            texture.update_uniform(context, &program::join_name(name, "texture0"), program);
+        }
+        self.texture.is_some().update_uniform(
+            context,
+            &program::join_name(name, "useTexture"),
+            program,
+        );
+    }
 }
 
 impl Default for FlatMaterial {
@@ -26,42 +50,22 @@ impl Default for FlatMaterial {
     }
 }
 
-pub fn create(
-    context: &WebGl2RenderingContext,
-    flat_material: FlatMaterial,
-) -> Result<Rc<Material>> {
-    let render_settings = vec![RenderSetting::CullFace(!flat_material.double_side)];
-    Material::from_with_context(
-        context,
-        MaterialSettings {
-            vertex_shader: include_str!("vertex.glsl"),
-            fragment_shader: include_str!("fragment.glsl"),
-            uniforms: vec![
-                ("material", self::create_material_struct(flat_material)),
-                ("light0", Light::create_data()),
-                ("light1", Light::create_data()),
-                ("light2", Light::create_data()),
-                ("light3", Light::create_data()),
-            ],
-            render_settings,
-            draw_style: WebGl2RenderingContext::TRIANGLES,
-        },
-    )
-    .map(Rc::new)
+impl UpdateProgramUniforms for FlatMaterial {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        self.update_struct_uniform(context, "material", program);
+    }
 }
 
-fn create_material_struct(flat_material: FlatMaterial) -> Data {
-    let mut members = HashMap::from([
-        ("ambient", Data::from(flat_material.ambient)),
-        ("diffuse", Data::from(flat_material.diffuse)),
-    ]);
-    let use_texture: bool;
-    if let Some(sampler) = flat_material.texture {
-        use_texture = true;
-        members.insert("texture0", Data::from(sampler));
-    } else {
-        use_texture = false;
+impl GenericMaterial for FlatMaterial {
+    fn vertex_shader(&self) -> &str {
+        include_str!("vertex.glsl")
     }
-    members.insert("useTexture", Data::from(use_texture));
-    Data::from(members)
+
+    fn fragment_shader(&self) -> &str {
+        include_str!("fragment.glsl")
+    }
+
+    fn double_sided(&self) -> bool {
+        self.double_side
+    }
 }
