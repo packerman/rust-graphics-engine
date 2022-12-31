@@ -1,9 +1,13 @@
 use std::{collections::HashMap, rc::Rc};
 
 use anyhow::Result;
+use glm::{Vec2, Vec3};
 use web_sys::WebGl2RenderingContext;
 
-use crate::core::{accessor::Accessor, material::Material, mesh::Mesh};
+use crate::{
+    base::color::Color,
+    core::{accessor::Accessor, material::Material, mesh::Mesh},
+};
 
 #[derive(Debug, Clone)]
 pub struct Geometry {
@@ -41,4 +45,11 @@ impl<const N: usize> From<[(&str, Rc<Accessor>); N]> for Geometry {
         }
         Geometry::new(map)
     }
+}
+
+struct TypedGeometry {
+    position: Vec<Vec3>,
+    texcoord: Vec<Vec2>,
+    normal: Vec<Vec3>,
+    color: Vec<Color>,
 }
