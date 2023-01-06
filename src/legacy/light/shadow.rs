@@ -176,35 +176,41 @@ impl UpdateUniform for Shadow {
         program: &Program,
         level: Level,
     ) {
-        self.light_direction().update_uniform(
+        self.light_direction().update_uniform_with_level(
             context,
             &program::join_name(name, Self::LIGHT_DIRECTION_MEMBER),
             program,
+            level,
         );
-        self.projection_matrix().update_uniform(
+        self.projection_matrix().update_uniform_with_level(
             context,
             &program::join_name(name, Self::PROJECTION_MATRIX_MEMBER),
             program,
+            level,
         );
-        self.view_matrix().update_uniform(
+        self.view_matrix().update_uniform_with_level(
             context,
             &program::join_name(name, Self::VIEW_MATRIX_MEMBER),
             program,
+            level,
         );
-        self.get_sampler().update_uniform(
+        self.get_sampler().update_uniform_with_level(
             context,
             &program::join_name(name, Self::DEPTH_TEXTURE_MEMBER),
             program,
+            level,
         );
-        self.strength().update_uniform(
+        self.strength().update_uniform_with_level(
             context,
             &program::join_name(name, Self::STRENGTH_MEMBER),
             program,
+            level,
         );
-        self.bias().update_uniform(
+        self.bias().update_uniform_with_level(
             context,
             &program::join_name(name, Self::BIAS_MEMBER),
             program,
+            level,
         );
     }
 }

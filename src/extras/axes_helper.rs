@@ -55,7 +55,7 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
             axes_helper.axis_colors[2],
             axes_helper.axis_colors[2],
         ];
-        let geometry = Rc::new(Geometry::from([
+        let geometry = Geometry::from([
             (
                 mesh::POSITION_ATTRIBUTE,
                 Rc::new(Accessor::from_with_context(context, &position_data)?),
@@ -64,7 +64,7 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
                 mesh::COLOR_0_ATTRIBUTE,
                 Rc::new(Accessor::from_with_context(context, &color_data)?),
             ),
-        ]));
+        ]);
         let material = Rc::new(Material::from_with_context(
             context,
             shared_ref::strong(LineMaterial {

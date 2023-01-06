@@ -160,12 +160,12 @@ impl Node {
         self.reset_transforms();
     }
 
-    pub fn rotate_x(&self, angle: Angle) {
+    pub fn rotate_x(&mut self, angle: Angle) {
         let m = matrix::rotation_x(angle);
         self.apply_transform(&m);
     }
 
-    pub fn rotate_y(&self, angle: Angle) {
+    pub fn rotate_y(&mut self, angle: Angle) {
         let m = matrix::rotation_y(angle);
         self.apply_transform(&m);
     }
@@ -184,7 +184,7 @@ impl Node {
         self.rotation_matrix() * forward
     }
 
-    pub fn set_direction(&self, direction: &Vec3) {
+    pub fn set_direction(&mut self, direction: &Vec3) {
         let position = self.position();
         let target_position = position + direction;
         self.look_at(&target_position);
@@ -205,8 +205,8 @@ impl Node {
         self.camera.as_deref()
     }
 
-    pub fn mesh(&self) -> Option<&Mesh> {
-        self.mesh.as_deref()
+    pub fn mesh(&self) -> Option<&Rc<Mesh>> {
+        self.mesh.as_ref()
     }
 
     pub fn descendants(&self) -> Vec<SharedRef<Node>> {

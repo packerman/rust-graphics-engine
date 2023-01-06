@@ -97,10 +97,10 @@ impl Light {
         if let Some(light_type) = &self.light_type {
             match light_type {
                 LightType::Directional { direction } => {
-                    self.node.borrow().set_direction(direction);
+                    self.node.borrow_mut().set_direction(direction);
                 }
                 LightType::Point { position } => {
-                    self.node.borrow().set_position(position);
+                    self.node.borrow_mut().set_position(position);
                 }
             }
         }
@@ -118,7 +118,7 @@ impl Light {
     }
 
     pub fn add_child(&self, child: SharedRef<Node>) {
-        self.node.borrow().add_child(child)
+        self.node.borrow_mut().add_child(child)
     }
 }
 
@@ -133,45 +133,52 @@ impl UpdateUniform for Light {
         if let Some(light_type) = &self.light_type {
             match light_type {
                 LightType::Directional { direction } => {
-                    Self::DIRECTIONAL_TYPE.update_uniform(
+                    Self::DIRECTIONAL_TYPE.update_uniform_with_level(
                         context,
                         &program::join_name(name, Self::LIGHT_TYPE_MEMBER),
                         program,
+                        level,
                     );
-                    direction.update_uniform(
+                    direction.update_uniform_with_level(
                         context,
                         &program::join_name(name, Self::DIRECTION_MEMBER),
                         program,
+                        level,
                     );
                 }
                 LightType::Point { position } => {
-                    Self::POINT_TYPE.update_uniform(
+                    Self::POINT_TYPE.update_uniform_with_level(
                         context,
                         &program::join_name(name, Self::LIGHT_TYPE_MEMBER),
                         program,
+                        level,
                     );
-                    position.update_uniform(
+                    position.update_uniform_with_level(
                         context,
                         &program::join_name(name, Self::POSITION_MEMBER),
                         program,
+                        level,
                     )
                 }
             }
-            self.color.update_uniform(
+            self.color.update_uniform_with_level(
                 context,
                 &program::join_name(name, Self::COLOR_MEMBER),
                 program,
+                level,
             );
-            Vec3::from(self.attenuation).update_uniform(
+            Vec3::from(self.attenuation).update_uniform_with_level(
                 context,
                 &program::join_name(name, Self::ATTENUATION_MEMBER),
                 program,
+                level,
             );
         } else {
-            Self::NONE_TYPE.update_uniform(
+            Self::NONE_TYPE.update_uniform_with_level(
                 context,
                 &program::join_name(name, Self::LIGHT_TYPE_MEMBER),
                 program,
+                level,
             );
         }
     }

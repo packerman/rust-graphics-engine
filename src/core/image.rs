@@ -51,7 +51,7 @@ impl Image {
 }
 
 #[derive(Debug, Clone)]
-enum ImageType {
+pub enum ImageType {
     HtmlImageElement(HtmlImageElement),
     HtmlCanvasElement(HtmlCanvasElement),
     Buffer(Resolution),

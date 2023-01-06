@@ -37,7 +37,7 @@ impl Geometry {
         material: Rc<Material>,
         mode: u32,
     ) -> Result<Mesh> {
-        Mesh::primitive(context, self.attributes, None, material, mode)
+        Mesh::primitive(context, self.attributes.clone(), None, material, mode)
     }
 }
 
@@ -90,7 +90,7 @@ impl TypedGeometry {
         })
     }
 
-    pub fn transform_mut(&self, transform: &Mat4) {
+    pub fn transform_mut(&mut self, transform: &Mat4) {
         for vertex in self.position.iter_mut() {
             let transformed = transform * glm::vec4(vertex.x, vertex.y, vertex.z, 1.0);
             *vertex = glm::vec4_to_vec3(&transformed);
@@ -109,13 +109,13 @@ impl TypedGeometry {
         })?;
         self.position.extend(&other.position);
         if let Some(texcoord) = &mut self.texcoord_0 {
-            texcoord.extend(&other.texcoord_0.unwrap());
+            texcoord.extend(other.texcoord_0.as_ref().unwrap());
         }
         if let Some(normal) = &mut self.normal {
-            normal.extend(&other.normal.unwrap());
+            normal.extend(other.normal.as_ref().unwrap());
         }
         if let Some(color) = &mut self.color_0 {
-            color.extend(&other.color_0.unwrap());
+            color.extend(other.color_0.as_ref().unwrap());
         }
         Ok(())
     }

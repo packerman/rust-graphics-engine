@@ -5,15 +5,22 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     api::geometry::Geometry,
-    base::math::resolution::Resolution,
+    base::{
+        convert::FromWithContext,
+        math::resolution::Resolution,
+        util::shared_ref::{self, SharedRef},
+    },
     core::{
-        camera::Camera,
+        accessor::Accessor,
+        camera::{Camera, Orthographic},
         material::Material,
-        mesh::{Mesh, Primitive},
+        mesh::{self, Mesh, Primitive},
         node::Node,
+        scene::Scene,
         texture::{Texture, TextureUnit},
     },
     legacy::{
+        light::Light,
         render_target::RenderTarget,
         renderer::{self, Renderer},
         texture::Sampler2D,
@@ -24,7 +31,7 @@ pub type Effect = Material;
 
 pub struct Postprocessor {
     renderer: Rc<Renderer>,
-    scenes: Vec<Rc<Node>>,
+    scenes: Vec<Scene>,
     cameras: Vec<Rc<RefCell<Camera>>>,
     render_targets: Vec<Option<RenderTarget>>,
     resolution: Resolution,
@@ -37,8 +44,8 @@ impl Postprocessor {
     pub fn initialize(
         context: &WebGl2RenderingContext,
         renderer: Rc<Renderer>,
-        scene: Rc<Node>,
-        camera: Rc<RefCell<Camera>>,
+        scene: Scene,
+        camera: SharedRef<Camera>,
         render_target: Option<RenderTarget>,
         texture_unit: TextureUnit,
     ) -> Result<Self> {
@@ -50,13 +57,13 @@ impl Postprocessor {
             resolution: renderer::get_canvas_resolution(context),
             geometry: Rc::new(self::create_geometry(context)?),
             texture_unit,
-            default_camera: Camera::new_ortographic(Default::default()),
+            default_camera: shared_ref::strong(Camera::from(Orthographic::default())),
         })
     }
 
     pub fn add_effect<E>(&mut self, context: &WebGl2RenderingContext, effect: E) -> Result<()>
     where
-        E: Fn(Sampler2D) -> Result<Effect>,
+        E: Fn(Sampler2D) -> Result<Rc<Effect>>,
     {
         let target = RenderTarget::initialize(context, self.resolution)?;
         self.scenes.push(self::create_scene(
@@ -72,13 +79,13 @@ impl Postprocessor {
         Ok(())
     }
 
-    pub fn render(&self, context: &WebGl2RenderingContext) {
+    pub fn render(&self, context: &WebGl2RenderingContext, lights: &[Light]) {
         for n in 0..self.scenes.len() {
             let scene = &self.scenes[n];
             let camera = &self.cameras[n];
             let target = &self.render_targets[n];
             self.renderer
-                .render_to_target(context, scene, camera, target.as_ref())
+                .render_to_target(context, scene, camera, target.as_ref(), lights)
         }
     }
 
@@ -92,14 +99,14 @@ impl Postprocessor {
 fn create_scene(
     context: &WebGl2RenderingContext,
     geometry: Rc<Geometry>,
-    effect: Effect,
-    camera: Rc<RefCell<Camera>>,
-) -> Result<Rc<Node>> {
-    let scene = Node::new_group();
-    let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::new(effect))?);
-    scene.add_child(&mesh);
-    let camera = Node::new_camera(camera);
-    scene.add_child(&camera);
+    effect: Rc<Effect>,
+    camera: SharedRef<Camera>,
+) -> Result<Scene> {
+    let mut scene = Scene::empty();
+    let mesh = Node::with_mesh(Rc::new(geometry.create_mesh(context, effect)?));
+    scene.add_root_node(mesh);
+    let camera = Node::with_camera(camera);
+    scene.add_root_node(camera);
     Ok(scene)
 }
 
@@ -108,11 +115,15 @@ fn create_geometry(context: &WebGl2RenderingContext) -> Result<Geometry> {
     let t = [[0.0_f32, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]];
     let position_data = [p[0], p[1], p[3], p[0], p[3], p[2]];
     let uv_data = [t[0], t[1], t[3], t[0], t[3], t[2]];
-    Geometry::from_with_context(
-        context,
-        [
-            (Primitive::POSITION_ATTRIBUTE, &position_data),
-            (Primitive::TEXCOORD_0_ATTRIBUTE, &uv_data),
-        ],
-    )
+    let geometry = Geometry::from([
+        (
+            mesh::POSITION_ATTRIBUTE,
+            Rc::new(Accessor::from_with_context(context, &position_data)?),
+        ),
+        (
+            mesh::TEXCOORD_0_ATTRIBUTE,
+            Rc::new(Accessor::from_with_context(context, &uv_data)?),
+        ),
+    ]);
+    Ok(geometry)
 }

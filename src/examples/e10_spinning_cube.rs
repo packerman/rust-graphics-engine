@@ -35,7 +35,7 @@ struct Example {
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
-        let scene = Scene::empty();
+        let mut scene = Scene::empty();
 
         let camera = shared_ref::strong(Camera::from(Perspective::default()));
         let camera_node = Node::with_camera(Rc::clone(&camera));
@@ -44,10 +44,7 @@ impl AsyncCreator for Example {
             .set_position(&glm::vec3(0.0, 0.0, 2.0));
         scene.add_root_node(camera_node);
 
-        let geometry = Rc::new(Geometry::from_with_context(
-            context,
-            BoxGeometry::default(),
-        )?);
+        let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
         let material = Rc::new(Material::from_with_context(
             context,
             shared_ref::strong(SurfaceMaterial {
@@ -60,7 +57,7 @@ impl AsyncCreator for Example {
         )?);
         let mesh = Rc::new(geometry.create_mesh(context, material)?);
         let mesh = Node::with_mesh(mesh);
-        scene.add_root_node(mesh);
+        scene.add_root_node(Rc::clone(&mesh));
 
         Ok(Box::new(Example {
             renderer,
@@ -74,10 +71,10 @@ impl AsyncCreator for Example {
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
         self.mesh
-            .borrow()
+            .borrow_mut()
             .rotate_y(Angle::from_radians(TAU) / 450.0);
         self.mesh
-            .borrow()
+            .borrow_mut()
             .rotate_x(Angle::from_radians(TAU) / 600.0);
     }
 

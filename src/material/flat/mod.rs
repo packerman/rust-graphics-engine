@@ -28,7 +28,7 @@ impl FlatMaterial {
             .update_uniform(context, &program::join_name(name, "ambient"), program);
         self.diffuse
             .update_uniform(context, &program::join_name(name, "diffuse"), program);
-        if let Some(texture) = self.texture {
+        if let Some(texture) = &self.texture {
             texture.update_uniform(context, &program::join_name(name, "texture0"), program);
         }
         self.texture.is_some().update_uniform(

@@ -102,12 +102,8 @@ impl Camera {
     }
 
     pub fn view_matrix(&self) -> Mat4 {
-        if let Some(node) = self.node() {
-            if let Some(inverse) = self.model_matrix().try_inverse() {
-                inverse
-            } else {
-                glm::identity()
-            }
+        if let Some(inverse) = self.model_matrix().try_inverse() {
+            inverse
         } else {
             glm::identity()
         }

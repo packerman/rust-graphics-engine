@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, rc::Rc};
 
 use web_sys::WebGl2RenderingContext;
 
@@ -163,8 +163,8 @@ impl Renderer {
         self::viewport(context, resolution);
 
         meshes.into_iter().for_each(|(mesh, node)| {
-            Self::update_lights(context, mesh, &lights);
-            self.update_shadow(context, mesh);
+            Self::update_lights(context, &mesh, &lights);
+            self.update_shadow(context, &mesh);
             mesh.update_uniform(
                 context,
                 "viewPosition",
@@ -180,7 +180,11 @@ impl Renderer {
         });
     }
 
-    fn shadow_pass(&self, context: &WebGl2RenderingContext, meshes: &[(&Mesh, &SharedRef<Node>)]) {
+    fn shadow_pass(
+        &self,
+        context: &WebGl2RenderingContext,
+        meshes: &[(Rc<Mesh>, &SharedRef<Node>)],
+    ) {
         if let Some(shadow) = self.shadow() {
             shadow.bind(context);
             context.clear_color(1.0, 0.0, 0.0, 1.0);
@@ -213,10 +217,10 @@ impl Renderer {
         }
     }
 
-    fn filter_meshes(nodes: &[SharedRef<Node>]) -> Vec<(&Mesh, &SharedRef<Node>)> {
+    fn filter_meshes(nodes: &[SharedRef<Node>]) -> Vec<(Rc<Mesh>, &SharedRef<Node>)> {
         nodes
             .iter()
-            .filter_map(|node| node.as_ref().borrow().mesh().map(|mesh| (mesh, node)))
+            .filter_map(|node| node.borrow().mesh().map(|mesh| (Rc::clone(mesh), node)))
             .collect()
     }
 }

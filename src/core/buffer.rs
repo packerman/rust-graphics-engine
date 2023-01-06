@@ -51,7 +51,7 @@ impl BufferType {
             Self::ArrayBuffer(array_buffer) => {
                 Uint16Array::new_with_byte_offset_and_length(array_buffer, byte_offset, length)
             }
-            Self::Float32Array(array) => {
+            Self::Float32Array(_) => {
                 Self::panic_forbidden_conversion("Float32Array", "Uint16Array")
             }
         }
@@ -65,8 +65,8 @@ impl BufferType {
 impl From<Float32Array> for Buffer {
     fn from(array: Float32Array) -> Self {
         Self {
-            buffer_type: BufferType::Float32Array(array),
             byte_length: array.byte_length().try_into().unwrap(),
+            buffer_type: BufferType::Float32Array(array),
         }
     }
 }
