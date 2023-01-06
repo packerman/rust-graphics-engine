@@ -2,7 +2,7 @@ pub mod e10_spinning_cube;
 pub mod e11_axes_grid;
 pub mod e12_movement_rig;
 pub mod e13_texture;
-// pub mod e14_more_textures;
+pub mod e14_more_textures;
 // pub mod e15_spinning_textured_cube;
 // pub mod e16_spinning_textured_sphere;
 // pub mod e17_skysphere;
