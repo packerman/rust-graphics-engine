@@ -91,10 +91,7 @@ pub fn create(
 ) -> Result<Rc<Material>> {
     Material::from_with_context(
         context,
-        shared_ref::strong(TextureMaterial {
-            properties,
-            sampler: Sampler2D::new(texture, unit),
-        }),
+        shared_ref::strong(TextureMaterial::new(texture, unit, properties)),
     )
     .map(Rc::new)
 }
