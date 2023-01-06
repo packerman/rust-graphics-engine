@@ -66,7 +66,7 @@ impl TypedGeometry {
         normal: Option<Vec<Vec3>>,
         color_0: Option<Vec<Vec4>>,
     ) -> Result<Self> {
-        validate::not_empty(&position, || anyhow!("Position must not be empty"));
+        validate::not_empty(&position, || anyhow!("Position must not be empty"))?;
         validate::optional(&texcoord_0, |texcoord| {
             validate::assert(texcoord.len() == position.len(), || {
                 anyhow!("Vector length must be equal")
