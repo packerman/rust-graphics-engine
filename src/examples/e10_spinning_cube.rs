@@ -35,10 +35,10 @@ struct Example {
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
-        let mut scene = Scene::empty();
+        let mut scene = Scene::new_empty();
 
         let camera = shared_ref::strong(Camera::from(Perspective::default()));
-        let camera_node = Node::with_camera(Rc::clone(&camera));
+        let camera_node = Node::new_with_camera(Rc::clone(&camera));
         camera_node
             .borrow_mut()
             .set_position(&glm::vec3(0.0, 0.0, 2.0));
@@ -56,7 +56,7 @@ impl AsyncCreator for Example {
             }),
         )?);
         let mesh = Rc::new(geometry.create_mesh(context, material)?);
-        let mesh = Node::with_mesh(mesh);
+        let mesh = Node::new_with_mesh(mesh);
         scene.add_root_node(Rc::clone(&mesh));
 
         Ok(Box::new(Example {

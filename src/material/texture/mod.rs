@@ -1,12 +1,17 @@
 use std::rc::Rc;
 
+use anyhow::Result;
 use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::color::{self, Color},
+    base::{
+        color::{self, Color},
+        convert::FromWithContext,
+        util::shared_ref,
+    },
     core::{
-        material::GenericMaterial,
+        material::{GenericMaterial, Material},
         program::{Program, UpdateProgramUniforms, UpdateUniform},
         texture::{Texture, TextureUnit},
     },
@@ -76,4 +81,20 @@ impl UpdateProgramUniforms for Properties {
         self.repeat_uv.update_uniform(context, "repeatUV", program);
         self.offset_uv.update_uniform(context, "offsetUV", program)
     }
+}
+
+pub fn create(
+    context: &WebGl2RenderingContext,
+    texture: Rc<Texture>,
+    unit: TextureUnit,
+    properties: Properties,
+) -> Result<Rc<Material>> {
+    Material::from_with_context(
+        context,
+        shared_ref::strong(TextureMaterial {
+            properties,
+            sampler: Sampler2D::new(texture, unit),
+        }),
+    )
+    .map(Rc::new)
 }

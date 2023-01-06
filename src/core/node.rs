@@ -68,11 +68,11 @@ impl Node {
         Self::new(glm::identity(), None, camera.into(), Some(name.into()))
     }
 
-    pub fn with_camera(camera: SharedRef<Camera>) -> SharedRef<Self> {
+    pub fn new_with_camera(camera: SharedRef<Camera>) -> SharedRef<Self> {
         Self::new(glm::identity(), None, camera.into(), None)
     }
 
-    pub fn with_mesh(mesh: Rc<Mesh>) -> SharedRef<Self> {
+    pub fn new_with_mesh(mesh: Rc<Mesh>) -> SharedRef<Self> {
         Self::new(glm::identity(), Some(mesh), None, None)
     }
 

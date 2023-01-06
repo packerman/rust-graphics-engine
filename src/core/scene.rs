@@ -16,7 +16,7 @@ impl Scene {
         Self { nodes }
     }
 
-    pub fn empty() -> Self {
+    pub fn new_empty() -> Self {
         Self::new(vec![])
     }
 

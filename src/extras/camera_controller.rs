@@ -1,5 +1,7 @@
 use std::cell::RefCell;
 
+use glm::Vec3;
+
 use crate::{
     base::{
         application::Loop,
@@ -53,7 +55,7 @@ pub struct CameraController {
 }
 
 impl CameraController {
-    pub fn new(properties: Properties, node: SharedRef<Node>, attachment: SharedRef<Node>) -> Self {
+    fn new(properties: Properties, node: SharedRef<Node>, attachment: SharedRef<Node>) -> Self {
         Self {
             properties,
             node,
@@ -127,6 +129,10 @@ impl CameraController {
                 .borrow_mut()
                 .apply_transform(&matrix::rotation_x(-angular_change))
         }
+    }
+
+    pub fn set_position(&self, position: &Vec3) {
+        self.node.borrow_mut().set_position(position);
     }
 
     fn is_key_pressed(key: &Option<String>, key_state: &KeyState) -> bool {

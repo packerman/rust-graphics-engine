@@ -42,6 +42,7 @@ impl UpdateUniformValue for Sampler2D {
     }
 }
 
+// TODO
 // #[derive(Debug, Clone)]
 // pub struct TextureProperties {
 //     pub mag_filter: i32,

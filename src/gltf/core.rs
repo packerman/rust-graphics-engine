@@ -12,9 +12,10 @@ use crate::{
         renderer::Renderer,
         scene::Scene,
     },
+    extras::camera_controller::CameraController,
 };
 
-use super::user::{camera_controller::CameraController, light_controller::LightController};
+use super::user::light_controller::LightController;
 
 #[derive(Debug)]
 pub struct Root {

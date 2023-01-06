@@ -14,7 +14,7 @@ use crate::{
         util::shared_ref::{self, SharedRef},
     },
     core::{
-        camera::{Camera, Orthographic},
+        camera::{Camera, Perspective},
         mesh::Mesh,
         node::Node,
         scene::Scene,
@@ -33,10 +33,10 @@ struct Example {
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
-        let mut scene = Scene::empty();
+        let mut scene = Scene::new_empty();
 
-        let camera = shared_ref::strong(Camera::from(Orthographic::default()));
-        let camera_node = Node::with_camera(Rc::clone(&camera));
+        let camera = shared_ref::strong(Camera::from(Perspective::default()));
+        let camera_node = Node::new_with_camera(Rc::clone(&camera));
         camera_node
             .borrow_mut()
             .set_position(&glm::vec3(0.5, 1.0, 5.0));
@@ -49,7 +49,7 @@ impl AsyncCreator for Example {
                 ..Default::default()
             },
         )?);
-        let axes = Node::with_mesh(axes);
+        let axes = Node::new_with_mesh(axes);
         scene.add_root_node(axes);
 
         let grid = Rc::new(Mesh::from_with_context(
@@ -61,7 +61,7 @@ impl AsyncCreator for Example {
                 ..Default::default()
             },
         )?);
-        let grid = Node::with_mesh(grid);
+        let grid = Node::new_with_mesh(grid);
         grid.borrow_mut().rotate_x(-Angle::RIGHT);
         scene.add_root_node(grid);
 

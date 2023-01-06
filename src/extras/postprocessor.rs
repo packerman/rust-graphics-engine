@@ -102,10 +102,10 @@ fn create_scene(
     effect: Rc<Effect>,
     camera: SharedRef<Camera>,
 ) -> Result<Scene> {
-    let mut scene = Scene::empty();
-    let mesh = Node::with_mesh(Rc::new(geometry.create_mesh(context, effect)?));
+    let mut scene = Scene::new_empty();
+    let mesh = Node::new_with_mesh(Rc::new(geometry.create_mesh(context, effect)?));
     scene.add_root_node(mesh);
-    let camera = Node::with_camera(camera);
+    let camera = Node::new_with_camera(camera);
     scene.add_root_node(camera);
     Ok(scene)
 }

@@ -98,7 +98,7 @@ impl Shadow {
         options: ShadowOptions,
     ) -> Result<Self> {
         assert!(light_source.is_directional());
-        let camera = Node::with_camera(shared_ref::strong(Camera::from(Orthographic::from(
+        let camera = Node::new_with_camera(shared_ref::strong(Camera::from(Orthographic::from(
             options.camera_bounds,
         ))));
         light_source.add_child(Rc::clone(&camera));
