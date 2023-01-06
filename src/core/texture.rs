@@ -57,11 +57,11 @@ impl Texture {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct TextureUnit(pub u32);
+pub struct TextureUnit(pub i32);
 
 impl TextureUnit {
     pub fn active_texture(&self, context: &WebGl2RenderingContext) {
-        context.active_texture(WebGl2RenderingContext::TEXTURE0 + self.0)
+        context.active_texture(WebGl2RenderingContext::TEXTURE0 + self.0 as u32)
     }
 }
 
@@ -71,7 +71,7 @@ impl UpdateUniformValue for TextureUnit {
         context: &WebGl2RenderingContext,
         location: Option<&web_sys::WebGlUniformLocation>,
     ) {
-        context.uniform1ui(location, self.0)
+        context.uniform1i(location, self.0)
     }
 
     fn value_type(&self) -> u32 {

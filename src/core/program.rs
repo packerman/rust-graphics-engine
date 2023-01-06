@@ -18,7 +18,7 @@ pub trait UpdateProgramUniforms: Debug {
 
 pub trait UpdateUniform {
     fn update_uniform(&self, context: &WebGl2RenderingContext, name: &str, program: &Program) {
-        self.update_uniform_with_level(context, name, program, Level::Ignore);
+        self.update_uniform_with_level(context, name, program, Level::default());
     }
 
     fn update_uniform_with_level(

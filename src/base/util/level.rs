@@ -5,6 +5,12 @@ pub enum Level {
     Panic,
 }
 
+impl Default for Level {
+    fn default() -> Self {
+        Self::Ignore
+    }
+}
+
 impl Level {
     pub fn assert<M>(&self, condition: bool, message: M)
     where

@@ -147,6 +147,10 @@ impl Primitive {
     }
 
     pub fn set_vertex_array(&self, context: &WebGl2RenderingContext) {
+        self.set_vertex_array_with_level(context, Level::default())
+    }
+
+    pub fn set_vertex_array_with_level(&self, context: &WebGl2RenderingContext, level: Level) {
         let program = self.material.program();
         program.use_program(context);
         context.bind_vertex_array(Some(&self.vertex_array));
@@ -154,6 +158,8 @@ impl Primitive {
             let attribute = Self::attribute_to_variable_name(attribute);
             if let Some(location) = program.get_attribute_location(&attribute) {
                 accessor.set_vertex_attribute(context, *location);
+            } else {
+                level.error(|| format!("Attribute '{}' not found", attribute));
             }
         }
         if let Some(accessor) = &self.indices {

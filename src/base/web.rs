@@ -25,7 +25,7 @@ macro_rules! warn {
 
 macro_rules! error {
     ( $( $t:tt )* ) => {
-        web_sys::console::error_1(&format!( $( $t )* ).into());
+        web_sys::console::error_1(&format!( $( $t )* ).into())
     }
 }
 

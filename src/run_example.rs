@@ -3,7 +3,7 @@ use anyhow::{anyhow, Result};
 use crate::examples::{e10_spinning_cube, e11_axes_grid, e12_movement_rig, e13_texture, e33_gltf};
 
 pub fn run_example() {
-    run_example_by_index(Some(3))
+    run_example_by_index(Some(0))
 }
 
 fn examples() -> Vec<Box<dyn Fn()>> {
