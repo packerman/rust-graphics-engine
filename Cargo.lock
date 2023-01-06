@@ -346,6 +346,7 @@ dependencies = [
  "js-sys",
  "nalgebra",
  "nalgebra-glm",
+ "num-traits",
  "serde",
  "serde-wasm-bindgen",
  "url",

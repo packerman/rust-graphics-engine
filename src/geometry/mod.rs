@@ -8,7 +8,7 @@ use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    api::geometry::Geometry,
+    api::geometry::{Geometry, TypedGeometry},
     base::{color, convert::FromWithContext, math::angle::Angle},
     core::{accessor::Accessor, mesh},
 };
@@ -191,8 +191,10 @@ impl Default for Polygon {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
-    fn from_with_context(context: &WebGl2RenderingContext, polygon: Polygon) -> Result<Self> {
+impl TryFrom<Polygon> for TypedGeometry {
+    type Error = anyhow::Error;
+
+    fn try_from(polygon: Polygon) -> Result<Self> {
         let mut position_data = Vec::with_capacity((3 * polygon.sides).into());
         let mut color_data = Vec::with_capacity((3 * polygon.sides).into());
         let mut texture_data = Vec::with_capacity((3 * polygon.sides).into());
@@ -232,24 +234,18 @@ impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
             normal_data.push(normal_vector);
         }
 
-        let geometry = Self::from([
-            (
-                mesh::POSITION_ATTRIBUTE,
-                Rc::new(Accessor::from_with_context(context, &position_data)?),
-            ),
-            (
-                mesh::COLOR_0_ATTRIBUTE,
-                Rc::new(Accessor::from_with_context(context, &color_data)?),
-            ),
-            (
-                mesh::TEXCOORD_0_ATTRIBUTE,
-                Rc::new(Accessor::from_with_context(context, &texture_data)?),
-            ),
-            (
-                mesh::NORMAL_ATTRIBUTE,
-                Rc::new(Accessor::from_with_context(context, &normal_data)?),
-            ),
-        ]);
-        Ok(geometry)
+        TypedGeometry::new(
+            position_data,
+            Some(texture_data),
+            Some(normal_data),
+            Some(color_data),
+        )
+    }
+}
+
+impl FromWithContext<WebGl2RenderingContext, Polygon> for Geometry {
+    fn from_with_context(context: &WebGl2RenderingContext, polygon: Polygon) -> Result<Self> {
+        let typed_geometry = TypedGeometry::try_from(polygon)?;
+        Geometry::from_with_context(context, typed_geometry)
     }
 }

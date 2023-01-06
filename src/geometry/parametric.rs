@@ -8,13 +8,12 @@ use glm::Vec3;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    api::geometry::Geometry,
+    api::geometry::{Geometry, TypedGeometry},
     base::{
         color,
         convert::FromWithContext,
         math::{angle::Angle, matrix},
     },
-    core::mesh,
 };
 
 use super::Polygon;
@@ -28,11 +27,10 @@ struct ParametricSurface {
     face_normal: bool,
 }
 
-impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
-    fn from_with_context(
-        context: &WebGl2RenderingContext,
-        surface: ParametricSurface,
-    ) -> Result<Self> {
+impl TryFrom<ParametricSurface> for TypedGeometry {
+    type Error = anyhow::Error;
+
+    fn try_from(surface: ParametricSurface) -> Result<Self> {
         let mut position_data =
             Vec::with_capacity((6 * surface.u_resolution * surface.v_resolution).into());
         let mut color_data =
@@ -125,22 +123,26 @@ impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
             }
         }
 
-        Self::from_with_context(
-            context,
-            [
-                (mesh::POSITION_ATTRIBUTE, &position_data),
-                (mesh::COLOR_0_ATTRIBUTE, &color_data),
-                (mesh::TEXCOORD_0_ATTRIBUTE, &texture_data),
-                (
-                    mesh::NORMAL_ATTRIBUTE,
-                    if surface.face_normal {
-                        &face_normal_data
-                    } else {
-                        &vertex_normal_data
-                    },
-                ),
-            ],
+        TypedGeometry::new(
+            position_data,
+            Some(texture_data),
+            Some(if surface.face_normal {
+                face_normal_data
+            } else {
+                vertex_normal_data
+            }),
+            Some(color_data),
         )
+    }
+}
+
+impl FromWithContext<WebGl2RenderingContext, ParametricSurface> for Geometry {
+    fn from_with_context(
+        context: &WebGl2RenderingContext,
+        surface: ParametricSurface,
+    ) -> Result<Self> {
+        let typed_geometry = TypedGeometry::try_from(surface)?;
+        Geometry::from_with_context(context, typed_geometry)
     }
 }
 
@@ -310,31 +312,31 @@ impl From<Cylindrical> for ParametricSurface {
 
 impl FromWithContext<WebGl2RenderingContext, Cylindrical> for Geometry {
     fn from_with_context(context: &WebGl2RenderingContext, cylinder: Cylindrical) -> Result<Self> {
-        let mut geometry = Self::from_with_context(context, ParametricSurface::from(cylinder))?;
+        let mut cylinder_geometry = TypedGeometry::try_from(ParametricSurface::from(cylinder))?;
 
         if cylinder.closed_top {
-            let mut top_geometry = Self::from_with_context(
-                context,
-                Polygon::new(cylinder.radial_segments, cylinder.radius_top),
-            )?;
+            let mut top_geometry = TypedGeometry::try_from(Polygon::new(
+                cylinder.radial_segments,
+                cylinder.radius_top,
+            ))?;
             let transform = matrix::translation(0.0, cylinder.height / 2.0, 0.0)
                 * matrix::rotation_y(-Angle::RIGHT)
                 * matrix::rotation_x(-Angle::RIGHT);
-            top_geometry.apply_matrix_default(context, &transform)?;
-            geometry.merge_mut(context, &top_geometry)?;
+            top_geometry.transform_mut(&transform);
+            cylinder_geometry.concat_mut(&top_geometry)?;
         }
         if cylinder.closed_bottom {
-            let mut bottom_geometry = Self::from_with_context(
-                context,
-                Polygon::new(cylinder.radial_segments, cylinder.radius_bottom),
-            )?;
+            let mut bottom_geometry = TypedGeometry::try_from(Polygon::new(
+                cylinder.radial_segments,
+                cylinder.radius_bottom,
+            ))?;
             let transform = matrix::translation(0.0, -cylinder.height / 2.0, 0.0)
                 * matrix::rotation_y(-Angle::RIGHT)
                 * matrix::rotation_x(Angle::RIGHT);
-            bottom_geometry.apply_matrix_default(context, &transform)?;
-            geometry.merge_mut(context, &bottom_geometry)?;
+            bottom_geometry.transform_mut(&transform);
+            cylinder_geometry.concat_mut(&bottom_geometry)?;
         }
-        Ok(geometry)
+        Geometry::from_with_context(context, cylinder_geometry)
     }
 }
 
