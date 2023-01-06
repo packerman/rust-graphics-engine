@@ -1,15 +1,15 @@
 use anyhow::{anyhow, Result};
 
-use crate::examples::e10_spinning_cube;
+use crate::examples::{e10_spinning_cube, e11_axes_grid};
 
 pub fn run_example() {
-    run_example_by_index(Some(0))
+    run_example_by_index(None)
 }
 
 fn examples() -> Vec<Box<dyn Fn()>> {
     vec![
         e10_spinning_cube::example(),
-        // e11_axes_grid::example(),
+        e11_axes_grid::example(),
         // e12_movement_rig::example(),
         // e13_texture::example(),
         // e14_more_textures::example(),
