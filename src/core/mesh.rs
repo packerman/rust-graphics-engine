@@ -1,6 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Result, bail};
 use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
@@ -292,13 +292,13 @@ impl Primitive {
             .map(|accessor| accessor.count)
             .collect();
         if counts.is_empty() {
-            Err(anyhow!("Attributes map is empty"))
+            bail!("Attributes map is empty")
         } else {
             let count = counts[0];
             if counts.into_iter().all(|value| value == count) {
                 Ok(count)
             } else {
-                Err(anyhow!("All accessors count have to be equal"))
+                bail!("All accessors count have to be equal")
             }
         }
     }
