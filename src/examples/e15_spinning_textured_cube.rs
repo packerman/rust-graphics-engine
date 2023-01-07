@@ -8,13 +8,16 @@ use crate::{
     api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
+        convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
+        util::shared_ref::{self, SharedRef},
     },
     core::{
-        camera::Camera,
+        camera::{Camera, Perspective},
         mesh::Mesh,
         node::Node,
+        scene::Scene,
         texture::{Texture, TextureUnit},
     },
     geometry::BoxGeometry,
@@ -24,8 +27,8 @@ use crate::{
 
 struct Example {
     renderer: Renderer,
-    scene: Rc<Node>,
-    mesh: Rc<Node>,
+    scene: Scene,
+    mesh: SharedRef<Node>,
     camera: Rc<RefCell<Camera>>,
 }
 
@@ -33,26 +36,25 @@ struct Example {
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
-        let scene = Node::new_group();
+        let mut scene = Scene::new_empty();
 
-        let camera = Camera::new_perspective(Default::default());
-        let camera_node = Node::new_camera(Rc::clone(&camera));
-        camera_node.set_position(&glm::vec3(0.0, 0.0, 1.8));
-        scene.add_child(&camera_node);
+        let camera = shared_ref::strong(Camera::from(Perspective::default()));
+        let camera_node = Node::new_with_camera(Rc::clone(&camera));
+        camera_node
+            .borrow_mut()
+            .set_position(&glm::vec3(0.0, 0.0, 1.8));
+        scene.add_root_node(camera_node);
 
-        let geometry = Rc::new(Geometry::from_with_context(
-            context,
-            BoxGeometry::default(),
-        )?);
+        let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
         let material = material::texture::create(
             context,
-            Rc::new(Texture::fetch(context, "images/crate.png")?),
+            Rc::new(Texture::fetch(context, "images/crate.png").await?),
             TextureUnit(0),
             Default::default(),
         )?;
-        let mesh = Mesh::initialize(context, geometry, material)?;
-        let mesh = Node::new_mesh(mesh);
-        scene.add_child(&mesh);
+        let mesh = Rc::new(Mesh::initialize(context, &geometry, material)?);
+        let mesh = Node::new_with_mesh(mesh);
+        scene.add_root_node(Rc::clone(&mesh));
 
         Ok(Box::new(Example {
             renderer,
@@ -65,8 +67,12 @@ impl AsyncCreator for Example {
 
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
-        self.mesh.rotate_y(Angle::from_radians(TAU) / 450.0);
-        self.mesh.rotate_x(Angle::from_radians(TAU) / 600.0);
+        self.mesh
+            .borrow_mut()
+            .rotate_y(Angle::from_radians(TAU) / 450.0);
+        self.mesh
+            .borrow_mut()
+            .rotate_x(Angle::from_radians(TAU) / 600.0);
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {

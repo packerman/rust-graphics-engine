@@ -40,6 +40,40 @@ impl Mesh {
         Ok(Self::new(vec![primitive], None))
     }
 
+    pub fn initialize_with_mode<T>(
+        context: &WebGl2RenderingContext,
+        provider: &T,
+        material: Rc<Material>,
+        mode: u32,
+    ) -> Result<Self>
+    where
+        T: AccessorProvider,
+    {
+        Self::primitive(
+            context,
+            provider.vertex_accessors(),
+            provider.index_accessor(),
+            material,
+            mode,
+        )
+    }
+
+    pub fn initialize<T>(
+        context: &WebGl2RenderingContext,
+        provider: &T,
+        material: Rc<Material>,
+    ) -> Result<Self>
+    where
+        T: AccessorProvider,
+    {
+        Self::initialize_with_mode(
+            context,
+            provider,
+            material,
+            WebGl2RenderingContext::TRIANGLES,
+        )
+    }
+
     pub fn update_uniform<T>(
         &self,
         context: &WebGl2RenderingContext,
@@ -271,5 +305,13 @@ impl Primitive {
 
     fn attribute_to_variable_name(attribute: &str) -> String {
         format!("a_{}", attribute.to_lowercase())
+    }
+}
+
+pub trait AccessorProvider {
+    fn vertex_accessors(&self) -> HashMap<String, Rc<Accessor>>;
+
+    fn index_accessor(&self) -> Option<Rc<Accessor>> {
+        None
     }
 }

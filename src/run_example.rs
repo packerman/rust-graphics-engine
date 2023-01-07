@@ -1,11 +1,12 @@
 use anyhow::{anyhow, Result};
 
 use crate::examples::{
-    e10_spinning_cube, e11_axes_grid, e12_movement_rig, e13_texture, e14_more_textures, e33_gltf,
+    e10_spinning_cube, e11_axes_grid, e12_movement_rig, e13_texture, e14_more_textures,
+    e15_spinning_textured_cube, e16_spinning_textured_sphere,
 };
 
 pub fn run_example() {
-    run_example_by_index(Some(4))
+    run_example_by_index(None)
 }
 
 fn examples() -> Vec<Box<dyn Fn()>> {
@@ -15,8 +16,8 @@ fn examples() -> Vec<Box<dyn Fn()>> {
         e12_movement_rig::example(),
         e13_texture::example(),
         e14_more_textures::example(),
-        // e15_spinning_textured_cube::example(),
-        // e16_spinning_textured_sphere::example(),
+        e15_spinning_textured_cube::example(),
+        e16_spinning_textured_sphere::example(),
         // e17_skysphere::example(),
         // e18_wave_texture::example(),
         // e19_blend_textures::example(),
@@ -33,7 +34,7 @@ fn examples() -> Vec<Box<dyn Fn()>> {
         // e30_bloom_effect::example(),
         // e31_glow_effect::example(),
         // e32_shadows::example(),
-        e33_gltf::example(),
+        // e33_gltf::example(),
     ]
 }
 

@@ -98,6 +98,6 @@ impl FromWithContext<WebGl2RenderingContext, GridHelper> for Mesh {
         let typed_geometry = TypedGeometry::try_from(grid_helper)?;
         let geometry = Geometry::from_with_context(context, typed_geometry)?;
         let material = Rc::new(Material::from_with_context(context, grid_helper)?);
-        geometry.create_mesh(context, material)
+        Mesh::initialize(context, &geometry, material)
     }
 }

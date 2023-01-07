@@ -14,6 +14,7 @@ use crate::{
     },
     core::{
         camera::{Camera, Perspective},
+        mesh::Mesh,
         node::Node,
         scene::Scene,
         texture::{Texture, TextureUnit},
@@ -42,14 +43,14 @@ impl AsyncCreator for Example {
             .set_position(&glm::vec3(0.0, 0.0, 1.0));
         scene.add_root_node(camera_node);
 
-        let geometry = Rc::new(Geometry::from_with_context(context, Rectangle::default())?);
+        let geometry = Geometry::from_with_context(context, Rectangle::default())?;
         let material = material::texture::create(
             context,
             Rc::new(Texture::fetch(context, "images/grid.png").await?),
             TextureUnit(0),
             Default::default(),
         )?;
-        let mesh = Node::new_with_mesh(Rc::new(geometry.create_mesh(context, material)?));
+        let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(context, &geometry, material)?));
         scene.add_root_node(mesh);
         Ok(Box::new(Example {
             renderer,

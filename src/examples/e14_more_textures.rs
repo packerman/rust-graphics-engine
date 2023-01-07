@@ -45,49 +45,52 @@ impl AsyncCreator for Example {
             scene.add_root_node(camera);
         }
 
-        let material = Rc::new(material::texture::create(
+        let material = material::texture::create(
             context,
             Rc::new(Texture::fetch(context, "images/grid.png").await?),
             TextureUnit(0),
             Default::default(),
-        )?);
+        )?;
         {
-            let geometry = Rc::new(Geometry::from_with_context(context, Sphere::default())?);
-            let mesh = Node::new_with_mesh(Rc::new(
-                geometry.create_mesh(context, Rc::clone(&material))?,
-            ));
+            let geometry = Geometry::from_with_context(context, Sphere::default())?;
+            let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(
+                context,
+                &geometry,
+                Rc::clone(&material),
+            )?));
             mesh.borrow_mut()
                 .apply_transform(&matrix::translation(-3.0, -0.5, 0.0));
             scene.add_root_node(mesh);
         }
         {
-            let geometry = Rc::new(Geometry::from_with_context(
+            let geometry = Geometry::from_with_context(
                 context,
                 Cone {
                     radius: 1.0,
                     height: 2.0,
                     ..Default::default()
                 },
-            )?);
-            let mesh = Node::new_with_mesh(Rc::new(
-                geometry.create_mesh(context, Rc::clone(&material))?,
-            ));
+            )?;
+            let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(
+                context,
+                &geometry,
+                Rc::clone(&material),
+            )?));
             mesh.borrow_mut()
                 .apply_transform(&matrix::translation(0.0, -0.5, 0.0));
             scene.add_root_node(mesh);
         }
         {
-            let geometry = Rc::new(Geometry::from_with_context(
+            let geometry = Geometry::from_with_context(
                 context,
                 Cylinder {
                     radius: 0.8,
                     height: 2.0,
                     ..Default::default()
                 },
-            )?);
-            let mesh = Node::new_with_mesh(Rc::new(
-                geometry.create_mesh(context, Rc::clone(&material))?,
-            ));
+            )?;
+            let mesh =
+                Node::new_with_mesh(Rc::new(Mesh::initialize(context, &geometry, material)?));
             mesh.borrow_mut()
                 .apply_transform(&matrix::translation(3.0, -0.5, 0.0));
             scene.add_root_node(mesh);

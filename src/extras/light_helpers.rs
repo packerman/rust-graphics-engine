@@ -48,7 +48,11 @@ impl DirectionalLightHelper {
         )?;
         typed_geometry.concat_mut(&append);
         let material = Rc::new(Material::from_with_context(context, grid_helper)?);
-        Geometry::from_with_context(context, typed_geometry)?.create_mesh(context, material)
+        Mesh::initialize(
+            context,
+            &Geometry::from_with_context(context, typed_geometry)?,
+            material,
+        )
     }
 }
 
@@ -83,7 +87,7 @@ impl PointLightHelper {
                 ..Default::default()
             }),
         )?);
-        geometry.create_mesh(context, material)
+        Mesh::initialize(context, &geometry, material)
     }
 }
 

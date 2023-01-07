@@ -16,6 +16,7 @@ use crate::{
     core::{
         camera::{Camera, Perspective},
         material::Material,
+        mesh::Mesh,
         node::Node,
         scene::Scene,
     },
@@ -55,7 +56,7 @@ impl AsyncCreator for Example {
                 ..Default::default()
             }),
         )?);
-        let mesh = Rc::new(geometry.create_mesh(context, material)?);
+        let mesh = Rc::new(Mesh::initialize(context, &geometry, material)?);
         let mesh = Node::new_with_mesh(mesh);
         scene.add_root_node(Rc::clone(&mesh));
 

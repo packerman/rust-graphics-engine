@@ -14,7 +14,7 @@ use crate::{
         accessor::Accessor,
         camera::{Camera, Orthographic},
         material::Material,
-        mesh::{self, Mesh, Primitive},
+        mesh::{self, Mesh},
         node::Node,
         scene::Scene,
         texture::{Texture, TextureUnit},
@@ -103,7 +103,11 @@ fn create_scene(
     camera: SharedRef<Camera>,
 ) -> Result<Scene> {
     let mut scene = Scene::new_empty();
-    let mesh = Node::new_with_mesh(Rc::new(geometry.create_mesh(context, effect)?));
+    let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(
+        context,
+        geometry.as_ref(),
+        effect,
+    )?));
     scene.add_root_node(mesh);
     let camera = Node::new_with_camera(camera);
     scene.add_root_node(camera);

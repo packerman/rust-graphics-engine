@@ -76,6 +76,6 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
                 line_type: LineType::Segments,
             }),
         )?);
-        geometry.create_mesh(context, material)
+        Mesh::initialize(context, &geometry, material)
     }
 }

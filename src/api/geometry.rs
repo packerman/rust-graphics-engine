@@ -8,8 +8,7 @@ use crate::{
     base::{convert::FromWithContext, util::validate},
     core::{
         accessor::Accessor,
-        material::Material,
-        mesh::{self, Mesh},
+        mesh::{self, AccessorProvider},
     },
 };
 
@@ -22,23 +21,6 @@ impl Geometry {
     pub fn new(attributes: HashMap<String, Rc<Accessor>>) -> Self {
         Self { attributes }
     }
-
-    pub fn create_mesh(
-        &self,
-        context: &WebGl2RenderingContext,
-        material: Rc<Material>,
-    ) -> Result<Mesh> {
-        self.create_mesh_with_mode(context, material, WebGl2RenderingContext::TRIANGLES)
-    }
-
-    pub fn create_mesh_with_mode(
-        &self,
-        context: &WebGl2RenderingContext,
-        material: Rc<Material>,
-        mode: u32,
-    ) -> Result<Mesh> {
-        Mesh::primitive(context, self.attributes.clone(), None, material, mode)
-    }
 }
 
 impl<const N: usize> From<[(&str, Rc<Accessor>); N]> for Geometry {
@@ -48,6 +30,12 @@ impl<const N: usize> From<[(&str, Rc<Accessor>); N]> for Geometry {
             map.insert(String::from(name), accessor);
         }
         Geometry::new(map)
+    }
+}
+
+impl AccessorProvider for Geometry {
+    fn vertex_accessors(&self) -> HashMap<String, Rc<Accessor>> {
+        self.attributes.clone()
     }
 }
 
