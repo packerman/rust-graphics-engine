@@ -5,7 +5,7 @@ pub mod e13_texture;
 pub mod e14_more_textures;
 pub mod e15_spinning_textured_cube;
 pub mod e16_spinning_textured_sphere;
-// pub mod e17_skysphere;
+pub mod e17_skysphere;
 // pub mod e18_wave_texture;
 // pub mod e19_blend_textures;
 // pub mod e20_distort_texture;
