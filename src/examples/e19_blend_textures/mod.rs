@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{rc::Rc};
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -9,15 +9,15 @@ use crate::{
     base::{
         application::{self, Application, AsyncCreator},
         input::KeyState,
-        web,
+        web, util::shared_ref::{self, SharedRef}, convert::FromWithContext,
     },
     core::{
-        camera::Camera,
-        material::{Material, ProgramCreator},
+        camera::{Camera, Perspective},
+        material::{Material, GenericMaterial},
         mesh::Mesh,
         node::Node,
-        program::{Program, UpdateProgramUniforms},
-        texture::{Texture, TextureUnit},
+        program::{Program, UpdateProgramUniforms, UpdateUniform},
+        texture::{Texture, TextureUnit}, scene::Scene,
     },
     geometry::Rectangle,
     legacy::{
@@ -28,52 +28,50 @@ use crate::{
 
 struct Example {
     renderer: Renderer,
-    scene: Rc<Node>,
-    camera: Rc<RefCell<Camera>>,
-    blend_material: Rc<Material>,
+    scene: Scene,
+    camera: SharedRef<Camera>,
+    blend_material: SharedRef<BlendMaterial>,
 }
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
-        let scene = Node::new_group();
+        let mut scene = Scene::new_empty();
 
-        let camera = Camera::new_perspective(Default::default());
+        let camera = shared_ref::strong(Camera::from(Perspective::default()));
         {
-            let camera = Node::new_camera(Rc::clone(&camera));
-            camera.set_position(&glm::vec3(0.0, 0.0, 1.5));
-            scene.add_child(&camera);
+            let camera = Node::new_with_camera(Rc::clone(&camera));
+            camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 1.5));
+            scene.add_root_node(camera);
         }
-        let blend_material = Rc::new(Material::from_with_context(
-            context,
-            Rc::new(BlendMaterial {
+        let blend_material = 
+            shared_ref::strong(BlendMaterial {
                 texture_sampler_1: Sampler2D::new(
-                    Texture::fetch(context, "images/grid.png")?,
+                    Rc::new(Texture::fetch(context, "images/grid.png").await?),
                     TextureUnit(0),
                 ),
                 texture_sampler_2: Sampler2D::new(
-                    Texture::fetch(context, "images/crate.png")?,
+                    Rc::new(Texture::fetch(context, "images/crate.png").await?),
                     TextureUnit(1),
                 ),
                 time: 0.0,
-            }),
-        ));
+            });
         {
-            let geometry = Rc::new(Geometry::from_with_context(
+            let geometry = Geometry::from_with_context(
                 context,
                 Rectangle {
                     width: 1.5,
                     height: 1.5,
                     ..Default::default()
                 },
-            )?);
-            let mesh = Node::new_mesh(Mesh::initialize(
+            )?;
+            let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(
                 context,
-                geometry,
-                Rc::clone(&blend_material),
-            )?);
-            scene.add_child(&mesh);
+                &geometry,
+                Rc::new(Material::from_with_context(context, Rc::clone(&blend_material))?),
+            )?));
+            scene.add_root_node(mesh);
         }
         Ok(Box::new(Example {
             renderer,
@@ -86,11 +84,7 @@ impl AsyncCreator for Example {
 
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
-        if let Some(uniform) = self.blend_material.uniform("time") {
-            if let Some(mut time) = uniform.as_mut_float() {
-                *time = (web::now().unwrap() / 1000.0) as f32;
-            }
-        }
+        self.blend_material.borrow_mut().time = (web::now().unwrap() / 1000.0) as f32;   
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
@@ -105,7 +99,7 @@ struct BlendMaterial {
     time: f32,
 }
 
-impl ProgramCreator for BlendMaterial {
+impl GenericMaterial for BlendMaterial {
     fn vertex_shader(&self) -> &str {
         include_str!("vertex.glsl")
     }
@@ -117,30 +111,9 @@ impl ProgramCreator for BlendMaterial {
 
 impl UpdateProgramUniforms for BlendMaterial {
     fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
-        /*
-        texture_sampler_1:
-                        Sampler2D::new(
-                            Texture::fetch(
-                                context,
-                                "images/grid.png"
-                            )?,
-                            TextureUnit(0),
-                        ),
-
-                    (
-                        "textureSampler2",
-                        Data::from(Sampler2D::new(
-                            Texture::initialize(
-                                context,
-                                TextureData::load_from_source("images/crate.png").await?,
-                                Default::default(),
-                            )?,
-                            TextureUnit(1),
-                        )),
-                    ),
-                    ("time", Data::from(0.0)),
-         */
-        todo!()
+        self.texture_sampler_1.update_uniform(context, "textureSampler1", program);
+        self.texture_sampler_2.update_uniform(context, "textureSampler2", program);
+        self.time.update_uniform(context, "time", program);
     }
 }
 
