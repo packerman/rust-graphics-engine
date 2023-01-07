@@ -15,11 +15,11 @@ use crate::{
     },
     core::{
         camera::{Camera, Perspective},
-        material::{Material, ProgramCreator},
+        material::{GenericMaterial, Material},
         node::Node,
         program::{Program, UpdateProgramUniforms, UpdateUniform},
         scene::Scene,
-        texture::{Texture, TextureUnit},
+        texture::{Texture, TextureUnit}, mesh::Mesh,
     },
     geometry::Rectangle,
     legacy::{
@@ -39,11 +39,11 @@ struct Example {
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
-        let scene = Scene::empty();
+        let mut scene = Scene::new_empty();
 
         let camera = shared_ref::strong(Camera::from(Perspective::default()));
         {
-            let camera = Node::with_camera(Rc::clone(&camera));
+            let camera = Node::new_with_camera(Rc::clone(&camera));
             camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 1.5));
             scene.add_root_node(camera);
         }
@@ -70,17 +70,18 @@ impl AsyncCreator for Example {
         //     },
         // )?);
         {
-            let geometry = Rc::new(Geometry::from_with_context(
+            let geometry = Geometry::from_with_context(
                 context,
                 Rectangle {
                     width: 1.5,
                     height: 1.5,
                     ..Default::default()
                 },
-            )?);
+            )?;
 
-            let mesh = Node::with_mesh(Rc::new(geometry.create_mesh(
+            let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(
                 context,
+                &geometry,
                 Rc::new(Material::from_with_context(
                     context,
                     Rc::clone(&wave_material),
@@ -100,11 +101,6 @@ impl AsyncCreator for Example {
 
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
-        // if let Some(uniform) = self.wave_material.uniform("time") {
-        //     if let Some(mut time) = uniform.as_mut_float() {
-        //         *time = (web::now().unwrap() / 1000.0) as f32;
-        //     }
-        // }
         self.wave_material.borrow_mut().time = (web::now().unwrap() / 1000.0) as f32;
     }
 
@@ -119,13 +115,7 @@ struct WaveMaterial {
     time: f32,
 }
 
-impl WaveMaterial {
-    pub fn set_time(&mut self, time: f32) {
-        self.time = time;
-    }
-}
-
-impl ProgramCreator for WaveMaterial {
+impl GenericMaterial for WaveMaterial {
     fn vertex_shader(&self) -> &str {
         include_str!("vertex.glsl")
     }
