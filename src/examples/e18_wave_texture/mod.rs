@@ -54,21 +54,6 @@ impl AsyncCreator for Example {
             ),
             time: 0.0,
         });
-        //     context,
-        //     MaterialSettings {
-        //         vertex_shader: include_str!("vertex.glsl"),
-        //         fragment_shader: include_str!("fragment.glsl"),
-        //         uniforms: vec![
-        //             (
-        //                 "textureSampler",
-        //                 Data::from(),
-        //             ),
-        //             ("time", Data::from(0.0)),
-        //         ],
-        //         render_settings: vec![],
-        //         draw_style: WebGl2RenderingContext::TRIANGLES,
-        //     },
-        // )?);
         {
             let geometry = Geometry::from_with_context(
                 context,
