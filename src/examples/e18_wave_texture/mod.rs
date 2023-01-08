@@ -16,10 +16,11 @@ use crate::{
     core::{
         camera::{Camera, Perspective},
         material::{GenericMaterial, Material},
+        mesh::Mesh,
         node::Node,
         program::{Program, UpdateProgramUniforms, UpdateUniform},
         scene::Scene,
-        texture::{Texture, TextureUnit}, mesh::Mesh,
+        texture::{Texture, TextureUnit},
     },
     geometry::Rectangle,
     legacy::{

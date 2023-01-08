@@ -1,4 +1,4 @@
-use std::{rc::Rc};
+use std::rc::Rc;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -8,16 +8,19 @@ use crate::{
     api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
+        convert::FromWithContext,
         input::KeyState,
-        web, util::shared_ref::{self, SharedRef}, convert::FromWithContext,
+        util::shared_ref::{self, SharedRef},
+        web,
     },
     core::{
         camera::{Camera, Perspective},
-        material::{Material, GenericMaterial},
+        material::{GenericMaterial, Material},
         mesh::Mesh,
         node::Node,
         program::{Program, UpdateProgramUniforms, UpdateUniform},
-        texture::{Texture, TextureUnit}, scene::Scene,
+        scene::Scene,
+        texture::{Texture, TextureUnit},
     },
     geometry::Rectangle,
     legacy::{
@@ -45,18 +48,17 @@ impl AsyncCreator for Example {
             camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 1.5));
             scene.add_root_node(camera);
         }
-        let blend_material = 
-            shared_ref::strong(BlendMaterial {
-                texture_sampler_1: Sampler2D::new(
-                    Rc::new(Texture::fetch(context, "images/grid.png").await?),
-                    TextureUnit(0),
-                ),
-                texture_sampler_2: Sampler2D::new(
-                    Rc::new(Texture::fetch(context, "images/crate.png").await?),
-                    TextureUnit(1),
-                ),
-                time: 0.0,
-            });
+        let blend_material = shared_ref::strong(BlendMaterial {
+            texture_sampler_1: Sampler2D::new(
+                Rc::new(Texture::fetch(context, "images/grid.png").await?),
+                TextureUnit(0),
+            ),
+            texture_sampler_2: Sampler2D::new(
+                Rc::new(Texture::fetch(context, "images/crate.png").await?),
+                TextureUnit(1),
+            ),
+            time: 0.0,
+        });
         {
             let geometry = Geometry::from_with_context(
                 context,
@@ -69,7 +71,10 @@ impl AsyncCreator for Example {
             let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(
                 context,
                 &geometry,
-                Rc::new(Material::from_with_context(context, Rc::clone(&blend_material))?),
+                Rc::new(Material::from_with_context(
+                    context,
+                    Rc::clone(&blend_material),
+                )?),
             )?));
             scene.add_root_node(mesh);
         }
@@ -84,7 +89,7 @@ impl AsyncCreator for Example {
 
 impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {
-        self.blend_material.borrow_mut().time = (web::now().unwrap() / 1000.0) as f32;   
+        self.blend_material.borrow_mut().time = (web::now().unwrap() / 1000.0) as f32;
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
@@ -111,8 +116,10 @@ impl GenericMaterial for BlendMaterial {
 
 impl UpdateProgramUniforms for BlendMaterial {
     fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
-        self.texture_sampler_1.update_uniform(context, "textureSampler1", program);
-        self.texture_sampler_2.update_uniform(context, "textureSampler2", program);
+        self.texture_sampler_1
+            .update_uniform(context, "textureSampler1", program);
+        self.texture_sampler_2
+            .update_uniform(context, "textureSampler2", program);
         self.time.update_uniform(context, "time", program);
     }
 }

@@ -2,7 +2,8 @@ use anyhow::{anyhow, Result};
 
 use crate::examples::{
     e10_spinning_cube, e11_axes_grid, e12_movement_rig, e13_texture, e14_more_textures,
-    e15_spinning_textured_cube, e16_spinning_textured_sphere, e17_skysphere, e18_wave_texture, e19_blend_textures,
+    e15_spinning_textured_cube, e16_spinning_textured_sphere, e17_skysphere, e18_wave_texture,
+    e19_blend_textures, e20_distort_texture,
 };
 
 pub fn run_example() {
@@ -21,7 +22,7 @@ fn examples() -> Vec<Box<dyn Fn()>> {
         e17_skysphere::example(),
         e18_wave_texture::example(),
         e19_blend_textures::example(),
-        // e20_distort_texture::example(),
+        e20_distort_texture::example(),
         // e21_procedural_texture::example(),
         // e22_text_texture::example(),
         // e23_billboarding::example(),
