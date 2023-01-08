@@ -24,7 +24,7 @@ use crate::{
     material::depth::DepthMaterial,
 };
 
-use super::Light;
+use super::light::Light;
 
 #[derive(Debug, Clone, Copy)]
 pub struct CameraBounds {
