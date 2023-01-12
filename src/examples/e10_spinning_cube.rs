@@ -20,7 +20,7 @@ use crate::{
         node::Node,
         scene::Scene,
     },
-    geometry::BoxGeometry,
+    geometry::box_geom::BoxGeometry,
     legacy::renderer::{Renderer, RendererOptions},
     material::basic::{BasicMaterial, SurfaceMaterial},
 };

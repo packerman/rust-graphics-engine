@@ -21,7 +21,7 @@ use crate::{
         texture::{Texture, TextureUnit},
     },
     extras::camera_controller::CameraController,
-    geometry::{parametric::Sphere, Rectangle},
+    geometry::{parametric::Sphere, rectangle::Rectangle},
     legacy::renderer::{Renderer, RendererOptions},
     material,
 };

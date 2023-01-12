@@ -22,11 +22,10 @@ use crate::{
         scene::Scene,
         texture::{Texture, TextureUnit},
     },
-    geometry::Rectangle,
     legacy::{
         renderer::{Renderer, RendererOptions},
         texture::Sampler2D,
-    },
+    }, geometry::rectangle::Rectangle,
 };
 
 struct Example {

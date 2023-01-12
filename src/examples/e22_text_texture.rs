@@ -23,7 +23,7 @@ use crate::{
         texture::{Texture, TextureUnit},
     },
     extras::{grid_helper::GridHelper, text_texture::TextTexture},
-    geometry::BoxGeometry,
+    geometry::box_geom::BoxGeometry,
     legacy::renderer::{Renderer, RendererOptions},
     material,
 };

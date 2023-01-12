@@ -21,7 +21,7 @@ use crate::{
         program::{Program, UpdateProgramUniforms},
         scene::Scene,
     },
-    geometry::Rectangle,
+    geometry::rectangle::Rectangle,
     legacy::renderer::{Renderer, RendererOptions},
 };
 

@@ -19,7 +19,7 @@ use crate::{
         scene::Scene,
         texture::{Texture, TextureUnit},
     },
-    geometry::Rectangle,
+    geometry::rectangle::Rectangle,
     legacy::renderer::Renderer,
     material,
 };

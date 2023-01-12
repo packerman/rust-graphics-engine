@@ -23,7 +23,7 @@ use crate::{
         texture::{Texture, TextureUnit},
     },
     extras::{camera_controller::CameraController, text_texture::TextTexture},
-    geometry::{BoxGeometry, Rectangle},
+    geometry::{box_geom::BoxGeometry, rectangle::Rectangle},
     legacy::renderer::{Renderer, RendererOptions},
     material,
 };

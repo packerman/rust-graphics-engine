@@ -16,7 +16,7 @@ use crate::{
     },
 };
 
-use super::Polygon;
+use super::polygon::Polygon;
 
 struct ParametricSurface {
     u_range: RangeInclusive<f32>,
