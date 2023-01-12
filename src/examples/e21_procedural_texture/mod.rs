@@ -97,26 +97,28 @@ fn rectangle_mesh(
 }
 
 fn clouds(context: &WebGl2RenderingContext) -> Result<Material> {
-    fractal_material(context, include_str!("clouds.glsl").into())
+    fractal_material(context, include_str!("clouds.glsl"))
 }
 
 fn lava(context: &WebGl2RenderingContext) -> Result<Material> {
-    fractal_material(context, include_str!("lava.glsl").into())
+    fractal_material(context, include_str!("lava.glsl"))
 }
 
 fn marble(context: &WebGl2RenderingContext) -> Result<Material> {
-    fractal_material(context, include_str!("marble.glsl").into())
+    fractal_material(context, include_str!("marble.glsl"))
 }
 
 fn wood(context: &WebGl2RenderingContext) -> Result<Material> {
-    fractal_material(context, include_str!("wood.glsl").into())
+    fractal_material(context, include_str!("wood.glsl"))
 }
 
-fn fractal_material<'a>(
-    context: &WebGl2RenderingContext,
-    main_file: Source<'a>,
-) -> Result<Material> {
-    Material::from_with_context(context, shared_ref::strong(FractalMaterial::new(main_file)))
+fn fractal_material(context: &WebGl2RenderingContext, source: &'static str) -> Result<Material> {
+    Material::from_with_context(
+        context,
+        shared_ref::strong(FractalMaterial {
+            main_file: source.into(),
+        }),
+    )
 }
 
 impl Application for Example {
@@ -130,12 +132,6 @@ impl Application for Example {
 #[derive(Debug, Clone)]
 struct FractalMaterial<'a> {
     main_file: Source<'a>,
-}
-
-impl<'a> FractalMaterial<'a> {
-    fn new(main_file: Source<'a>) -> Self {
-        Self { main_file }
-    }
 }
 
 impl GenericMaterial for FractalMaterial<'_> {
