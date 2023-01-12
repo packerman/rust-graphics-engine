@@ -15,7 +15,7 @@ use crate::{
     },
     core::{
         camera::{Camera, Perspective},
-        material::{GenericMaterial, Material},
+        material::{GenericMaterial, Material, Source},
         mesh::Mesh,
         node::Node,
         program::{UpdateProgramUniforms, UpdateUniform},
@@ -106,12 +106,12 @@ struct DistortMaterial {
 }
 
 impl GenericMaterial for DistortMaterial {
-    fn vertex_shader(&self) -> &str {
-        include_str!("vertex.glsl")
+    fn vertex_shader(&self) -> Source<'_> {
+        include_str!("vertex.glsl").into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("fragment.glsl")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("fragment.glsl").into()
     }
 }
 

@@ -3,7 +3,7 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     base::color::{self, Color},
     core::{
-        material::GenericMaterial,
+        material::{GenericMaterial, Source},
         program::{self, Program, UpdateProgramUniforms, UpdateUniform},
     },
     legacy::texture::Sampler2D,
@@ -86,11 +86,11 @@ impl UpdateProgramUniforms for PhongMaterial {
 }
 
 impl GenericMaterial for PhongMaterial {
-    fn vertex_shader(&self) -> &str {
-        include_str!("vertex.glsl")
+    fn vertex_shader(&self) -> Source<'_> {
+        include_str!("vertex.glsl").into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("fragment.glsl")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("fragment.glsl").into()
     }
 }

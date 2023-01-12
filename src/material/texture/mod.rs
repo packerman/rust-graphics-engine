@@ -11,7 +11,7 @@ use crate::{
         util::shared_ref,
     },
     core::{
-        material::{GenericMaterial, Material},
+        material::{GenericMaterial, Material, Source},
         program::{Program, UpdateProgramUniforms, UpdateUniform},
         texture::{Texture, TextureUnit},
     },
@@ -42,12 +42,12 @@ impl UpdateProgramUniforms for TextureMaterial {
 }
 
 impl GenericMaterial for TextureMaterial {
-    fn vertex_shader(&self) -> &str {
-        include_str!("vertex.glsl")
+    fn vertex_shader(&self) -> Source<'_> {
+        include_str!("vertex.glsl").into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("fragment.glsl")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("fragment.glsl").into()
     }
 
     fn double_sided(&self) -> bool {

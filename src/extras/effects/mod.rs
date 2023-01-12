@@ -4,7 +4,7 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     base::{color::Color, math::resolution::Resolution},
     core::{
-        material::GenericMaterial,
+        material::{GenericMaterial, Source},
         program::{Program, UpdateProgramUniforms, UpdateUniform},
     },
     legacy::texture::Sampler2D,
@@ -44,12 +44,12 @@ impl UpdateProgramUniforms for TintEffect {
 }
 
 impl GenericMaterial for TintEffect {
-    fn vertex_shader(&self) -> &str {
-        BaseEffect::VERTEX_SHADER
+    fn vertex_shader(&self) -> Source<'_> {
+        BaseEffect::VERTEX_SHADER.into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("tint.frag")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("tint.frag").into()
     }
 }
 
@@ -80,12 +80,12 @@ impl UpdateProgramUniforms for PixelateEffect {
 }
 
 impl GenericMaterial for PixelateEffect {
-    fn vertex_shader(&self) -> &str {
-        BaseEffect::VERTEX_SHADER
+    fn vertex_shader(&self) -> Source<'_> {
+        BaseEffect::VERTEX_SHADER.into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("pixelate.frag")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("pixelate.frag").into()
     }
 }
 
@@ -116,12 +116,12 @@ impl UpdateProgramUniforms for ColorReduceEffect {
 }
 
 impl GenericMaterial for ColorReduceEffect {
-    fn vertex_shader(&self) -> &str {
-        BaseEffect::VERTEX_SHADER
+    fn vertex_shader(&self) -> Source<'_> {
+        BaseEffect::VERTEX_SHADER.into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("color_reduce.frag")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("color_reduce.frag").into()
     }
 }
 
@@ -167,12 +167,12 @@ impl UpdateProgramUniforms for BrightFilterEffect {
 }
 
 impl GenericMaterial for BrightFilterEffect {
-    fn vertex_shader(&self) -> &str {
-        BaseEffect::VERTEX_SHADER
+    fn vertex_shader(&self) -> Source<'_> {
+        BaseEffect::VERTEX_SHADER.into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("bright_filter.frag")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("bright_filter.frag").into()
     }
 }
 
@@ -224,12 +224,12 @@ impl UpdateProgramUniforms for HorizontalBlurEffect {
 }
 
 impl GenericMaterial for HorizontalBlurEffect {
-    fn vertex_shader(&self) -> &str {
-        BaseEffect::VERTEX_SHADER
+    fn vertex_shader(&self) -> Source<'_> {
+        BaseEffect::VERTEX_SHADER.into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("horizontal_blur.frag")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("horizontal_blur.frag").into()
     }
 }
 
@@ -258,12 +258,12 @@ impl UpdateProgramUniforms for VerticalBlurEffect {
 }
 
 impl GenericMaterial for VerticalBlurEffect {
-    fn vertex_shader(&self) -> &str {
-        BaseEffect::VERTEX_SHADER
+    fn vertex_shader(&self) -> Source<'_> {
+        BaseEffect::VERTEX_SHADER.into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("vertical_blur.frag")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("vertical_blur.frag").into()
     }
 }
 
@@ -319,12 +319,12 @@ impl UpdateProgramUniforms for BlendEffect {
 }
 
 impl GenericMaterial for BlendEffect {
-    fn vertex_shader(&self) -> &str {
-        BaseEffect::VERTEX_SHADER
+    fn vertex_shader(&self) -> Source<'_> {
+        BaseEffect::VERTEX_SHADER.into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("additive_blend.frag")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("additive_blend.frag").into()
     }
 }
 

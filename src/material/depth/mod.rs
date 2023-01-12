@@ -1,7 +1,7 @@
 use web_sys::WebGl2RenderingContext;
 
 use crate::core::{
-    material::GenericMaterial,
+    material::{GenericMaterial, Source},
     program::{Program, UpdateProgramUniforms},
 };
 
@@ -13,12 +13,12 @@ impl UpdateProgramUniforms for DepthMaterial {
 }
 
 impl GenericMaterial for DepthMaterial {
-    fn vertex_shader(&self) -> &str {
-        include_str!("vertex.glsl")
+    fn vertex_shader(&self) -> Source<'_> {
+        include_str!("vertex.glsl").into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("fragment.glsl")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("fragment.glsl").into()
     }
 
     fn preferred_mode(&self) -> Option<u32> {

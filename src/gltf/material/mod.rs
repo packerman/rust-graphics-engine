@@ -4,7 +4,7 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     base::color,
     core::{
-        material::{GenericMaterial, TextureRef},
+        material::{GenericMaterial, Source, TextureRef},
         program::{Program, UpdateProgramUniforms, UpdateUniform},
         texture::TextureUnit,
     },
@@ -32,12 +32,12 @@ impl Default for TestMaterial {
 }
 
 impl GenericMaterial for TestMaterial {
-    fn vertex_shader(&self) -> &str {
-        include_str!("test.vert")
+    fn vertex_shader(&self) -> Source<'_> {
+        include_str!("test.vert").into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("test.frag")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("test.frag").into()
     }
 }
 

@@ -15,7 +15,7 @@ use crate::{
     },
     core::{
         camera::{Camera, Perspective},
-        material::{GenericMaterial, Material},
+        material::{GenericMaterial, Material, Source},
         mesh::Mesh,
         node::Node,
         program::{Program, UpdateProgramUniforms},
@@ -97,23 +97,26 @@ fn rectangle_mesh(
 }
 
 fn clouds(context: &WebGl2RenderingContext) -> Result<Material> {
-    fractal_material(context, include_str!("clouds.glsl"))
+    fractal_material(context, include_str!("clouds.glsl").into())
 }
 
 fn lava(context: &WebGl2RenderingContext) -> Result<Material> {
-    fractal_material(context, include_str!("lava.glsl"))
+    fractal_material(context, include_str!("lava.glsl").into())
 }
 
 fn marble(context: &WebGl2RenderingContext) -> Result<Material> {
-    fractal_material(context, include_str!("marble.glsl"))
+    fractal_material(context, include_str!("marble.glsl").into())
 }
 
 fn wood(context: &WebGl2RenderingContext) -> Result<Material> {
-    fractal_material(context, include_str!("wood.glsl"))
+    fractal_material(context, include_str!("wood.glsl").into())
 }
 
-fn fractal_material(context: &WebGl2RenderingContext, main_file: &str) -> Result<Material> {
-    Material::from_with_context(context, shared_ref::strong(FractalMaterial { main_file }))
+fn fractal_material<'a>(
+    context: &WebGl2RenderingContext,
+    main_file: Source<'a>,
+) -> Result<Material> {
+    Material::from_with_context(context, shared_ref::strong(FractalMaterial::new(main_file)))
 }
 
 impl Application for Example {
@@ -126,16 +129,22 @@ impl Application for Example {
 
 #[derive(Debug, Clone)]
 struct FractalMaterial<'a> {
-    main_file: &'a str,
+    main_file: Source<'a>,
+}
+
+impl<'a> FractalMaterial<'a> {
+    fn new(main_file: Source<'a>) -> Self {
+        Self { main_file }
+    }
 }
 
 impl GenericMaterial for FractalMaterial<'_> {
-    fn vertex_shader(&self) -> &str {
-        include_str!("vertex.glsl")
+    fn vertex_shader(&self) -> Source<'_> {
+        include_str!("vertex.glsl").into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        &format!("{}\n\n{}\n", include_str!("fragment.glsl"), self.main_file)
+    fn fragment_shader(&self) -> Source<'_> {
+        format!("{}\n\n{}\n", include_str!("fragment.glsl"), self.main_file).into()
     }
 }
 

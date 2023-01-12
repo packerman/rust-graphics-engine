@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{borrow::Cow, rc::Rc};
 
 use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
@@ -13,10 +13,12 @@ use super::{
     texture::Texture,
 };
 
-pub trait GenericMaterial: UpdateProgramUniforms {
-    fn vertex_shader(&self) -> &str;
+pub type Source<'a> = Cow<'a, str>;
 
-    fn fragment_shader(&self) -> &str;
+pub trait GenericMaterial: UpdateProgramUniforms {
+    fn vertex_shader(&self) -> Source<'_>;
+
+    fn fragment_shader(&self) -> Source<'_>;
 
     fn preferred_mode(&self) -> Option<u32> {
         None
@@ -47,8 +49,8 @@ impl Material {
     ) -> Result<Self> {
         let program = Program::initialize(
             context,
-            generic_material.borrow().vertex_shader(),
-            generic_material.borrow().fragment_shader(),
+            &generic_material.borrow().vertex_shader(),
+            &generic_material.borrow().fragment_shader(),
         )?;
         Ok(Self {
             name,

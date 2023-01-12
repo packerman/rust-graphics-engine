@@ -3,7 +3,7 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     base::color::{self, Color},
     core::{
-        material::GenericMaterial,
+        material::{GenericMaterial, Source},
         program::{Program, UpdateProgramUniforms, UpdateUniform},
     },
 };
@@ -24,12 +24,12 @@ impl Default for BasicMaterial {
 }
 
 impl GenericMaterial for BasicMaterial {
-    fn vertex_shader(&self) -> &str {
-        include_str!("vertex.glsl")
+    fn vertex_shader(&self) -> Source<'_> {
+        include_str!("vertex.glsl").into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("fragment.glsl")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("fragment.glsl").into()
     }
 }
 
@@ -58,12 +58,12 @@ impl Default for PointMaterial {
 }
 
 impl GenericMaterial for PointMaterial {
-    fn vertex_shader(&self) -> &str {
-        self.basic.vertex_shader()
+    fn vertex_shader(&self) -> Source<'_> {
+        self.basic.vertex_shader().into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        self.basic.fragment_shader()
+    fn fragment_shader(&self) -> Source<'_> {
+        self.basic.fragment_shader().into()
     }
 
     fn preferred_mode(&self) -> Option<u32> {
@@ -110,12 +110,12 @@ impl UpdateProgramUniforms for LineMaterial {
 }
 
 impl GenericMaterial for LineMaterial {
-    fn vertex_shader(&self) -> &str {
-        self.basic.vertex_shader()
+    fn vertex_shader(&self) -> Source<'_> {
+        self.basic.vertex_shader().into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        self.basic.fragment_shader()
+    fn fragment_shader(&self) -> Source<'_> {
+        self.basic.fragment_shader().into()
     }
 
     fn preferred_mode(&self) -> Option<u32> {
@@ -148,12 +148,12 @@ impl UpdateProgramUniforms for SurfaceMaterial {
 }
 
 impl GenericMaterial for SurfaceMaterial {
-    fn vertex_shader(&self) -> &str {
-        self.basic.vertex_shader()
+    fn vertex_shader(&self) -> Source<'_> {
+        self.basic.vertex_shader().into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        self.basic.fragment_shader()
+    fn fragment_shader(&self) -> Source<'_> {
+        self.basic.fragment_shader().into()
     }
 
     fn preferred_mode(&self) -> Option<u32> {
