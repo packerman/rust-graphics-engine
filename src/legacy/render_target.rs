@@ -88,6 +88,5 @@ impl RenderTarget {
             .into(),
             Image::from(resolution).into(),
         )
-        .map(Rc::new)
     }
 }

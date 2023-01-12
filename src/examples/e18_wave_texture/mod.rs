@@ -42,7 +42,7 @@ impl AsyncCreator for Example {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
         let mut scene = Scene::new_empty();
 
-        let camera = shared_ref::strong(Camera::from(Perspective::default()));
+        let camera = Camera::new(Perspective::default());
         {
             let camera = Node::new_with_camera(Rc::clone(&camera));
             camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 1.5));
@@ -50,7 +50,7 @@ impl AsyncCreator for Example {
         }
         let wave_material = shared_ref::strong(WaveMaterial {
             texture_sampler: Sampler2D::new(
-                Rc::new(Texture::fetch(context, "images/grid.png").await?),
+                Texture::fetch(context, "images/grid.png").await?,
                 TextureUnit(0),
             ),
             time: 0.0,
@@ -65,14 +65,14 @@ impl AsyncCreator for Example {
                 },
             )?;
 
-            let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(
+            let mesh = Node::new_with_mesh(Mesh::initialize(
                 context,
                 &geometry,
                 Rc::new(Material::from_with_context(
                     context,
                     Rc::clone(&wave_material),
                 )?),
-            )?));
+            )?);
             scene.add_root_node(mesh);
         }
 

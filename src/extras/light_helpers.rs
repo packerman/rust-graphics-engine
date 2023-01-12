@@ -29,7 +29,7 @@ impl Default for DirectionalLightHelper {
 }
 
 impl DirectionalLightHelper {
-    pub fn create_mesh(self, context: &WebGl2RenderingContext, light: &Light) -> Result<Mesh> {
+    pub fn create_mesh(self, context: &WebGl2RenderingContext, light: &Light) -> Result<Rc<Mesh>> {
         assert!(light.is_directional());
         let color = light.color;
         let grid_helper = GridHelper {
@@ -67,7 +67,7 @@ impl Default for PointLightHelper {
 }
 
 impl PointLightHelper {
-    pub fn create_mesh(self, context: &WebGl2RenderingContext, light: &Light) -> Result<Mesh> {
+    pub fn create_mesh(self, context: &WebGl2RenderingContext, light: &Light) -> Result<Rc<Mesh>> {
         let color = light.color;
         let geometry = Geometry::from_with_context(
             context,

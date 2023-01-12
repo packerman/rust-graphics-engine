@@ -42,7 +42,7 @@ impl AsyncCreator for Example {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
         let mut scene = Scene::new_empty();
 
-        let camera = shared_ref::strong(Camera::from(Perspective::default()));
+        let camera = Camera::new(Perspective::default());
         {
             let camera = Node::new_with_camera(Rc::clone(&camera));
             camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 1.5));
@@ -50,11 +50,11 @@ impl AsyncCreator for Example {
         }
         let distort_material = shared_ref::strong(DistortMaterial {
             noise: Sampler2D::new(
-                Rc::new(Texture::fetch(context, "images/noise.png").await?),
+                Texture::fetch(context, "images/noise.png").await?,
                 TextureUnit(0),
             ),
             image: Sampler2D::new(
-                Rc::new(Texture::fetch(context, "images/grid.png").await?),
+                Texture::fetch(context, "images/grid.png").await?,
                 TextureUnit(1),
             ),
             time: 0.0,
@@ -68,14 +68,14 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 },
             )?;
-            let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(
+            let mesh = Node::new_with_mesh(Mesh::initialize(
                 context,
                 &geometry,
                 Rc::new(Material::from_with_context(
                     context,
                     Rc::clone(&distort_material),
                 )?),
-            )?));
+            )?);
             scene.add_root_node(mesh);
         }
 

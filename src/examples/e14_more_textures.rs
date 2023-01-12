@@ -11,7 +11,6 @@ use crate::{
         convert::FromWithContext,
         input::KeyState,
         math::{angle::Angle, matrix},
-        util::shared_ref,
     },
     core::{
         camera::{Camera, Perspective},
@@ -37,7 +36,7 @@ impl AsyncCreator for Example {
         let renderer = Renderer::initialize(context, Default::default(), None);
         let mut scene = Scene::new_empty();
 
-        let camera = shared_ref::strong(Camera::from(Perspective::default()));
+        let camera = Camera::new(Perspective::default());
         {
             let camera = Node::new_with_camera(Rc::clone(&camera));
             camera.borrow_mut().rotate_x(-Angle::from_degrees(20.0));
@@ -47,17 +46,14 @@ impl AsyncCreator for Example {
 
         let material = material::texture::create(
             context,
-            Rc::new(Texture::fetch(context, "images/grid.png").await?),
+            Texture::fetch(context, "images/grid.png").await?,
             TextureUnit(0),
             Default::default(),
         )?;
         {
             let geometry = Geometry::from_with_context(context, Sphere::default())?;
-            let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(
-                context,
-                &geometry,
-                Rc::clone(&material),
-            )?));
+            let mesh =
+                Node::new_with_mesh(Mesh::initialize(context, &geometry, Rc::clone(&material))?);
             mesh.borrow_mut()
                 .apply_transform(&matrix::translation(-3.0, -0.5, 0.0));
             scene.add_root_node(mesh);
@@ -71,11 +67,8 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 },
             )?;
-            let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(
-                context,
-                &geometry,
-                Rc::clone(&material),
-            )?));
+            let mesh =
+                Node::new_with_mesh(Mesh::initialize(context, &geometry, Rc::clone(&material))?);
             mesh.borrow_mut()
                 .apply_transform(&matrix::translation(0.0, -0.5, 0.0));
             scene.add_root_node(mesh);
@@ -89,8 +82,7 @@ impl AsyncCreator for Example {
                     ..Default::default()
                 },
             )?;
-            let mesh =
-                Node::new_with_mesh(Rc::new(Mesh::initialize(context, &geometry, material)?));
+            let mesh = Node::new_with_mesh(Mesh::initialize(context, &geometry, material)?);
             mesh.borrow_mut()
                 .apply_transform(&matrix::translation(3.0, -0.5, 0.0));
             scene.add_root_node(mesh);

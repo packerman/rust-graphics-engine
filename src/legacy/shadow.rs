@@ -98,9 +98,7 @@ impl Shadow {
         options: ShadowOptions,
     ) -> Result<Self> {
         assert!(light_source.is_directional());
-        let camera = Node::new_with_camera(shared_ref::strong(Camera::from(Orthographic::from(
-            options.camera_bounds,
-        ))));
+        let camera = Node::new_with_camera(Camera::new(Orthographic::from(options.camera_bounds)));
         light_source.add_child(Rc::clone(&camera));
         let render_target = RenderTarget::initialize(context, resolution)?;
         let material = Material::from_with_context(context, shared_ref::strong(DepthMaterial))?;

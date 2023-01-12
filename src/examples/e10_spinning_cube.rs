@@ -38,7 +38,7 @@ impl AsyncCreator for Example {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
         let mut scene = Scene::new_empty();
 
-        let camera = shared_ref::strong(Camera::from(Perspective::default()));
+        let camera = Camera::new(Perspective::default());
         let camera_node = Node::new_with_camera(Rc::clone(&camera));
         camera_node
             .borrow_mut()
@@ -56,7 +56,7 @@ impl AsyncCreator for Example {
                 ..Default::default()
             }),
         )?);
-        let mesh = Rc::new(Mesh::initialize(context, &geometry, material)?);
+        let mesh = Mesh::initialize(context, &geometry, material)?;
         let mesh = Node::new_with_mesh(mesh);
         scene.add_root_node(Rc::clone(&mesh));
 

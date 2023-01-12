@@ -34,7 +34,7 @@ impl Default for AxesHelper {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
+impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Rc<Mesh> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         axes_helper: AxesHelper,

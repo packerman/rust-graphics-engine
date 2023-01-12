@@ -90,7 +90,7 @@ impl FromWithContext<WebGl2RenderingContext, GridHelper> for Material {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, GridHelper> for Mesh {
+impl FromWithContext<WebGl2RenderingContext, GridHelper> for Rc<Mesh> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         grid_helper: GridHelper,

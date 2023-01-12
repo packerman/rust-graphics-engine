@@ -11,7 +11,7 @@ use crate::{
         convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
-        util::shared_ref::{self, SharedRef},
+        util::shared_ref::SharedRef,
     },
     core::{
         camera::{Camera, Perspective},
@@ -39,7 +39,7 @@ impl AsyncCreator for Example {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
         let mut scene = Scene::new_empty();
 
-        let camera = shared_ref::strong(Camera::from(Perspective::default()));
+        let camera = Camera::new(Perspective::default());
         {
             let camera = Node::new_with_camera(Rc::clone(&camera));
             scene.add_root_node(Rc::clone(&camera));
@@ -57,11 +57,11 @@ impl AsyncCreator for Example {
             )?;
             let material = material::texture::create(
                 context,
-                Rc::new(Texture::fetch(context, "images/sky-earth.jpg").await?),
+                Texture::fetch(context, "images/sky-earth.jpg").await?,
                 TextureUnit(0),
                 Default::default(),
             )?;
-            let sky = Node::new_with_mesh(Rc::new(Mesh::initialize(context, &geometry, material)?));
+            let sky = Node::new_with_mesh(Mesh::initialize(context, &geometry, material)?);
             scene.add_root_node(sky);
         }
         {
@@ -75,15 +75,14 @@ impl AsyncCreator for Example {
             )?;
             let material = material::texture::create(
                 context,
-                Rc::new(Texture::fetch(context, "images/grass.jpg").await?),
+                Texture::fetch(context, "images/grass.jpg").await?,
                 TextureUnit(1),
                 material::texture::Properties {
                     repeat_uv: glm::vec2(50.0, 50.0),
                     ..Default::default()
                 },
             )?;
-            let grass =
-                Node::new_with_mesh(Rc::new(Mesh::initialize(context, &geometry, material)?));
+            let grass = Node::new_with_mesh(Mesh::initialize(context, &geometry, material)?);
             grass.borrow_mut().rotate_x(-Angle::RIGHT);
             scene.add_root_node(grass);
         }

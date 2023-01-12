@@ -1,6 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
 
-use anyhow::{anyhow, Result, bail};
+use anyhow::{anyhow, bail, Result};
 use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
@@ -25,8 +25,8 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    pub fn new(primitives: Vec<Primitive>, name: Option<String>) -> Self {
-        Self { primitives, name }
+    pub fn new(primitives: Vec<Primitive>, name: Option<String>) -> Rc<Self> {
+        Rc::new(Self { primitives, name })
     }
 
     pub fn primitive(
@@ -35,7 +35,7 @@ impl Mesh {
         indices: Option<Rc<Accessor>>,
         material: Rc<Material>,
         mode: u32,
-    ) -> Result<Self> {
+    ) -> Result<Rc<Self>> {
         let primitive = Primitive::new(context, attributes, indices, material, mode)?;
         Ok(Self::new(vec![primitive], None))
     }
@@ -45,7 +45,7 @@ impl Mesh {
         provider: &T,
         material: Rc<Material>,
         mode: u32,
-    ) -> Result<Self>
+    ) -> Result<Rc<Self>>
     where
         T: AccessorProvider,
     {
@@ -62,7 +62,7 @@ impl Mesh {
         context: &WebGl2RenderingContext,
         provider: &T,
         material: Rc<Material>,
-    ) -> Result<Self>
+    ) -> Result<Rc<Self>>
     where
         T: AccessorProvider,
     {

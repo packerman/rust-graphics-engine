@@ -18,12 +18,19 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(camera_type: CameraType, name: Option<String>) -> Self {
-        Self {
+    pub fn new<T>(camera_type: T) -> SharedRef<Self>
+    where
+        T: Into<CameraType>,
+    {
+        Self::new_with_name(camera_type.into(), None)
+    }
+
+    pub fn new_with_name(camera_type: CameraType, name: Option<String>) -> SharedRef<Self> {
+        shared_ref::strong(Self {
             camera_type,
             name,
             node: shared_ref::weak(),
-        }
+        })
     }
 
     pub fn perspective(
@@ -32,8 +39,8 @@ impl Camera {
         z_near: f32,
         z_far: Option<f32>,
         name: Option<String>,
-    ) -> Self {
-        Self::new(
+    ) -> SharedRef<Self> {
+        Self::new_with_name(
             CameraType::Perspective(Perspective {
                 aspect_ratio,
                 y_fov,
@@ -50,8 +57,8 @@ impl Camera {
         z_near: f32,
         z_far: f32,
         name: Option<String>,
-    ) -> Self {
-        Self::new(
+    ) -> SharedRef<Self> {
+        Self::new_with_name(
             CameraType::Orthographic(Orthographic {
                 x_left: -x_mag,
                 x_right: x_mag,
@@ -134,28 +141,22 @@ impl Camera {
     }
 }
 
-impl Default for Camera {
-    fn default() -> Self {
-        Camera::orthographic(1.0, 1.0, 1.0, -1.0, None)
-    }
-}
-
-impl From<Perspective> for Camera {
-    fn from(value: Perspective) -> Self {
-        Self::new(CameraType::Perspective(value), None)
-    }
-}
-
-impl From<Orthographic> for Camera {
-    fn from(value: Orthographic) -> Self {
-        Self::new(CameraType::Orthographic(value), None)
-    }
-}
-
 #[derive(Debug, Clone)]
 pub enum CameraType {
     Orthographic(Orthographic),
     Perspective(Perspective),
+}
+
+impl From<Orthographic> for CameraType {
+    fn from(value: Orthographic) -> Self {
+        Self::Orthographic(value)
+    }
+}
+
+impl From<Perspective> for CameraType {
+    fn from(value: Perspective) -> Self {
+        Self::Perspective(value)
+    }
 }
 
 #[derive(Debug, Clone)]

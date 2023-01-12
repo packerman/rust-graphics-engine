@@ -19,7 +19,7 @@ impl Texture {
         context: &WebGl2RenderingContext,
         sampler: Rc<Sampler>,
         source: Rc<Image>,
-    ) -> Result<Self> {
+    ) -> Result<Rc<Self>> {
         let texture = gl::create_texture(context)?;
         let me = Self {
             texture,
@@ -27,10 +27,10 @@ impl Texture {
             source,
         };
         me.store_data(context)?;
-        Ok(me)
+        Ok(Rc::new(me))
     }
 
-    pub async fn fetch(context: &WebGl2RenderingContext, uri: &str) -> Result<Self> {
+    pub async fn fetch(context: &WebGl2RenderingContext, uri: &str) -> Result<Rc<Self>> {
         let image = Rc::new(Image::fetch(uri).await?);
         Self::initialize(context, Rc::default(), image)
     }

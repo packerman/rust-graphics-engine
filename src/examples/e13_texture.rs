@@ -10,7 +10,7 @@ use crate::{
         application::{self, Application, AsyncCreator},
         convert::FromWithContext,
         input::KeyState,
-        util::shared_ref::{self, SharedRef},
+        util::shared_ref::SharedRef,
     },
     core::{
         camera::{Camera, Perspective},
@@ -36,7 +36,7 @@ impl AsyncCreator for Example {
         let renderer = Renderer::initialize(context, Default::default(), None);
         let mut scene = Scene::new_empty();
 
-        let camera = shared_ref::strong(Camera::from(Perspective::default()));
+        let camera = Camera::new(Perspective::default());
         let camera_node = Node::new_with_camera(Rc::clone(&camera));
         camera_node
             .borrow_mut()
@@ -46,11 +46,11 @@ impl AsyncCreator for Example {
         let geometry = Geometry::from_with_context(context, Rectangle::default())?;
         let material = material::texture::create(
             context,
-            Rc::new(Texture::fetch(context, "images/grid.png").await?),
+            Texture::fetch(context, "images/grid.png").await?,
             TextureUnit(0),
             Default::default(),
         )?;
-        let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(context, &geometry, material)?));
+        let mesh = Node::new_with_mesh(Mesh::initialize(context, &geometry, material)?);
         scene.add_root_node(mesh);
         Ok(Box::new(Example {
             renderer,

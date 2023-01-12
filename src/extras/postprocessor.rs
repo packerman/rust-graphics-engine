@@ -5,11 +5,7 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     api::geometry::Geometry,
-    base::{
-        convert::FromWithContext,
-        math::resolution::Resolution,
-        util::shared_ref::{self, SharedRef},
-    },
+    base::{convert::FromWithContext, math::resolution::Resolution, util::shared_ref::SharedRef},
     core::{
         accessor::Accessor,
         camera::{Camera, Orthographic},
@@ -57,7 +53,7 @@ impl Postprocessor {
             resolution: renderer::get_canvas_resolution(context),
             geometry: Rc::new(self::create_geometry(context)?),
             texture_unit,
-            default_camera: shared_ref::strong(Camera::from(Orthographic::default())),
+            default_camera: Camera::new(Orthographic::default()),
         })
     }
 
@@ -103,11 +99,7 @@ fn create_scene(
     camera: SharedRef<Camera>,
 ) -> Result<Scene> {
     let mut scene = Scene::new_empty();
-    let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(
-        context,
-        geometry.as_ref(),
-        effect,
-    )?));
+    let mesh = Node::new_with_mesh(Mesh::initialize(context, geometry.as_ref(), effect)?);
     scene.add_root_node(mesh);
     let camera = Node::new_with_camera(camera);
     scene.add_root_node(camera);

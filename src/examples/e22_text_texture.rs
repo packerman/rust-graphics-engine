@@ -12,7 +12,7 @@ use crate::{
         convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
-        util::shared_ref::{self, SharedRef},
+        util::shared_ref::SharedRef,
     },
     core::{
         camera::{Camera, Perspective},
@@ -47,7 +47,7 @@ impl AsyncCreator for Example {
         );
         let mut scene = Scene::new_empty();
 
-        let camera = shared_ref::strong(Camera::from(Perspective::default()));
+        let camera = Camera::new(Perspective::default());
         {
             let camera = Node::new_with_camera(Rc::clone(&camera));
             camera.borrow_mut().rotate_y(Angle::from_degrees(-45.0));
@@ -58,14 +58,14 @@ impl AsyncCreator for Example {
             scene.add_root_node(camera);
         }
         {
-            let grid = Rc::new(Mesh::from_with_context(
+            let grid = <Rc<Mesh>>::from_with_context(
                 context,
                 GridHelper {
                     grid_color: color::white(),
                     center_color: color::yellow(),
                     ..Default::default()
                 },
-            )?);
+            )?;
             let grid = Node::new_with_mesh(grid);
             grid.borrow_mut().rotate_x(-Angle::RIGHT);
             scene.add_root_node(grid);
@@ -81,7 +81,7 @@ impl AsyncCreator for Example {
         )?;
         let material = material::texture::create(
             context,
-            Rc::new(Texture::initialize(
+            Texture::initialize(
                 context,
                 Default::default(),
                 Rc::new(Image::try_from(TextTexture {
@@ -90,11 +90,11 @@ impl AsyncCreator for Example {
                     font_style: "blue",
                     ..Default::default()
                 })?),
-            )?),
+            )?,
             TextureUnit(0),
             Default::default(),
         )?;
-        let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(context, &geometry, material)?));
+        let mesh = Node::new_with_mesh(Mesh::initialize(context, &geometry, material)?);
         mesh.borrow_mut().set_position(&glm::vec3(0.0, 0.5, 0.0));
         scene.add_root_node(mesh);
         Ok(Box::new(Example {

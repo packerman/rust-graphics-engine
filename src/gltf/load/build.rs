@@ -130,7 +130,6 @@ pub fn build_cameras(cameras: Vec<&data::Camera>) -> Vec<SharedRef<Camera>> {
             }
             _ => panic!("Unknown camera type: {}", camera.camera_type),
         })
-        .map(shared_ref::strong)
         .collect()
 }
 
@@ -210,8 +209,7 @@ pub fn build_meshes(
         .map(|mesh| {
             let primitives =
                 self::build_primitives(context, &mesh.primitives, accessors, materials)?;
-            let mesh = Mesh::new(primitives, mesh.name.as_ref().map(String::from));
-            Ok(Rc::new(mesh))
+            Ok(Mesh::new(primitives, mesh.name.as_ref().map(String::from)))
         })
         .collect()
 }
@@ -332,7 +330,7 @@ pub fn build_textures(
                 .source
                 .map(|index| self::get_rc_by_u32(images, index))
                 .expect("Expected source image in texture");
-            Texture::initialize(context, sampler, source).map(Rc::new)
+            Texture::initialize(context, sampler, source)
         })
         .collect()
 }

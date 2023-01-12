@@ -11,7 +11,7 @@ use crate::{
         convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
-        util::shared_ref::{self, SharedRef},
+        util::shared_ref::SharedRef,
     },
     core::{
         camera::{Camera, Perspective},
@@ -35,24 +35,24 @@ impl AsyncCreator for Example {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
         let mut scene = Scene::new_empty();
 
-        let camera = shared_ref::strong(Camera::from(Perspective::default()));
+        let camera = Camera::new(Perspective::default());
         let camera_node = Node::new_with_camera(Rc::clone(&camera));
         camera_node
             .borrow_mut()
             .set_position(&glm::vec3(0.5, 1.0, 5.0));
         scene.add_root_node(camera_node);
 
-        let axes = Rc::new(Mesh::from_with_context(
+        let axes = <Rc<Mesh>>::from_with_context(
             context,
             AxesHelper {
                 axis_length: 2.0,
                 ..Default::default()
             },
-        )?);
+        )?;
         let axes = Node::new_with_mesh(axes);
         scene.add_root_node(axes);
 
-        let grid = Rc::new(Mesh::from_with_context(
+        let grid = <Rc<Mesh>>::from_with_context(
             context,
             GridHelper {
                 size: 20.0,
@@ -60,7 +60,7 @@ impl AsyncCreator for Example {
                 center_color: color::yellow(),
                 ..Default::default()
             },
-        )?);
+        )?;
         let grid = Node::new_with_mesh(grid);
         grid.borrow_mut().rotate_x(-Angle::RIGHT);
         scene.add_root_node(grid);
