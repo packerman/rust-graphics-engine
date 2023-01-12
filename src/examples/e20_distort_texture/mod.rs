@@ -89,6 +89,10 @@ impl AsyncCreator for Example {
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "Distort texture"
+    }
+
     fn update(&mut self, _key_state: &KeyState) {
         self.distort_material.borrow_mut().time = (web::now().unwrap() / 1000.0) as f32;
     }

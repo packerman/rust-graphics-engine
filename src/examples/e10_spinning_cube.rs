@@ -70,6 +70,10 @@ impl AsyncCreator for Example {
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "Spinning cube"
+    }
+
     fn update(&mut self, _key_state: &KeyState) {
         self.mesh
             .borrow_mut()

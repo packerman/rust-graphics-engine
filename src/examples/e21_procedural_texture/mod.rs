@@ -122,6 +122,10 @@ fn fractal_material(context: &WebGl2RenderingContext, source: &'static str) -> R
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "Procedural texture"
+    }
+
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

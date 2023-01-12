@@ -88,6 +88,10 @@ impl AsyncCreator for Example {
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "Blend textures"
+    }
+
     fn update(&mut self, _key_state: &KeyState) {
         self.blend_material.borrow_mut().time = (web::now().unwrap() / 1000.0) as f32;
     }

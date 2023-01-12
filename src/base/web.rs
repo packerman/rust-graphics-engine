@@ -214,3 +214,8 @@ pub async fn fetch_image(uri: &str) -> Result<HtmlImageElement> {
     receiver.await??;
     Ok(image)
 }
+
+pub fn set_document_title(title: &str) -> Result<()> {
+    self::document()?.set_title(title);
+    Ok(())
+}
