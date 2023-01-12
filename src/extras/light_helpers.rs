@@ -79,7 +79,7 @@ impl PointLightHelper {
         )?;
         let material = <Rc<Material>>::from_with_context(
             context,
-            shared_ref::strong(SurfaceMaterial {
+            shared_ref::new(SurfaceMaterial {
                 basic: BasicMaterial {
                     base_color: color,
                     ..Default::default()

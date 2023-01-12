@@ -114,7 +114,7 @@ fn fractal_material(
 ) -> Result<Rc<Material>> {
     <Rc<Material>>::from_with_context(
         context,
-        shared_ref::strong(FractalMaterial {
+        shared_ref::new(FractalMaterial {
             main_file: source.into(),
         }),
     )

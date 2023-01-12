@@ -91,6 +91,6 @@ pub fn create(
 ) -> Result<Rc<Material>> {
     <Rc<Material>>::from_with_context(
         context,
-        shared_ref::strong(TextureMaterial::new(texture, unit, properties)),
+        shared_ref::new(TextureMaterial::new(texture, unit, properties)),
     )
 }

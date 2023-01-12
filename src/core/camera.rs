@@ -26,7 +26,7 @@ impl Camera {
     }
 
     pub fn new_with_name(camera_type: CameraType, name: Option<String>) -> SharedRef<Self> {
-        shared_ref::strong(Self {
+        shared_ref::new(Self {
             camera_type,
             name,
             node: shared_ref::weak(),

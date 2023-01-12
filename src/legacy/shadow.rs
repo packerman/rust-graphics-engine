@@ -101,8 +101,7 @@ impl Shadow {
         let camera = Node::new_with_camera(Camera::new(Orthographic::from(options.camera_bounds)));
         light_source.add_child(Rc::clone(&camera));
         let render_target = RenderTarget::initialize(context, resolution)?;
-        let material =
-            <Rc<Material>>::from_with_context(context, shared_ref::strong(DepthMaterial))?;
+        let material = <Rc<Material>>::from_with_context(context, shared_ref::new(DepthMaterial))?;
         Ok(Self {
             light_source,
             resolution,

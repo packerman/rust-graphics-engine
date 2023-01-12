@@ -7,7 +7,7 @@ pub type SharedRef<T> = Rc<RefCell<T>>;
 
 pub type WeakRef<T> = Weak<RefCell<T>>;
 
-pub fn strong<T>(value: T) -> SharedRef<T> {
+pub fn new<T>(value: T) -> SharedRef<T> {
     Rc::new(RefCell::new(value))
 }
 

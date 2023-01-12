@@ -48,7 +48,7 @@ impl AsyncCreator for Example {
             camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 1.5));
             scene.add_root_node(camera);
         }
-        let distort_material = shared_ref::strong(DistortMaterial {
+        let distort_material = shared_ref::new(DistortMaterial {
             noise: Sampler2D::new(
                 Texture::fetch(context, "images/noise.png").await?,
                 TextureUnit(0),
@@ -71,10 +71,7 @@ impl AsyncCreator for Example {
             let mesh = Node::new_with_mesh(Mesh::initialize(
                 context,
                 &geometry,
-                <Rc<Material>>::from_with_context(
-                    context,
-                    Rc::clone(&distort_material),
-                )?,
+                <Rc<Material>>::from_with_context(context, Rc::clone(&distort_material))?,
             )?);
             scene.add_root_node(mesh);
         }

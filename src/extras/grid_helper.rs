@@ -78,7 +78,7 @@ impl FromWithContext<WebGl2RenderingContext, GridHelper> for Rc<Material> {
     ) -> Result<Self> {
         <Rc<Material>>::from_with_context(
             context,
-            shared_ref::strong(LineMaterial {
+            shared_ref::new(LineMaterial {
                 basic: BasicMaterial {
                     use_vertex_colors: true,
                     ..Default::default()

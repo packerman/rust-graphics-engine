@@ -43,7 +43,7 @@ impl Root {
             "Scene depths: {:#?}",
             scenes.iter().map(|scene| scene.depth()).collect::<Vec<_>>()
         );
-        let light_controller = shared_ref::strong(LightController::new(Default::default()));
+        let light_controller = shared_ref::new(LightController::new(Default::default()));
         let renderer = Renderer::initialize(
             context,
             Default::default(),

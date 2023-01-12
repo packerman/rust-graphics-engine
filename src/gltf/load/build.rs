@@ -175,7 +175,7 @@ pub fn build_materials(
                 context,
                 material.name.clone(),
                 material.double_sided,
-                shared_ref::strong(TestMaterial {
+                shared_ref::new(TestMaterial {
                     base_color_factor: Vec4::from(
                         material.pbr_metallic_roughness.base_color_factor,
                     ),
@@ -355,7 +355,7 @@ fn default_material(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
         context,
         None,
         false,
-        shared_ref::strong(TestMaterial::default()),
+        shared_ref::new(TestMaterial::default()),
         AlphaMode::default(),
     )
 }

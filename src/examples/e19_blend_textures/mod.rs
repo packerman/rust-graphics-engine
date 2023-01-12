@@ -48,7 +48,7 @@ impl AsyncCreator for Example {
             camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 1.5));
             scene.add_root_node(camera);
         }
-        let blend_material = shared_ref::strong(BlendMaterial {
+        let blend_material = shared_ref::new(BlendMaterial {
             texture_sampler_1: Sampler2D::new(
                 Texture::fetch(context, "images/grid.png").await?,
                 TextureUnit(0),
