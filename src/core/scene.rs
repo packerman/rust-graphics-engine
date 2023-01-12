@@ -41,7 +41,7 @@ impl Scene {
             .any(|root| root.borrow().is_ancestor_of(node))
     }
 
-    pub fn add_root_node(&mut self, node: SharedRef<Node>) {
+    pub fn add_node(&mut self, node: SharedRef<Node>) {
         self.nodes.push(node)
     }
 

@@ -40,7 +40,7 @@ impl AsyncCreator for Example {
         camera_node
             .borrow_mut()
             .set_position(&glm::vec3(0.5, 1.0, 5.0));
-        scene.add_root_node(camera_node);
+        scene.add_node(camera_node);
 
         let axes = <Rc<Mesh>>::from_with_context(
             context,
@@ -50,7 +50,7 @@ impl AsyncCreator for Example {
             },
         )?;
         let axes = Node::new_with_mesh(axes);
-        scene.add_root_node(axes);
+        scene.add_node(axes);
 
         let grid = <Rc<Mesh>>::from_with_context(
             context,
@@ -63,7 +63,7 @@ impl AsyncCreator for Example {
         )?;
         let grid = Node::new_with_mesh(grid);
         grid.borrow_mut().rotate_x(-Angle::RIGHT);
-        scene.add_root_node(grid);
+        scene.add_node(grid);
 
         Ok(Box::new(Example {
             renderer,

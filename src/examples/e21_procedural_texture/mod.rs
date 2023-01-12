@@ -41,26 +41,26 @@ impl AsyncCreator for Example {
         {
             let camera = Node::new_with_camera(Rc::clone(&camera));
             camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 1.5));
-            scene.add_root_node(camera);
+            scene.add_node(camera);
         }
         let x = 0.6;
         let y = 0.4;
-        scene.add_root_node(rectangle_mesh(
+        scene.add_node(rectangle_mesh(
             context,
             clouds(context)?,
             glm::vec3(-x, y, 0.0),
         )?);
-        scene.add_root_node(rectangle_mesh(
+        scene.add_node(rectangle_mesh(
             context,
             lava(context)?,
             glm::vec3(x, y, 0.0),
         )?);
-        scene.add_root_node(rectangle_mesh(
+        scene.add_node(rectangle_mesh(
             context,
             marble(context)?,
             glm::vec3(-x, -y, 0.0),
         )?);
-        scene.add_root_node(rectangle_mesh(
+        scene.add_node(rectangle_mesh(
             context,
             wood(context)?,
             glm::vec3(x, -y, 0.0),

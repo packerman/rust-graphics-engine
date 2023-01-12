@@ -46,7 +46,7 @@ impl AsyncCreator for Example {
         {
             let camera = Node::new_with_camera(Rc::clone(&camera));
             camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 1.5));
-            scene.add_root_node(camera);
+            scene.add_node(camera);
         }
         let wave_material = shared_ref::new(WaveMaterial {
             texture_sampler: Sampler2D::new(
@@ -70,7 +70,7 @@ impl AsyncCreator for Example {
                 &geometry,
                 <Rc<Material>>::from_with_context(context, Rc::clone(&wave_material))?,
             )?);
-            scene.add_root_node(mesh);
+            scene.add_node(mesh);
         }
 
         Ok(Box::new(Example {

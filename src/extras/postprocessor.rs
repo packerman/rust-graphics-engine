@@ -100,9 +100,9 @@ fn create_scene(
 ) -> Result<Scene> {
     let mut scene = Scene::new_empty();
     let mesh = Node::new_with_mesh(Mesh::initialize(context, geometry.as_ref(), effect)?);
-    scene.add_root_node(mesh);
+    scene.add_node(mesh);
     let camera = Node::new_with_camera(camera);
-    scene.add_root_node(camera);
+    scene.add_node(camera);
     Ok(scene)
 }
 

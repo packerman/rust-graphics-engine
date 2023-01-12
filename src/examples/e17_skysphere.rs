@@ -42,7 +42,7 @@ impl AsyncCreator for Example {
         let camera = Camera::new(Perspective::default());
         {
             let camera = Node::new_with_camera(Rc::clone(&camera));
-            scene.add_root_node(Rc::clone(&camera));
+            scene.add_node(Rc::clone(&camera));
         }
         let controller = CameraController::make_for_camera(&camera)
             .expect("Camera controller should be created");
@@ -62,7 +62,7 @@ impl AsyncCreator for Example {
                 Default::default(),
             )?;
             let sky = Node::new_with_mesh(Mesh::initialize(context, &geometry, material)?);
-            scene.add_root_node(sky);
+            scene.add_node(sky);
         }
         {
             let geometry = Geometry::from_with_context(
@@ -84,7 +84,7 @@ impl AsyncCreator for Example {
             )?;
             let grass = Node::new_with_mesh(Mesh::initialize(context, &geometry, material)?);
             grass.borrow_mut().rotate_x(-Angle::RIGHT);
-            scene.add_root_node(grass);
+            scene.add_node(grass);
         }
 
         Ok(Box::new(Example {

@@ -41,7 +41,7 @@ impl AsyncCreator for Example {
             let camera = Node::new_with_camera(Rc::clone(&camera));
             camera.borrow_mut().rotate_x(-Angle::from_degrees(20.0));
             camera.borrow_mut().set_position(&glm::vec3(0.0, 1.0, 4.0));
-            scene.add_root_node(camera);
+            scene.add_node(camera);
         }
 
         let material = material::texture::create(
@@ -56,7 +56,7 @@ impl AsyncCreator for Example {
                 Node::new_with_mesh(Mesh::initialize(context, &geometry, Rc::clone(&material))?);
             mesh.borrow_mut()
                 .apply_transform(&matrix::translation(-3.0, -0.5, 0.0));
-            scene.add_root_node(mesh);
+            scene.add_node(mesh);
         }
         {
             let geometry = Geometry::from_with_context(
@@ -71,7 +71,7 @@ impl AsyncCreator for Example {
                 Node::new_with_mesh(Mesh::initialize(context, &geometry, Rc::clone(&material))?);
             mesh.borrow_mut()
                 .apply_transform(&matrix::translation(0.0, -0.5, 0.0));
-            scene.add_root_node(mesh);
+            scene.add_node(mesh);
         }
         {
             let geometry = Geometry::from_with_context(
@@ -85,7 +85,7 @@ impl AsyncCreator for Example {
             let mesh = Node::new_with_mesh(Mesh::initialize(context, &geometry, material)?);
             mesh.borrow_mut()
                 .apply_transform(&matrix::translation(3.0, -0.5, 0.0));
-            scene.add_root_node(mesh);
+            scene.add_node(mesh);
         }
 
         Ok(Box::new(Example {

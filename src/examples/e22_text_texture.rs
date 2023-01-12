@@ -55,7 +55,7 @@ impl AsyncCreator for Example {
             camera
                 .borrow_mut()
                 .set_position(&glm::vec3(-1.5, 1.5, 1.25));
-            scene.add_root_node(camera);
+            scene.add_node(camera);
         }
         {
             let grid = <Rc<Mesh>>::from_with_context(
@@ -68,7 +68,7 @@ impl AsyncCreator for Example {
             )?;
             let grid = Node::new_with_mesh(grid);
             grid.borrow_mut().rotate_x(-Angle::RIGHT);
-            scene.add_root_node(grid);
+            scene.add_node(grid);
         }
 
         let geometry = Geometry::from_with_context(
@@ -96,7 +96,7 @@ impl AsyncCreator for Example {
         )?;
         let mesh = Node::new_with_mesh(Mesh::initialize(context, &geometry, material)?);
         mesh.borrow_mut().set_position(&glm::vec3(0.0, 0.5, 0.0));
-        scene.add_root_node(mesh);
+        scene.add_node(mesh);
         Ok(Box::new(Example {
             renderer,
             scene,

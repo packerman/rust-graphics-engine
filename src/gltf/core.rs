@@ -118,7 +118,7 @@ impl Root {
         if !scene.has_some_camera() {
             let camera = Self::default_camera();
             let node = Node::with_camera_and_name(camera.clone(), "Default camera");
-            scene.add_root_node(node);
+            scene.add_node(node);
             cameras.push(camera);
         }
     }

@@ -5,21 +5,24 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    api::geometry::Geometry,
+    api::geometry::{Geometry, TypedGeometry},
     base::{
         application::{self, Application, AsyncCreator},
         color,
+        convert::FromWithContext,
         input::KeyState,
         math::{angle::Angle, matrix},
+        util::shared_ref::SharedRef,
     },
     core::{
-        camera::Camera,
+        camera::{Camera, Perspective},
         image::Image,
         mesh::Mesh,
         node::Node,
+        scene::Scene,
         texture::{Texture, TextureUnit},
     },
-    extras::text_texture::TextTexture,
+    extras::{camera_controller::CameraController, text_texture::TextTexture},
     geometry::{BoxGeometry, Rectangle},
     legacy::renderer::{Renderer, RendererOptions},
     material,
@@ -27,10 +30,10 @@ use crate::{
 
 struct Example {
     renderer: Renderer,
-    scene: Rc<Node>,
-    rig: Rc<Node>,
-    camera: Rc<Node>,
-    label: Rc<Node>,
+    scene: Scene,
+    controller: CameraController,
+    camera: SharedRef<Camera>,
+    label: SharedRef<Node>,
 }
 
 #[async_trait(?Send)]
@@ -44,38 +47,40 @@ impl AsyncCreator for Example {
             },
             None,
         );
-        let scene = Node::new_group();
+        let mut scene = Scene::new_empty();
 
-        let rig = Node::new_movement_rig(Default::default());
-        let camera = Node::new_camera(Camera::new_perspective(Default::default()));
+        let camera = Camera::new(Perspective::default());
         {
-            rig.set_position(&glm::vec3(0.0, 1.0, 5.0));
-            rig.add_child(&camera);
-            scene.add_child(&rig);
+            let camera = Node::new_with_camera(Rc::clone(&camera));
+            camera.borrow_mut().set_position(&glm::vec3(0.0, 1.0, 5.0));
+            scene.add_node(Rc::clone(&camera));
         }
+        let controller =
+            CameraController::make_for_camera(&camera).expect("Camera controller is created");
         let label = self::create_label(context)?;
         {
-            label.set_position(&glm::vec3(0.0, 1.0, 0.0));
-            scene.add_child(&label);
+            label.borrow_mut().set_position(&glm::vec3(0.0, 1.0, 0.0));
+            scene.add_node(Rc::clone(&label));
         }
         {
             let crate_mesh = create_crate_mesh(context).await?;
-            scene.add_child(&crate_mesh);
+            scene.add_node(crate_mesh);
         }
         Ok(Box::new(Example {
             renderer,
             scene,
-            rig,
+            controller,
             camera,
             label,
         }))
     }
 }
 
-fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
+fn create_label(context: &WebGl2RenderingContext) -> Result<SharedRef<Node>> {
     let texture = Texture::initialize(
         context,
-        Image::try_from(TextTexture {
+        Default::default(),
+        Rc::new(Image::try_from(TextTexture {
             text: "This is a Crate.",
             width: 320,
             height: 160,
@@ -83,47 +88,46 @@ fn create_label(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
             font: "bold 40px arial",
             font_style: "blue",
             ..Default::default()
-        })?,
-        Default::default(),
+        })?),
     )?;
     let material = material::texture::create(context, texture, TextureUnit(0), Default::default())?;
-    let mut geometry = Geometry::from_with_context(
-        context,
-        Rectangle {
-            width: 1.0,
-            height: 0.5,
-            ..Default::default()
-        },
-    )?;
-    geometry.apply_matrix_default(context, &matrix::rotation_y(Angle::STRAIGHT))?;
-    let label = Mesh::initialize(context, Rc::new(geometry), material)?;
-    Ok(Node::new_mesh(label))
+    let mut typed_geometry = TypedGeometry::try_from(Rectangle {
+        width: 1.0,
+        height: 0.5,
+        ..Default::default()
+    })?;
+    typed_geometry.transform_mut(&matrix::rotation_y(Angle::STRAIGHT));
+    let geometry = Geometry::from_with_context(context, typed_geometry)?;
+    let label = Mesh::initialize(context, &geometry, material)?;
+    Ok(Node::new_with_mesh(label))
 }
 
-async fn create_crate_mesh(context: &WebGl2RenderingContext) -> Result<Rc<Node>> {
-    let geometry = Rc::new(Geometry::from_with_context(
-        context,
-        BoxGeometry::default(),
-    )?);
+async fn create_crate_mesh(context: &WebGl2RenderingContext) -> Result<SharedRef<Node>> {
+    let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
     let material = material::texture::create(
         context,
-        Texture::fetch(context, "images/crate.png")?,
+        Texture::fetch(context, "images/crate.png").await?,
         TextureUnit(1),
         Default::default(),
     )?;
-    let mesh = Mesh::initialize(context, geometry, material)?;
-    Ok(Node::new_mesh(mesh))
+    let mesh = Mesh::initialize(context, &geometry, material)?;
+    Ok(Node::new_with_mesh(mesh))
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "Billboarding"
+    }
+
     fn update(&mut self, key_state: &KeyState) {
-        self.rig.update_key_state(key_state);
-        self.label.look_at(&self.camera.world_position());
+        self.controller.update(key_state);
+        self.label
+            .borrow_mut()
+            .look_at(&self.camera.borrow().world_position());
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.renderer
-            .render(context, &self.scene, self.camera.as_camera().unwrap())
+        self.renderer.render(context, &self.scene, &self.camera)
     }
 }
 
