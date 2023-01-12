@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -9,14 +9,17 @@ use crate::{
     base::{
         application::{self, Application, AsyncCreator},
         color,
+        convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
+        util::shared_ref::{self, SharedRef},
     },
     core::{
-        camera::Camera,
+        camera::{Camera, Perspective},
         image::Image,
         mesh::Mesh,
         node::Node,
+        scene::Scene,
         texture::{Texture, TextureUnit},
     },
     extras::{grid_helper::GridHelper, text_texture::TextTexture},
@@ -27,8 +30,8 @@ use crate::{
 
 struct Example {
     renderer: Renderer,
-    scene: Rc<Node>,
-    camera: Rc<RefCell<Camera>>,
+    scene: Scene,
+    camera: SharedRef<Camera>,
 }
 
 #[async_trait(?Send)]
@@ -42,56 +45,58 @@ impl AsyncCreator for Example {
             },
             None,
         );
-        let scene = Node::new_group();
+        let mut scene = Scene::new_empty();
 
-        let camera = Camera::new_perspective(Default::default());
+        let camera = shared_ref::strong(Camera::from(Perspective::default()));
         {
-            let camera = Node::new_camera(Rc::clone(&camera));
-            camera.rotate_y(Angle::from_degrees(-45.0), Default::default());
-            camera.rotate_x(Angle::from_degrees(-30.0), Default::default());
-            camera.set_position(&glm::vec3(-1.5, 1.5, 1.25));
-            scene.add_child(&camera);
+            let camera = Node::new_with_camera(Rc::clone(&camera));
+            camera.borrow_mut().rotate_y(Angle::from_degrees(-45.0));
+            camera.borrow_mut().rotate_x(Angle::from_degrees(-30.0));
+            camera
+                .borrow_mut()
+                .set_position(&glm::vec3(-1.5, 1.5, 1.25));
+            scene.add_root_node(camera);
         }
         {
-            let grid = Mesh::from_with_context(
+            let grid = Rc::new(Mesh::from_with_context(
                 context,
                 GridHelper {
                     grid_color: color::white(),
                     center_color: color::yellow(),
                     ..Default::default()
                 },
-            )?;
-            let grid = Node::new_mesh(grid);
-            grid.rotate_x(-Angle::RIGHT, Default::default());
-            scene.add_child(&grid);
+            )?);
+            let grid = Node::new_with_mesh(grid);
+            grid.borrow_mut().rotate_x(-Angle::RIGHT);
+            scene.add_root_node(grid);
         }
 
-        let geometry = Rc::new(Geometry::from_with_context(
+        let geometry = Geometry::from_with_context(
             context,
             BoxGeometry {
                 width: 1.25,
                 height: 1.25,
                 depth: 1.25,
             },
-        )?);
+        )?;
         let material = material::texture::create(
             context,
-            Texture::initialize(
+            Rc::new(Texture::initialize(
                 context,
-                Image::try_from(TextTexture {
+                Default::default(),
+                Rc::new(Image::try_from(TextTexture {
                     text: "Hello, World!",
                     font: "bold 36px sans-serif",
                     font_style: "blue",
                     ..Default::default()
-                })?,
-                Default::default(),
-            )?,
+                })?),
+            )?),
             TextureUnit(0),
             Default::default(),
         )?;
-        let mesh = Node::new_mesh(Mesh::initialize(context, geometry, material)?);
-        mesh.set_position(&glm::vec3(0.0, 0.5, 0.0));
-        scene.add_child(&mesh);
+        let mesh = Node::new_with_mesh(Rc::new(Mesh::initialize(context, &geometry, material)?));
+        mesh.borrow_mut().set_position(&glm::vec3(0.0, 0.5, 0.0));
+        scene.add_root_node(mesh);
         Ok(Box::new(Example {
             renderer,
             scene,
@@ -101,6 +106,10 @@ impl AsyncCreator for Example {
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "Text texture"
+    }
+
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {
