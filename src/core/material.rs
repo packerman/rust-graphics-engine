@@ -46,19 +46,19 @@ impl Material {
         double_sided: bool,
         generic_material: SharedRef<dyn GenericMaterial>,
         alpha_mode: AlphaMode,
-    ) -> Result<Self> {
+    ) -> Result<Rc<Self>> {
         let program = Program::initialize(
             context,
             &generic_material.borrow().vertex_shader(),
             &generic_material.borrow().fragment_shader(),
         )?;
-        Ok(Self {
+        Ok(Rc::new(Self {
             name,
             double_sided,
             generic_material,
             program,
             alpha_mode,
-        })
+        }))
     }
 
     pub fn update(&self, context: &WebGl2RenderingContext) {
@@ -115,13 +115,16 @@ impl Material {
     }
 }
 
-impl<T> FromWithContext<WebGl2RenderingContext, SharedRef<T>> for Material
+impl<T> FromWithContext<WebGl2RenderingContext, SharedRef<T>> for Rc<Material>
 where
     T: GenericMaterial + 'static,
 {
-    fn from_with_context(context: &WebGl2RenderingContext, value: SharedRef<T>) -> Result<Self> {
+    fn from_with_context(
+        context: &WebGl2RenderingContext,
+        value: SharedRef<T>,
+    ) -> Result<Self> {
         let double_sided = value.borrow().double_sided();
-        Self::initialize(context, None, double_sided, value, AlphaMode::default())
+        Material::initialize(context, None, double_sided, value, AlphaMode::default())
     }
 }
 

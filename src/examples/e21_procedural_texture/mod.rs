@@ -76,7 +76,7 @@ impl AsyncCreator for Example {
 
 fn rectangle_mesh(
     context: &WebGl2RenderingContext,
-    material: Material,
+    material: Rc<Material>,
     position: Vec3,
 ) -> Result<SharedRef<Node>> {
     let geometry = Geometry::from_with_context(
@@ -87,29 +87,32 @@ fn rectangle_mesh(
             ..Default::default()
         },
     )?;
-    let node = Node::new_with_mesh(Mesh::initialize(context, &geometry, Rc::new(material))?);
+    let node = Node::new_with_mesh(Mesh::initialize(context, &geometry, material)?);
     node.borrow_mut().set_position(&position);
     Ok(node)
 }
 
-fn clouds(context: &WebGl2RenderingContext) -> Result<Material> {
+fn clouds(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
     fractal_material(context, include_str!("clouds.glsl"))
 }
 
-fn lava(context: &WebGl2RenderingContext) -> Result<Material> {
+fn lava(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
     fractal_material(context, include_str!("lava.glsl"))
 }
 
-fn marble(context: &WebGl2RenderingContext) -> Result<Material> {
+fn marble(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
     fractal_material(context, include_str!("marble.glsl"))
 }
 
-fn wood(context: &WebGl2RenderingContext) -> Result<Material> {
+fn wood(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
     fractal_material(context, include_str!("wood.glsl"))
 }
 
-fn fractal_material(context: &WebGl2RenderingContext, source: &'static str) -> Result<Material> {
-    Material::from_with_context(
+fn fractal_material(
+    context: &WebGl2RenderingContext,
+    source: &'static str,
+) -> Result<Rc<Material>> {
+    <Rc<Material>>::from_with_context(
         context,
         shared_ref::strong(FractalMaterial {
             main_file: source.into(),

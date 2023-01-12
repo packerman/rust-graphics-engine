@@ -46,7 +46,7 @@ impl AsyncCreator for Example {
         scene.add_root_node(camera_node);
 
         let geometry = Geometry::from_with_context(context, BoxGeometry::default())?;
-        let material = Rc::new(Material::from_with_context(
+        let material = <Rc<Material>>::from_with_context(
             context,
             shared_ref::strong(SurfaceMaterial {
                 basic: BasicMaterial {
@@ -55,7 +55,7 @@ impl AsyncCreator for Example {
                 },
                 ..Default::default()
             }),
-        )?);
+        )?;
         let mesh = Mesh::initialize(context, &geometry, material)?;
         let mesh = Node::new_with_mesh(mesh);
         scene.add_root_node(Rc::clone(&mesh));

@@ -65,7 +65,7 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Rc<Mesh> {
                 Rc::new(Accessor::from_with_context(context, &color_data)?),
             ),
         ]);
-        let material = Rc::new(Material::from_with_context(
+        let material = <Rc<Material>>::from_with_context(
             context,
             shared_ref::strong(LineMaterial {
                 basic: BasicMaterial {
@@ -75,7 +75,7 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Rc<Mesh> {
                 line_width: axes_helper.line_width,
                 line_type: LineType::Segments,
             }),
-        )?);
+        )?;
         Mesh::initialize(context, &geometry, material)
     }
 }

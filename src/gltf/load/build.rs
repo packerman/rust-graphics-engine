@@ -193,7 +193,6 @@ pub fn build_materials(
                 }),
                 alpha_mode,
             )
-            .map(Rc::new)
         })
         .collect()
 }
@@ -359,7 +358,6 @@ fn default_material(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
         shared_ref::strong(TestMaterial::default()),
         AlphaMode::default(),
     )
-    .map(Rc::new)
 }
 
 fn get_rc_by_u32<T>(slice: &[Rc<T>], index: u32) -> Rc<T> {

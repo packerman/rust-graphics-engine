@@ -71,10 +71,10 @@ impl AsyncCreator for Example {
             let mesh = Node::new_with_mesh(Mesh::initialize(
                 context,
                 &geometry,
-                Rc::new(Material::from_with_context(
+                <Rc<Material>>::from_with_context(
                     context,
                     Rc::clone(&distort_material),
-                )?),
+                )?,
             )?);
             scene.add_root_node(mesh);
         }

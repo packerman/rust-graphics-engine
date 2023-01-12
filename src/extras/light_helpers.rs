@@ -47,7 +47,7 @@ impl DirectionalLightHelper {
             Some(vec![color, color]),
         )?;
         typed_geometry.concat_mut(&append);
-        let material = Rc::new(Material::from_with_context(context, grid_helper)?);
+        let material = <Rc<Material>>::from_with_context(context, grid_helper)?;
         Mesh::initialize(
             context,
             &Geometry::from_with_context(context, typed_geometry)?,
@@ -77,7 +77,7 @@ impl PointLightHelper {
                 height_segments: 2,
             },
         )?;
-        let material = Rc::new(Material::from_with_context(
+        let material = <Rc<Material>>::from_with_context(
             context,
             shared_ref::strong(SurfaceMaterial {
                 basic: BasicMaterial {
@@ -86,7 +86,7 @@ impl PointLightHelper {
                 },
                 ..Default::default()
             }),
-        )?);
+        )?;
         Mesh::initialize(context, &geometry, material)
     }
 }

@@ -71,12 +71,12 @@ impl TryFrom<GridHelper> for TypedGeometry {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, GridHelper> for Material {
+impl FromWithContext<WebGl2RenderingContext, GridHelper> for Rc<Material> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         grid_helper: GridHelper,
     ) -> Result<Self> {
-        Material::from_with_context(
+        <Rc<Material>>::from_with_context(
             context,
             shared_ref::strong(LineMaterial {
                 basic: BasicMaterial {
@@ -97,7 +97,7 @@ impl FromWithContext<WebGl2RenderingContext, GridHelper> for Rc<Mesh> {
     ) -> Result<Self> {
         let typed_geometry = TypedGeometry::try_from(grid_helper)?;
         let geometry = Geometry::from_with_context(context, typed_geometry)?;
-        let material = Rc::new(Material::from_with_context(context, grid_helper)?);
+        let material = <Rc<Material>>::from_with_context(context, grid_helper)?;
         Mesh::initialize(context, &geometry, material)
     }
 }

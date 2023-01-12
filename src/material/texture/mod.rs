@@ -4,10 +4,10 @@ use anyhow::Result;
 use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
+use crate::base::convert::FromWithContext;
 use crate::{
     base::{
         color::{self, Color},
-        convert::FromWithContext,
         util::shared_ref,
     },
     core::{
@@ -89,9 +89,8 @@ pub fn create(
     unit: TextureUnit,
     properties: Properties,
 ) -> Result<Rc<Material>> {
-    Material::from_with_context(
+    <Rc<Material>>::from_with_context(
         context,
         shared_ref::strong(TextureMaterial::new(texture, unit, properties)),
     )
-    .map(Rc::new)
 }
