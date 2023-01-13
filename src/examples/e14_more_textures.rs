@@ -12,6 +12,7 @@ use crate::{
         input::KeyState,
         math::{angle::Angle, matrix},
     },
+    classic::renderer::Renderer,
     core::{
         camera::{Camera, Perspective},
         mesh::Mesh,
@@ -20,7 +21,6 @@ use crate::{
         texture::{Texture, TextureUnit},
     },
     geometry::parametric::{Cone, Cylinder, Sphere},
-    legacy::renderer::Renderer,
     material,
 };
 

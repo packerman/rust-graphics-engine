@@ -10,12 +10,12 @@ use crate::{
         color::{self, Color},
         util::shared_ref,
     },
+    classic::texture::Sampler2D,
     core::{
         material::{GenericMaterial, Material, Source},
         program::{Program, UpdateProgramUniforms, UpdateUniform},
         texture::{Texture, TextureUnit},
     },
-    legacy::texture::Sampler2D,
 };
 
 #[derive(Debug)]

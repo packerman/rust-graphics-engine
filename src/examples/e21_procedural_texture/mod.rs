@@ -13,6 +13,7 @@ use crate::{
         input::KeyState,
         util::shared_ref::{self, SharedRef},
     },
+    classic::renderer::{Renderer, RendererOptions},
     core::{
         camera::{Camera, Perspective},
         material::{GenericMaterial, Material, Source},
@@ -22,7 +23,6 @@ use crate::{
         scene::Scene,
     },
     geometry::rectangle::Rectangle,
-    legacy::renderer::{Renderer, RendererOptions},
 };
 
 struct Example {

@@ -6,6 +6,12 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     api::geometry::Geometry,
     base::{convert::FromWithContext, math::resolution::Resolution, util::shared_ref::SharedRef},
+    classic::{
+        light::Light,
+        render_target::RenderTarget,
+        renderer::{self, Renderer},
+        texture::Sampler2D,
+    },
     core::{
         accessor::Accessor,
         camera::{Camera, Orthographic},
@@ -14,12 +20,6 @@ use crate::{
         node::Node,
         scene::Scene,
         texture::{Texture, TextureUnit},
-    },
-    legacy::{
-        light::Light,
-        render_target::RenderTarget,
-        renderer::{self, Renderer},
-        texture::Sampler2D,
     },
 };
 

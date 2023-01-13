@@ -16,6 +16,7 @@ use crate::{
         util::shared_ref::{self, SharedRef},
         web,
     },
+    classic::renderer::{Renderer, RendererOptions},
     core::{
         camera::{Camera, Perspective},
         material::Material,
@@ -26,7 +27,6 @@ use crate::{
     },
     extras::{camera_controller::CameraController, grid_helper::GridHelper},
     geometry::rectangle::Rectangle,
-    legacy::renderer::{Renderer, RendererOptions},
     material::{
         self,
         sprite::{Properties, SpriteMaterial},

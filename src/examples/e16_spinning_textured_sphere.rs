@@ -13,6 +13,7 @@ use crate::{
         math::angle::Angle,
         util::shared_ref::SharedRef,
     },
+    classic::renderer::{Renderer, RendererOptions},
     core::{
         camera::{Camera, Perspective},
         mesh::Mesh,
@@ -21,7 +22,6 @@ use crate::{
         texture::{Texture, TextureUnit},
     },
     geometry::parametric::Sphere,
-    legacy::renderer::{Renderer, RendererOptions},
     material,
 };
 

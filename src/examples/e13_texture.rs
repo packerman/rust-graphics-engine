@@ -12,6 +12,7 @@ use crate::{
         input::KeyState,
         util::shared_ref::SharedRef,
     },
+    classic::renderer::Renderer,
     core::{
         camera::{Camera, Perspective},
         mesh::Mesh,
@@ -20,7 +21,6 @@ use crate::{
         texture::{Texture, TextureUnit},
     },
     geometry::rectangle::Rectangle,
-    legacy::renderer::Renderer,
     material,
 };
 

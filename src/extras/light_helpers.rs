@@ -6,9 +6,9 @@ use web_sys::WebGl2RenderingContext;
 use crate::{
     api::geometry::{Geometry, TypedGeometry},
     base::{color, convert::FromWithContext, util::shared_ref},
+    classic::light::Light,
     core::{material::Material, mesh::Mesh},
     geometry::parametric::Sphere,
-    legacy::light::Light,
     material::basic::{BasicMaterial, SurfaceMaterial},
 };
 

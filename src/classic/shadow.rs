@@ -13,6 +13,7 @@ use crate::{
             shared_ref::{self, SharedRef},
         },
     },
+    classic::{render_target::RenderTarget, texture::Sampler2D},
     core::{
         camera::{Camera, Orthographic},
         material::Material,
@@ -20,7 +21,6 @@ use crate::{
         program::{self, Program, UpdateUniform},
         texture::TextureUnit,
     },
-    legacy::{render_target::RenderTarget, texture::Sampler2D},
     material::depth::DepthMaterial,
 };
 

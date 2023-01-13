@@ -4,12 +4,12 @@ extern crate nalgebra_glm as glm;
 #[macro_use]
 mod base;
 mod api;
+mod classic;
 mod core;
 mod examples;
 mod extras;
 mod geometry;
 mod gltf;
-mod legacy;
 mod material;
 mod run_example;
 

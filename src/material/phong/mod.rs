@@ -2,11 +2,11 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::{
     base::color::{self, Color},
+    classic::texture::Sampler2D,
     core::{
         material::{GenericMaterial, Source},
         program::{self, Program, UpdateProgramUniforms, UpdateUniform},
     },
-    legacy::texture::Sampler2D,
 };
 
 #[derive(Debug)]

@@ -13,6 +13,7 @@ use crate::{
         math::angle::Angle,
         util::shared_ref::SharedRef,
     },
+    classic::renderer::{Renderer, RendererOptions},
     core::{
         camera::{Camera, Perspective},
         mesh::Mesh,
@@ -20,7 +21,6 @@ use crate::{
         scene::Scene,
     },
     extras::{axes_helper::AxesHelper, grid_helper::GridHelper},
-    legacy::renderer::{Renderer, RendererOptions},
 };
 
 struct Example {

@@ -12,6 +12,7 @@ use crate::{
         input::KeyState,
         math::angle::Angle,
     },
+    classic::renderer::Renderer,
     core::{
         camera::{Camera, Perspective},
         mesh::Mesh,
@@ -21,7 +22,6 @@ use crate::{
     extras::{
         axes_helper::AxesHelper, camera_controller::CameraController, grid_helper::GridHelper,
     },
-    legacy::renderer::Renderer,
 };
 
 struct Example {

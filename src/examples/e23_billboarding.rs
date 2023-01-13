@@ -14,6 +14,7 @@ use crate::{
         math::{angle::Angle, matrix},
         util::shared_ref::SharedRef,
     },
+    classic::renderer::{Renderer, RendererOptions},
     core::{
         camera::{Camera, Perspective},
         image::Image,
@@ -24,7 +25,6 @@ use crate::{
     },
     extras::{camera_controller::CameraController, text_texture::TextTexture},
     geometry::{box_geom::BoxGeometry, rectangle::Rectangle},
-    legacy::renderer::{Renderer, RendererOptions},
     material,
 };
 

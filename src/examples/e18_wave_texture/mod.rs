@@ -13,6 +13,10 @@ use crate::{
         util::shared_ref::{self, SharedRef},
         web,
     },
+    classic::{
+        renderer::{Renderer, RendererOptions},
+        texture::Sampler2D,
+    },
     core::{
         camera::{Camera, Perspective},
         material::{GenericMaterial, Material, Source},
@@ -23,10 +27,6 @@ use crate::{
         texture::{Texture, TextureUnit},
     },
     geometry::rectangle::Rectangle,
-    legacy::{
-        renderer::{Renderer, RendererOptions},
-        texture::Sampler2D,
-    },
 };
 
 struct Example {
