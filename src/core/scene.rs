@@ -6,7 +6,7 @@ use crate::base::util::shared_ref::SharedRef;
 
 use super::{camera::Camera, node::Node, program::UpdateProgramUniforms};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Scene {
     nodes: Vec<SharedRef<Node>>,
 }
@@ -26,12 +26,9 @@ impl Scene {
         camera: &RefCell<Camera>,
         global_uniform_updater: &dyn UpdateProgramUniforms,
     ) {
-        let projection_matrix = camera.borrow().projection_matrix();
-        let view_matrix = camera.borrow().view_matrix();
-        let view_projection_matrix = projection_matrix * view_matrix;
         for node in self.nodes.iter() {
             node.borrow()
-                .render(context, &view_projection_matrix, global_uniform_updater);
+                .render(context, &camera.borrow().matrix(), global_uniform_updater);
         }
     }
 

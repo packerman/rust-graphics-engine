@@ -4,10 +4,16 @@ use glm::{Mat4, Vec3};
 
 use crate::base::{
     math::matrix,
-    util::shared_ref::{self, SharedRef, WeakRef},
+    util::{
+        level::Level,
+        shared_ref::{self, SharedRef, WeakRef},
+    },
 };
 
-use super::node::Node;
+use super::{
+    node::Node,
+    program::{UpdateProgramUniforms, UpdateUniform},
+};
 
 #[derive(Debug, Clone)]
 pub struct Camera {
@@ -139,6 +145,17 @@ impl Camera {
             perspective.aspect_ratio = aspect_ratio;
         }
     }
+
+    pub fn matrix(&self) -> CameraMatrix {
+        let view = self.view_matrix();
+        let projection = self.projection_matrix();
+        let view_projection = projection * view;
+        CameraMatrix {
+            projection,
+            view,
+            view_projection,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -198,5 +215,35 @@ impl Default for Perspective {
             z_near: 0.1,
             z_far: Some(1000.0),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct CameraMatrix {
+    projection: Mat4,
+    view: Mat4,
+    view_projection: Mat4,
+}
+
+impl UpdateProgramUniforms for CameraMatrix {
+    fn update_program_uniforms(
+        &self,
+        context: &web_sys::WebGl2RenderingContext,
+        program: &super::program::Program,
+    ) {
+        self.projection.update_uniform_with_level(
+            context,
+            "u_ProjectionMatrix",
+            program,
+            Level::Ignore,
+        );
+        self.view
+            .update_uniform_with_level(context, "u_ViewMatrix", program, Level::Ignore);
+        self.view_projection.update_uniform_with_level(
+            context,
+            "u_ViewProjectionMatrix",
+            program,
+            Level::Ignore,
+        );
     }
 }

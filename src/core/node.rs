@@ -16,7 +16,11 @@ use crate::base::{
     },
 };
 
-use super::{camera::Camera, mesh::Mesh, program::UpdateProgramUniforms};
+use super::{
+    camera::{Camera, CameraMatrix},
+    mesh::Mesh,
+    program::UpdateProgramUniforms,
+};
 
 #[derive(Debug, Clone)]
 pub struct Node {
@@ -79,21 +83,16 @@ impl Node {
     pub fn render(
         &self,
         context: &WebGl2RenderingContext,
-        view_projection_matrix: &Mat4,
+        camera_matrix: &CameraMatrix,
         global_uniform_updater: &dyn UpdateProgramUniforms,
     ) {
         if let Some(mesh) = &self.mesh {
-            mesh.render(
-                context,
-                self,
-                view_projection_matrix,
-                global_uniform_updater,
-            );
+            mesh.render(context, self, camera_matrix, global_uniform_updater);
         }
         for child in self.children.iter() {
             child
                 .borrow()
-                .render(context, view_projection_matrix, global_uniform_updater)
+                .render(context, camera_matrix, global_uniform_updater)
         }
     }
 

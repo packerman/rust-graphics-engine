@@ -171,7 +171,7 @@ impl Renderer {
             mesh.render(
                 context,
                 &node.as_ref().borrow(),
-                &camera.view_projection_matrix(),
+                &camera.matrix(),
                 self.global_uniform_updater.as_ref(),
             );
         });

@@ -119,10 +119,7 @@ impl<T> FromWithContext<WebGl2RenderingContext, SharedRef<T>> for Rc<Material>
 where
     T: GenericMaterial + 'static,
 {
-    fn from_with_context(
-        context: &WebGl2RenderingContext,
-        value: SharedRef<T>,
-    ) -> Result<Self> {
+    fn from_with_context(context: &WebGl2RenderingContext, value: SharedRef<T>) -> Result<Self> {
         let double_sided = value.borrow().double_sided();
         Material::initialize(context, None, double_sided, value, AlphaMode::default())
     }

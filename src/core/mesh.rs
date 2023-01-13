@@ -1,7 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
 
 use anyhow::{anyhow, bail, Result};
-use glm::Mat4;
 use web_sys::{WebGl2RenderingContext, WebGlVertexArrayObject};
 
 use crate::base::{
@@ -12,6 +11,7 @@ use crate::base::{
 use super::{
     accessor::Accessor,
     buffer_view::BufferView,
+    camera::CameraMatrix,
     material::Material,
     node::Node,
     program::{UpdateProgramUniforms, UpdateUniform},
@@ -92,16 +92,11 @@ impl Mesh {
         &self,
         context: &WebGl2RenderingContext,
         node: &Node,
-        view_projection_matrix: &Mat4,
+        camera_matrix: &CameraMatrix,
         global_uniform_updater: &dyn UpdateProgramUniforms,
     ) {
         for primitive in self.primitives.iter() {
-            primitive.render(
-                context,
-                node,
-                view_projection_matrix,
-                global_uniform_updater,
-            );
+            primitive.render(context, node, camera_matrix, global_uniform_updater);
         }
     }
 
@@ -227,16 +222,11 @@ impl Primitive {
         &self,
         context: &WebGl2RenderingContext,
         node: &Node,
-        view_projection_matrix: &Mat4,
+        camera_matrix: &CameraMatrix,
         global_uniform_updater: &dyn UpdateProgramUniforms,
     ) {
         self.material.use_program(context);
-        self.material.update_uniform(
-            context,
-            "u_ViewProjectionMatrix",
-            view_projection_matrix,
-            Level::Ignore,
-        );
+        camera_matrix.update_program_uniforms(context, self.material.program());
         self.render_generic(context, node, global_uniform_updater, &self.material)
     }
 
