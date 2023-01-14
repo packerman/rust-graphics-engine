@@ -1,14 +1,19 @@
+use std::rc::Rc;
+
+use anyhow::Result;
 use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::{color::Color, math::resolution::Resolution},
+    base::{color::Color, convert::FromWithContext, math::resolution::Resolution},
     classic::texture::Sampler2D,
     core::{
-        material::{GenericMaterial, Source},
+        material::{GenericMaterial, Material, Source},
         program::{Program, UpdateProgramUniforms, UpdateUniform},
     },
 };
+
+use super::postprocessor::Effect;
 
 #[derive(Debug, Clone)]
 struct BaseEffect {
@@ -37,7 +42,7 @@ pub struct TintEffect {
 
 impl UpdateProgramUniforms for TintEffect {
     fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
-        self.update_program_uniforms(context, program);
+        self.base.update_program_uniforms(context, program);
         self.tint_color
             .update_uniform(context, "tintColor", program);
     }
@@ -57,11 +62,14 @@ pub fn tint(
     context: &WebGl2RenderingContext,
     sampler_2d: Sampler2D,
     tint_color: Color,
-) -> TintEffect {
-    TintEffect {
-        base: BaseEffect::new(sampler_2d),
-        tint_color,
-    }
+) -> Result<Rc<Effect>> {
+    <Rc<Material>>::from_with_context(
+        context,
+        TintEffect {
+            base: BaseEffect::new(sampler_2d),
+            tint_color,
+        },
+    )
 }
 
 #[derive(Debug)]
@@ -73,7 +81,7 @@ pub struct PixelateEffect {
 
 impl UpdateProgramUniforms for PixelateEffect {
     fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
-        self.update_program_uniforms(context, program);
+        self.base.update_program_uniforms(context, program);
         f32::from(self.pixel_size).update_uniform(context, "pixelSize", program);
         Vec2::from(self.resolution).update_uniform(context, "resolution", program);
     }
@@ -94,12 +102,15 @@ pub fn pixelate(
     sampler_2d: Sampler2D,
     pixel_size: u16,
     resolution: Resolution,
-) -> PixelateEffect {
-    PixelateEffect {
-        base: BaseEffect::new(sampler_2d),
-        pixel_size,
-        resolution,
-    }
+) -> Result<Rc<Effect>> {
+    <Rc<Material>>::from_with_context(
+        context,
+        PixelateEffect {
+            base: BaseEffect::new(sampler_2d),
+            pixel_size,
+            resolution,
+        },
+    )
 }
 
 #[derive(Debug)]
@@ -129,11 +140,14 @@ pub fn color_reduce(
     context: &WebGl2RenderingContext,
     sampler_2d: Sampler2D,
     levels: u16,
-) -> ColorReduceEffect {
-    ColorReduceEffect {
-        base: BaseEffect::new(sampler_2d),
-        levels,
-    }
+) -> Result<Rc<Effect>> {
+    <Rc<Material>>::from_with_context(
+        context,
+        ColorReduceEffect {
+            base: BaseEffect::new(sampler_2d),
+            levels,
+        },
+    )
 }
 
 #[derive(Debug)]
@@ -180,11 +194,14 @@ pub fn bright_filter(
     context: &WebGl2RenderingContext,
     sampler_2d: Sampler2D,
     bright_filter: BrightFilter,
-) -> BrightFilterEffect {
-    BrightFilterEffect {
-        base: BaseEffect::new(sampler_2d),
-        filter: bright_filter,
-    }
+) -> Result<Rc<Material>> {
+    <Rc<Material>>::from_with_context(
+        context,
+        BrightFilterEffect {
+            base: BaseEffect::new(sampler_2d),
+            filter: bright_filter,
+        },
+    )
 }
 
 #[derive(Debug)]
@@ -233,11 +250,7 @@ impl GenericMaterial for HorizontalBlurEffect {
     }
 }
 
-pub fn horizontal_blur(
-    context: &WebGl2RenderingContext,
-    sampler_2d: Sampler2D,
-    blur: Blur,
-) -> HorizontalBlurEffect {
+pub fn horizontal_blur(sampler_2d: Sampler2D, blur: Blur) -> HorizontalBlurEffect {
     HorizontalBlurEffect {
         base: BaseEffect::new(sampler_2d),
         blur,
@@ -271,11 +284,14 @@ pub fn vertical_blur(
     context: &WebGl2RenderingContext,
     sampler_2d: Sampler2D,
     blur: Blur,
-) -> VerticalBlurEffect {
-    VerticalBlurEffect {
-        base: BaseEffect::new(sampler_2d),
-        blur,
-    }
+) -> Result<Rc<Material>> {
+    <Rc<Material>>::from_with_context(
+        context,
+        VerticalBlurEffect {
+            base: BaseEffect::new(sampler_2d),
+            blur,
+        },
+    )
 }
 
 #[derive(Debug)]
@@ -333,10 +349,13 @@ pub fn additive_blend(
     original_texture: Sampler2D,
     blend_texture: Sampler2D,
     blend: Blend,
-) -> BlendEffect {
-    BlendEffect {
-        base: BaseEffect::new(original_texture),
-        blend,
-        blend_texture,
-    }
+) -> Result<Rc<Material>> {
+    <Rc<Material>>::from_with_context(
+        context,
+        BlendEffect {
+            base: BaseEffect::new(original_texture),
+            blend,
+            blend_texture,
+        },
+    )
 }

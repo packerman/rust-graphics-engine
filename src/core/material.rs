@@ -5,7 +5,10 @@ use web_sys::WebGl2RenderingContext;
 
 use crate::base::{
     convert::FromWithContext,
-    util::{level::Level, shared_ref::SharedRef},
+    util::{
+        level::Level,
+        shared_ref::{self, SharedRef},
+    },
 };
 
 use super::{
@@ -122,6 +125,22 @@ where
     fn from_with_context(context: &WebGl2RenderingContext, value: SharedRef<T>) -> Result<Self> {
         let double_sided = value.borrow().double_sided();
         Material::initialize(context, None, double_sided, value, AlphaMode::default())
+    }
+}
+
+impl<T> FromWithContext<WebGl2RenderingContext, T> for Rc<Material>
+where
+    T: GenericMaterial,
+{
+    fn from_with_context(context: &WebGl2RenderingContext, value: T) -> Result<Self> {
+        let double_sided = value.double_sided();
+        Material::initialize(
+            context,
+            None,
+            double_sided,
+            shared_ref::new(value),
+            AlphaMode::default(),
+        )
     }
 }
 
