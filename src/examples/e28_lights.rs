@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -9,25 +9,28 @@ use crate::{
     base::{
         application::{self, Application, AsyncCreator},
         color,
+        convert::FromWithContext,
         input::KeyState,
+        util::shared_ref::SharedRef,
         web,
     },
+    classic::{light::Light, renderer::Renderer, texture::Sampler2D},
     core::{
-        camera::Camera,
+        camera::{Camera, Perspective},
         mesh::Mesh,
         node::Node,
+        scene::Scene,
         texture::{Texture, TextureUnit},
     },
     extras::light_helpers::{DirectionalLightHelper, PointLightHelper},
     geometry::parametric::Sphere,
-    legacy::{light::Light, renderer::Renderer, texture::Sampler2D},
     material::{self, flat::FlatMaterial, lambert::LambertMaterial, phong::PhongMaterial},
 };
 
 struct Example {
     renderer: Renderer,
-    scene: Rc<Node>,
-    camera: Rc<RefCell<Camera>>,
+    scene: Scene,
+    camera: SharedRef<Camera>,
     point: Rc<Node>,
     directional: Rc<Node>,
 }
@@ -35,14 +38,14 @@ struct Example {
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let renderer = Renderer::initialize(context, Default::default(), None);
-        let scene = Node::new_group();
+        let mut renderer = Renderer::initialize(context, Default::default(), None);
+        let scene = Scene::new_empty();
 
-        let camera = Camera::new_perspective(Default::default());
+        let camera = Camera::new(Perspective::default());
         {
-            let camera = Node::new_camera(Rc::clone(&camera));
-            camera.set_position(&glm::vec3(0.0, 0.0, 6.0));
-            scene.add_child(&camera);
+            let camera = Node::new_with_camera(Rc::clone(&camera));
+            camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 6.0));
+            scene.add_node(camera);
         }
 
         let directional = Node::new_light(Light::directional(
@@ -57,13 +60,13 @@ impl AsyncCreator for Example {
         scene.add_child(&point);
 
         {
-            let direct_helper = Node::new_mesh(
+            let direct_helper = Node::new_with_mesh(
                 DirectionalLightHelper::default()
                     .create_mesh(context, &directional.as_light().unwrap().borrow())?,
             );
             directional.set_position(&glm::vec3(3.0, 2.0, 0.0));
             directional.add_child(&direct_helper);
-            let point_helper = Node::new_mesh(
+            let point_helper = Node::new_with_mesh(
                 PointLightHelper::default()
                     .create_mesh(context, &point.as_light().unwrap().borrow())?,
             );
@@ -71,9 +74,9 @@ impl AsyncCreator for Example {
         }
 
         {
-            let sphere1 = Node::new_mesh(Mesh::initialize(
+            let sphere1 = Node::new_with_mesh(Mesh::initialize(
                 context,
-                Rc::new(Geometry::from_with_context(context, Sphere::default())?),
+                &Geometry::from_with_context(context, Sphere::default())?,
                 material::flat::create(
                     context,
                     FlatMaterial {
@@ -83,13 +86,15 @@ impl AsyncCreator for Example {
                     },
                 )?,
             )?);
-            sphere1.set_position(&glm::vec3(-2.2, 0.0, 0.0));
-            scene.add_child(&sphere1);
+            sphere1
+                .borrow_mut()
+                .set_position(&glm::vec3(-2.2, 0.0, 0.0));
+            scene.add_node(sphere1);
         }
         {
-            let sphere2 = Node::new_mesh(Mesh::initialize(
+            let sphere2 = Node::new_with_mesh(Mesh::initialize(
                 context,
-                Rc::new(Geometry::from_with_context(context, Sphere::default())?),
+                &Geometry::from_with_context(context, Sphere::default())?,
                 material::lambert::create(
                     context,
                     LambertMaterial {
@@ -103,13 +108,13 @@ impl AsyncCreator for Example {
                     },
                 )?,
             )?);
-            sphere2.set_position(&glm::vec3(0.0, 0.0, 0.0));
-            scene.add_child(&sphere2);
+            sphere2.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 0.0));
+            scene.add_node(sphere2);
         }
         {
-            let sphere3 = Node::new_mesh(Mesh::initialize(
+            let sphere3 = Node::new_with_mesh(Mesh::initialize(
                 context,
-                Rc::new(Geometry::from_with_context(context, Sphere::default())?),
+                &Geometry::from_with_context(context, Sphere::default())?,
                 material::phong::create(
                     context,
                     PhongMaterial {
@@ -119,8 +124,8 @@ impl AsyncCreator for Example {
                     },
                 )?,
             )?);
-            sphere3.set_position(&glm::vec3(2.2, 0.0, 0.0));
-            scene.add_child(&sphere3);
+            sphere3.borrow_mut().set_position(&glm::vec3(2.2, 0.0, 0.0));
+            scene.add_node(sphere3);
         }
         Ok(Box::new(Example {
             renderer,
@@ -133,6 +138,10 @@ impl AsyncCreator for Example {
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "Lights"
+    }
+
     fn update(&mut self, _key_state: &KeyState) {
         let time = (web::now().unwrap() / 1000.0) as f32;
         self.directional

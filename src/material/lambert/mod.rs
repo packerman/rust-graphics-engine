@@ -1,10 +1,16 @@
+use std::rc::Rc;
+
+use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::color::{self, Color},
+    base::{
+        color::{self, Color},
+        convert::FromWithContext,
+    },
     classic::texture::Sampler2D,
     core::{
-        material::{GenericMaterial, Source},
+        material::{GenericMaterial, Material, Source},
         program::{self, Program, UpdateProgramUniforms, UpdateUniform},
     },
 };
@@ -86,4 +92,11 @@ impl GenericMaterial for LambertMaterial {
     fn fragment_shader(&self) -> Source<'_> {
         include_str!("fragment.glsl").into()
     }
+}
+
+pub fn create(
+    context: &WebGl2RenderingContext,
+    lambert_material: LambertMaterial,
+) -> Result<Rc<Material>> {
+    <Rc<Material>>::from_with_context(context, lambert_material)
 }

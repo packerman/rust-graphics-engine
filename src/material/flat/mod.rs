@@ -1,10 +1,16 @@
+use std::rc::Rc;
+
+use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::color::{self, Color},
+    base::{
+        color::{self, Color},
+        convert::FromWithContext,
+    },
     classic::texture::Sampler2D,
     core::{
-        material::{GenericMaterial, Source},
+        material::{GenericMaterial, Material, Source},
         program::{self, Program, UpdateProgramUniforms, UpdateUniform},
     },
 };
@@ -68,4 +74,11 @@ impl GenericMaterial for FlatMaterial {
     fn double_sided(&self) -> bool {
         self.double_side
     }
+}
+
+pub fn create(
+    context: &WebGl2RenderingContext,
+    flat_material: FlatMaterial,
+) -> Result<Rc<Material>> {
+    <Rc<Material>>::from_with_context(context, flat_material)
 }

@@ -5,7 +5,7 @@ use crate::examples::{
     e15_spinning_textured_cube, e16_spinning_textured_sphere, e17_skysphere, e18_wave_texture,
     e19_blend_textures, e20_distort_texture, e21_procedural_texture, e22_text_texture,
     e23_billboarding, e24_sprite_material, e25_heads_up_display, e26_render_to_texture,
-    e27_compound_effect,
+    e27_compound_effect, e28_lights,
 };
 
 pub fn run_example() {
@@ -32,7 +32,7 @@ fn examples() -> Vec<Box<dyn Fn()>> {
         e25_heads_up_display::example(),
         e26_render_to_texture::example(),
         e27_compound_effect::example(),
-        // e28_lights::example(),
+        e28_lights::example(),
         // e29_bump_mapping::example(),
         // e30_bloom_effect::example(),
         // e31_glow_effect::example(),
