@@ -218,7 +218,7 @@ impl Renderer {
     }
 
     fn update_lights(context: &WebGl2RenderingContext, mesh: &Mesh, lights: &Lights) {
-        if mesh.has_uniform("light0") {
+        if mesh.has_uniform("light0.lightType") {
             lights.for_each_light_indexed(|(i, light)| {
                 mesh.update_uniform(
                     context,

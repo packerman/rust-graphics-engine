@@ -39,9 +39,13 @@ impl PhongMaterial {
             .update_uniform(context, &program::join_name(name, "ambient"), program);
         self.diffuse
             .update_uniform(context, &program::join_name(name, "diffuse"), program);
-        self.specular_strength
-            .update_uniform(context, "specularStrength", program);
-        self.shininess.update_uniform(context, "shininess", program);
+        self.specular_strength.update_uniform(
+            context,
+            &program::join_name(name, "specularStrength"),
+            program,
+        );
+        self.shininess
+            .update_uniform(context, &program::join_name(name, "shininess"), program);
         self.texture
             .update_uniform(context, &program::join_name(name, "texture0"), program);
         self.texture.is_some().update_uniform(
