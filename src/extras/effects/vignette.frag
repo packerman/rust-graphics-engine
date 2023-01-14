@@ -2,7 +2,7 @@
 
 precision highp float;
 
-in vec2 UV;
+in vec2 v_UV;
 uniform sampler2D texture0;
 uniform float dimStart;
 uniform float dimEnd;
@@ -13,7 +13,7 @@ void main()
 {
     vec4 color = texture(texture0, UV);
 
-    vec2 position = 2 * UV - vec2(1.0, 1.0);
+    vec2 position = 2 * v_UV - vec2(1.0, 1.0);
     float d = length(position);
     float b = (d - dimEnd) / (dimStart - dimEnd);
     b = clamp(b, 0.0, 1.0);

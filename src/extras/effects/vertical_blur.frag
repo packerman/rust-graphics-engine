@@ -2,7 +2,7 @@
 
 precision highp float;
 
-in vec2 UV;
+in vec2 v_UV;
 uniform sampler2D texture0;
 uniform vec2 textureSize;
 uniform int blurRadius;
@@ -15,7 +15,7 @@ void main()
     for (int offsetY = - blurRadius; offsetY <= blurRadius; offsetY++) {
         float weight = float(blurRadius - abs(offsetY) + 1);
         vec2 offsetUV = vec2(0.0, offsetY) * pixelToTextureCoords;
-        averageColor += texture(texture0, UV + offsetUV) * weight;
+        averageColor += texture(texture0, v_UV + offsetUV) * weight;
     }
     averageColor /= averageColor.a;
     fragColor = averageColor;

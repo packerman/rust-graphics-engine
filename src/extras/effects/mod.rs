@@ -63,7 +63,7 @@ pub fn tint(
     sampler_2d: Sampler2D,
     tint_color: Color,
 ) -> Result<Rc<Effect>> {
-    <Rc<Material>>::from_with_context(
+    <Rc<Effect>>::from_with_context(
         context,
         TintEffect {
             base: BaseEffect::new(sampler_2d),
@@ -103,7 +103,7 @@ pub fn pixelate(
     pixel_size: u16,
     resolution: Resolution,
 ) -> Result<Rc<Effect>> {
-    <Rc<Material>>::from_with_context(
+    <Rc<Effect>>::from_with_context(
         context,
         PixelateEffect {
             base: BaseEffect::new(sampler_2d),
@@ -141,7 +141,7 @@ pub fn color_reduce(
     sampler_2d: Sampler2D,
     levels: u16,
 ) -> Result<Rc<Effect>> {
-    <Rc<Material>>::from_with_context(
+    <Rc<Effect>>::from_with_context(
         context,
         ColorReduceEffect {
             base: BaseEffect::new(sampler_2d),
@@ -194,8 +194,8 @@ pub fn bright_filter(
     context: &WebGl2RenderingContext,
     sampler_2d: Sampler2D,
     bright_filter: BrightFilter,
-) -> Result<Rc<Material>> {
-    <Rc<Material>>::from_with_context(
+) -> Result<Rc<Effect>> {
+    <Rc<Effect>>::from_with_context(
         context,
         BrightFilterEffect {
             base: BaseEffect::new(sampler_2d),
@@ -284,8 +284,8 @@ pub fn vertical_blur(
     context: &WebGl2RenderingContext,
     sampler_2d: Sampler2D,
     blur: Blur,
-) -> Result<Rc<Material>> {
-    <Rc<Material>>::from_with_context(
+) -> Result<Rc<Effect>> {
+    <Rc<Effect>>::from_with_context(
         context,
         VerticalBlurEffect {
             base: BaseEffect::new(sampler_2d),
