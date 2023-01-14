@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, rc::Rc};
 
 use glm::Vec3;
 
@@ -10,6 +10,7 @@ use crate::{
     core::{
         node::Node,
         program::{self, Program, UpdateUniform},
+        scene::Scene,
     },
 };
 
@@ -41,12 +42,11 @@ impl LightType {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Light {
     pub light_type: Option<LightType>,
     pub color: Color,
     pub attenuation: Attenuation,
-    pub node: SharedRef<Node>,
 }
 
 impl Light {
@@ -60,45 +60,51 @@ impl Light {
     const POSITION_MEMBER: &str = "position";
     const ATTENUATION_MEMBER: &str = "attenuation";
 
-    pub fn directional(node: SharedRef<Node>, color: Color, direction: Vec3) -> RefCell<Self> {
-        RefCell::new(Self {
+    pub fn directional(color: Color, direction: Vec3) -> Self {
+        Self {
             light_type: LightType::directional(direction).into(),
             color,
-            node,
             attenuation: Attenuation::default(),
-        })
+        }
     }
 
-    pub fn point(node: SharedRef<Node>, color: Color, position: Vec3) -> RefCell<Self> {
-        RefCell::new(Self {
-            light_type: LightType::point(position).into(),
+    pub fn point(color: Color, position: Vec3) -> Self {
+        Self::new(
             color,
-            node,
-            attenuation: Attenuation(1.0, 0.0, 0.1),
-        })
+            LightType::point(position).into(),
+            Attenuation(1.0, 0.0, 0.1),
+        )
     }
 
-    pub fn update_from_node(&mut self) {
+    fn new(color: Color, light_type: LightType, attenuation: Attenuation) -> Self {
+        Self {
+            light_type: light_type.into(),
+            color,
+            attenuation,
+        }
+    }
+
+    pub fn update_from_node(&mut self, node: &RefCell<Node>) {
         if let Some(light_type) = &mut self.light_type {
             match light_type {
                 LightType::Directional { direction } => {
-                    *direction = self.node.borrow().direction();
+                    *direction = node.borrow().direction();
                 }
                 LightType::Point { position } => {
-                    *position = self.node.borrow().position();
+                    *position = node.borrow().position();
                 }
             }
         }
     }
 
-    pub fn update_node(&self) {
+    pub fn update_node(&self, node: &RefCell<Node>) {
         if let Some(light_type) = &self.light_type {
             match light_type {
                 LightType::Directional { direction } => {
-                    self.node.borrow_mut().set_direction(direction);
+                    node.borrow_mut().set_direction(direction);
                 }
                 LightType::Point { position } => {
-                    self.node.borrow_mut().set_position(position);
+                    node.borrow_mut().set_position(position);
                 }
             }
         }
@@ -113,10 +119,6 @@ impl Light {
         self.light_type
             .as_ref()
             .and_then(|light_type| light_type.as_directional())
-    }
-
-    pub fn add_child(&self, child: SharedRef<Node>) {
-        self.node.borrow_mut().add_child(child)
     }
 }
 
@@ -188,7 +190,6 @@ impl Default for Light {
             light_type: None,
             color: color::white(),
             attenuation: Attenuation::default(),
-            node: Node::empty(),
         }
     }
 }
@@ -205,5 +206,98 @@ impl Default for Attenuation {
 impl From<Attenuation> for Vec3 {
     fn from(attenuation: Attenuation) -> Self {
         glm::vec3(attenuation.0, attenuation.1, attenuation.2)
+    }
+}
+
+pub struct Lights {
+    light_nodes: Vec<Rc<LightNode>>,
+}
+
+impl Lights {
+    pub fn new() -> Self {
+        Self {
+            light_nodes: Vec::new(),
+        }
+    }
+
+    pub fn create_node(&mut self, light: Light) -> Rc<LightNode> {
+        let light_node = LightNode::initialize(Node::new_empty(), RefCell::new(light));
+        self.light_nodes.push(Rc::clone(&light_node));
+        light_node
+    }
+
+    pub fn update(&self) {
+        for light_node in self.light_nodes.iter() {
+            light_node.update_light();
+        }
+    }
+
+    pub fn for_each_light_indexed<F>(&self, f: F)
+    where
+        F: Fn((usize, &RefCell<Light>)),
+    {
+        for (index, light_node) in self.light_nodes.iter().enumerate() {
+            f((index, light_node.light()))
+        }
+    }
+}
+
+impl Default for Lights {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Debug)]
+pub struct LightNode {
+    node: SharedRef<Node>,
+    light: RefCell<Light>,
+}
+
+impl LightNode {
+    pub fn initialize(node: SharedRef<Node>, light: RefCell<Light>) -> Rc<Self> {
+        let me = Self { node, light };
+        me.update_node();
+        Rc::new(me)
+    }
+
+    pub fn add_child(&self, child: SharedRef<Node>) {
+        self.node.borrow_mut().add_child(child)
+    }
+
+    pub fn light(&self) -> &RefCell<Light> {
+        &self.light
+    }
+
+    pub fn node(&self) -> &SharedRef<Node> {
+        &self.node
+    }
+
+    pub fn is_directional(&self) -> bool {
+        self.light.borrow().is_directional()
+    }
+
+    pub fn as_directional(&self) -> Option<Vec3> {
+        self.light.borrow().as_directional().copied()
+    }
+
+    pub fn add_to_scene(&self, scene: &mut Scene) {
+        scene.add_node(Rc::clone(self.node()))
+    }
+
+    pub fn set_position(&self, position: &Vec3) {
+        self.node.borrow_mut().set_position(position);
+    }
+
+    pub fn set_direction(&self, direction: &Vec3) {
+        self.node.borrow_mut().set_direction(direction);
+    }
+
+    fn update_node(&self) {
+        self.light.borrow().update_node(&self.node);
+    }
+
+    fn update_light(&self) {
+        self.light.borrow_mut().update_from_node(&self.node);
     }
 }

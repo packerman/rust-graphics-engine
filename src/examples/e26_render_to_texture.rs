@@ -203,7 +203,7 @@ impl Application for Example {
             &self.scene,
             &self.sky_camera,
             Some(&self.render_target),
-            &[],
+            &Default::default(),
         );
         self.renderer.render(context, &self.scene, &self.camera);
     }

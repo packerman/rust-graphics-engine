@@ -39,25 +39,25 @@ vec4 lightCalc(Light light, vec3 pointPosition, vec3 pointNormal) {
     return light.color * diffuse;
 }
 
-uniform mat4 projectionMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 modelMatrix;
+uniform mat4 u_ModelMatrix;
+uniform mat4 u_ViewProjectionMatrix;
 
-in vec3 vertexPosition;
-in vec2 vertexUV;
-in vec3 faceNormal;
+in vec3 a_position;
+in vec2 a_texcoord_0;
+in vec3 a_normal;
 
-out vec2 UV;
-out vec4 light;
+out vec2 v_UV;
+out vec4 v_Light;
 
 void main() {
-    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
-    UV = vertexUV;
-    vec3 position = vec3(modelMatrix * vec4(vertexPosition, 1.0));
-    vec3 normal = normalize(mat3(modelMatrix) * faceNormal);
-    light = vec4(0.0, 0.0, 0.0, 0.0);
-    light += lightCalc(light0, position, normal);
-    light += lightCalc(light1, position, normal);
-    light += lightCalc(light2, position, normal);
-    light += lightCalc(light3, position, normal);
+    vec4 worldPosition = u_ModelMatrix * vec4(a_position, 1.0);
+    gl_Position = u_ViewProjectionMatrix * worldPosition;
+    v_UV = a_texcoord_0;
+    vec3 position = vec3(worldPosition);
+    vec3 normal = normalize(mat3(u_ModelMatrix) * a_normal);
+    v_Light = vec4(0.0, 0.0, 0.0, 0.0);
+    v_Light += lightCalc(light0, position, normal);
+    v_Light += lightCalc(light1, position, normal);
+    v_Light += lightCalc(light2, position, normal);
+    v_Light += lightCalc(light3, position, normal);
 }

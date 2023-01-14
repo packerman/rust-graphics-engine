@@ -14,7 +14,11 @@ use crate::{
         util::shared_ref::SharedRef,
         web,
     },
-    classic::{light::Light, renderer::Renderer, texture::Sampler2D},
+    classic::{
+        light::{Light, LightNode, Lights},
+        renderer::Renderer,
+        texture::Sampler2D,
+    },
     core::{
         camera::{Camera, Perspective},
         mesh::Mesh,
@@ -31,15 +35,17 @@ struct Example {
     renderer: Renderer,
     scene: Scene,
     camera: SharedRef<Camera>,
-    point: Rc<Node>,
-    directional: Rc<Node>,
+    point: Rc<LightNode>,
+    directional: Rc<LightNode>,
+    lights: Lights,
 }
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let mut renderer = Renderer::initialize(context, Default::default(), None);
-        let scene = Scene::new_empty();
+        let renderer = Renderer::initialize(context, Default::default(), None);
+        let mut scene = Scene::new_empty();
+        let mut lights = Lights::new();
 
         let camera = Camera::new(Perspective::default());
         {
@@ -48,29 +54,28 @@ impl AsyncCreator for Example {
             scene.add_node(camera);
         }
 
-        let directional = Node::new_light(Light::directional(
+        let directional = lights.create_node(Light::directional(
             color::rgb(0.8, 0.8, 0.8),
             glm::vec3(-1.0, -1.0, -2.0),
         ));
-        scene.add_child(&directional);
-        let point = Node::new_light(Light::point(
+        directional.add_to_scene(&mut scene);
+        let point = lights.create_node(Light::point(
             color::rgb(0.9, 0.0, 0.0),
             glm::vec3(1.0, 1.0, 0.8),
         ));
-        scene.add_child(&point);
+        point.add_to_scene(&mut scene);
 
         {
             let direct_helper = Node::new_with_mesh(
                 DirectionalLightHelper::default()
-                    .create_mesh(context, &directional.as_light().unwrap().borrow())?,
+                    .create_mesh(context, &*directional.light().borrow())?,
             );
             directional.set_position(&glm::vec3(3.0, 2.0, 0.0));
-            directional.add_child(&direct_helper);
+            directional.add_child(direct_helper);
             let point_helper = Node::new_with_mesh(
-                PointLightHelper::default()
-                    .create_mesh(context, &point.as_light().unwrap().borrow())?,
+                PointLightHelper::default().create_mesh(context, &*point.light().borrow())?,
             );
-            point.add_child(&point_helper);
+            point.add_child(point_helper);
         }
 
         {
@@ -133,6 +138,7 @@ impl AsyncCreator for Example {
             camera,
             point,
             directional,
+            lights,
         }))
     }
 }
@@ -150,7 +156,8 @@ impl Application for Example {
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.renderer.render(context, &self.scene, &self.camera)
+        self.renderer
+            .render_with_lights(context, &self.scene, &self.camera, &self.lights)
     }
 }
 

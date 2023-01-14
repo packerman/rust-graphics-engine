@@ -46,7 +46,7 @@ impl DirectionalLightHelper {
             None,
             Some(vec![color, color]),
         )?;
-        typed_geometry.concat_mut(&append);
+        typed_geometry.concat_mut(&append)?;
         let material = <Rc<Material>>::from_with_context(context, grid_helper)?;
         Mesh::initialize(
             context,

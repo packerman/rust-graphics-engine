@@ -128,7 +128,7 @@ impl Application for Example {
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.postprocessor.render(context, &[]);
+        self.postprocessor.render(context, &Default::default());
     }
 }
 

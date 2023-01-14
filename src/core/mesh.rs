@@ -215,6 +215,7 @@ impl Primitive {
     ) where
         T: UpdateUniform,
     {
+        self.material.use_program(context);
         self.material.update_uniform(context, name, value, level);
     }
 

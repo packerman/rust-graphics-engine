@@ -111,7 +111,7 @@ impl Application for Example {
             &self.hud_scene,
             &self.hud_camera,
             Renderer::CLEAR_DEPTH_ONLY,
-            &[],
+            &Default::default(),
         );
     }
 }

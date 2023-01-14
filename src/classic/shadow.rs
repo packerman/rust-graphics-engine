@@ -24,7 +24,7 @@ use crate::{
     material::depth::DepthMaterial,
 };
 
-use super::light::Light;
+use super::light::LightNode;
 
 #[derive(Debug, Clone, Copy)]
 pub struct CameraBounds {
@@ -71,9 +71,9 @@ impl Default for ShadowOptions {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Shadow {
-    light_source: Light,
+    light_source: LightNode,
     resolution: Resolution,
     options: ShadowOptions,
     camera: SharedRef<Node>,
@@ -92,7 +92,7 @@ impl Shadow {
 
     pub fn initialize(
         context: &WebGl2RenderingContext,
-        light_source: Light,
+        light_source: LightNode,
         resolution: Resolution,
         texture_unit: TextureUnit,
         options: ShadowOptions,
@@ -134,7 +134,7 @@ impl Shadow {
     }
 
     fn light_direction(&self) -> Vec3 {
-        self.light_source.as_directional().copied().unwrap()
+        self.light_source.as_directional().unwrap()
     }
 
     fn projection_matrix(&self) -> Mat4 {

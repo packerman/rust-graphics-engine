@@ -60,7 +60,7 @@ impl Node {
         node
     }
 
-    pub fn empty() -> SharedRef<Self> {
+    pub fn new_empty() -> SharedRef<Self> {
         Self::new(glm::identity(), None, None, None)
     }
 

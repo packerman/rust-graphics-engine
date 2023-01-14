@@ -66,12 +66,12 @@ vec4 lightCalc(Light light, vec3 pointPosition, vec3 pointNormal) {
     return light.color * diffuse;
 }
 
-in vec3 position;
-in vec2 UV;
-in vec3 normal;
+in vec3 v_Position;
+in vec2 v_UV;
+in vec3 v_Normal;
 
 bool fragmentInShadow() {
-    if (dot(normalize(normal), -normalize(shadow0.lightDirection)) <= 0.01) {
+    if (dot(normalize(v_Normal), -normalize(shadow0.lightDirection)) <= 0.01) {
         return false;
     }
     vec3 shadowCoord = (shadowPosition0 + 1.0) / 2.0;
@@ -85,19 +85,19 @@ out vec4 fragColor;
 void main() {
     vec4 color = material.diffuse;
     if (material.useTexture) {
-        color *= texture(material.texture0, UV);
+        color *= texture(material.texture0, v_UV);
     }
 
-    vec3 bumpNormal = normal;
+    vec3 bumpNormal = v_Normal;
     if (material.useBumpTexture) {
-        bumpNormal += material.bumpStrength * vec3(texture(material.bumpTexture, UV));
+        bumpNormal += material.bumpStrength * vec3(texture(material.bumpTexture, v_UV));
     }
 
     vec4 total = vec4(0.0, 0.0, 0.0, 0.0);
-    total += lightCalc(light0, position, bumpNormal);
-    total += lightCalc(light1, position, bumpNormal);
-    total += lightCalc(light2, position, bumpNormal);
-    total += lightCalc(light3, position, bumpNormal);
+    total += lightCalc(light0, v_Position, bumpNormal);
+    total += lightCalc(light1, v_Position, bumpNormal);
+    total += lightCalc(light2, v_Position, bumpNormal);
+    total += lightCalc(light3, v_Position, bumpNormal);
     total += material.ambient;
     color *= vec4(total.xyz, 1.0);
     if (useShadow && fragmentInShadow()) {

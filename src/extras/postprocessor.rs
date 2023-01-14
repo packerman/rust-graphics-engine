@@ -7,7 +7,7 @@ use crate::{
     api::geometry::Geometry,
     base::{convert::FromWithContext, math::resolution::Resolution, util::shared_ref::SharedRef},
     classic::{
-        light::Light,
+        light::Lights,
         render_target::RenderTarget,
         renderer::{self, Renderer},
         texture::Sampler2D,
@@ -75,7 +75,7 @@ impl Postprocessor {
         Ok(())
     }
 
-    pub fn render(&self, context: &WebGl2RenderingContext, lights: &[Light]) {
+    pub fn render(&self, context: &WebGl2RenderingContext, lights: &Lights) {
         for n in 0..self.scenes.len() {
             let scene = &self.scenes[n];
             let camera = &self.cameras[n];

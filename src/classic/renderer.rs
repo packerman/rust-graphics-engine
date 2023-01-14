@@ -16,7 +16,11 @@ use crate::{
     },
 };
 
-use super::{light::Light, render_target::RenderTarget, shadow::Shadow};
+use super::{
+    light::{Light, Lights},
+    render_target::RenderTarget,
+    shadow::Shadow,
+};
 
 pub struct RendererOptions {
     pub clear_color: Color,
@@ -90,7 +94,14 @@ impl Renderer {
         scene: &Scene,
         camera: &RefCell<Camera>,
     ) {
-        self.render_generic(context, scene, camera, Self::CLEAR_ALL, None, &vec![]);
+        self.render_generic(
+            context,
+            scene,
+            camera,
+            Self::CLEAR_ALL,
+            None,
+            &Lights::new(),
+        );
     }
 
     pub fn render_with_lights(
@@ -98,7 +109,7 @@ impl Renderer {
         context: &WebGl2RenderingContext,
         scene: &Scene,
         camera: &RefCell<Camera>,
-        lights: &[Light],
+        lights: &Lights,
     ) {
         self.render_generic(context, scene, camera, Self::CLEAR_ALL, None, lights);
     }
@@ -109,7 +120,7 @@ impl Renderer {
         scene: &Scene,
         camera: &RefCell<Camera>,
         clear_mask: u32,
-        lights: &[Light],
+        lights: &Lights,
     ) {
         self.render_generic(context, scene, camera, clear_mask, None, lights)
     }
@@ -120,7 +131,7 @@ impl Renderer {
         scene: &Scene,
         camera: &RefCell<Camera>,
         render_target: Option<&RenderTarget>,
-        lights: &[Light],
+        lights: &Lights,
     ) {
         self.render_generic(
             context,
@@ -139,12 +150,12 @@ impl Renderer {
         camera: &RefCell<Camera>,
         clear_mask: u32,
         render_target: Option<&RenderTarget>,
-        lights: &[Light],
+        lights: &Lights,
     ) {
         let nodes = scene.all_nodes();
 
         let resolution = self::get_resolution(context, render_target);
-        //TODO update light
+        lights.update();
         camera
             .borrow_mut()
             .set_aspect_ratio(resolution.aspect_ratio());
@@ -206,10 +217,15 @@ impl Renderer {
         }
     }
 
-    fn update_lights(context: &WebGl2RenderingContext, mesh: &Mesh, lights: &[Light]) {
+    fn update_lights(context: &WebGl2RenderingContext, mesh: &Mesh, lights: &Lights) {
         if mesh.has_uniform("light0") {
-            lights.iter().enumerate().for_each(|(i, light)| {
-                mesh.update_uniform(context, &format!("light{}", i), light, Level::Ignore);
+            lights.for_each_light_indexed(|(i, light)| {
+                mesh.update_uniform(
+                    context,
+                    &format!("light{}", i),
+                    &*light.borrow(),
+                    Level::Ignore,
+                );
             });
         }
     }
