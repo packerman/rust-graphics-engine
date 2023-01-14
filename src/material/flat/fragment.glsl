@@ -21,6 +21,6 @@ void main() {
     if (material.useTexture) {
         color *= texture(material.texture0, v_UV);
     }
-    color *= vec4(v_Light.xyz, 1.0);
+    color *= vec4(v_Light.rgb, 1.0);
     fragColor = material.ambient + color;
 }

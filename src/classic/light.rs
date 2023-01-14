@@ -209,6 +209,7 @@ impl From<Attenuation> for Vec3 {
     }
 }
 
+#[derive(Debug)]
 pub struct Lights {
     light_nodes: Vec<Rc<LightNode>>,
 }
