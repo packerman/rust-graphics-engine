@@ -130,7 +130,7 @@ where
 
 impl<T> FromWithContext<WebGl2RenderingContext, T> for Rc<Material>
 where
-    T: GenericMaterial,
+    T: GenericMaterial + 'static,
 {
     fn from_with_context(context: &WebGl2RenderingContext, value: T) -> Result<Self> {
         let double_sided = value.double_sided();
