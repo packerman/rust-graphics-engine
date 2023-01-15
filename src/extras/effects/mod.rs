@@ -8,7 +8,7 @@ use crate::{
     base::{color::Color, convert::FromWithContext, math::resolution::Resolution},
     classic::texture::Sampler2D,
     core::{
-        material::{GenericMaterial, Material, Source},
+        material::{GenericMaterial, Source},
         program::{Program, UpdateProgramUniforms, UpdateUniform},
     },
 };
@@ -250,11 +250,18 @@ impl GenericMaterial for HorizontalBlurEffect {
     }
 }
 
-pub fn horizontal_blur(sampler_2d: Sampler2D, blur: Blur) -> HorizontalBlurEffect {
-    HorizontalBlurEffect {
-        base: BaseEffect::new(sampler_2d),
-        blur,
-    }
+pub fn horizontal_blur(
+    context: &WebGl2RenderingContext,
+    sampler_2d: Sampler2D,
+    blur: Blur,
+) -> Result<Rc<Effect>> {
+    <Rc<Effect>>::from_with_context(
+        context,
+        HorizontalBlurEffect {
+            base: BaseEffect::new(sampler_2d),
+            blur,
+        },
+    )
 }
 
 #[derive(Debug)]
@@ -349,8 +356,8 @@ pub fn additive_blend(
     original_texture: Sampler2D,
     blend_texture: Sampler2D,
     blend: Blend,
-) -> Result<Rc<Material>> {
-    <Rc<Material>>::from_with_context(
+) -> Result<Rc<Effect>> {
+    <Rc<Effect>>::from_with_context(
         context,
         BlendEffect {
             base: BaseEffect::new(original_texture),
