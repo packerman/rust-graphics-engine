@@ -114,13 +114,6 @@ impl Shadow {
     }
 
     pub fn update(&self, context: &WebGl2RenderingContext) {
-        // self.camera.update();
-        // if let Some(camera) = self.camera.as_camera() {
-        //     let camera = camera.borrow();
-        //     self.material.set_view_matrix(*camera.view_matrix());
-        //     self.material
-        //         .set_projection_matrix(camera.projection_matrix());
-        // }
         if let Some(camera) = self.camera.borrow().camera() {
             self.material.update_uniform(
                 context,

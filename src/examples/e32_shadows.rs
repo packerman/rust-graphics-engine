@@ -97,8 +97,6 @@ impl AsyncCreator for Example {
                 )
                 .into(),
                 ambient: ambient_color,
-                // TODO delete if needed
-                // shadow: renderer.shadow(),
                 use_shadow: true,
                 ..Default::default()
             },
