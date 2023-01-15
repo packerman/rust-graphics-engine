@@ -233,6 +233,7 @@ impl Lights {
         }
     }
 
+    #[allow(dead_code)]
     pub fn ensure_light_count(&mut self, count: usize) {
         self.light_nodes.resize_with(count, || {
             LightNode::initialize(Node::new_empty(), RefCell::new(Light::default()))

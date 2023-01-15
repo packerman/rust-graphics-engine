@@ -1,5 +1,3 @@
-use std::convert::TryInto;
-
 use anyhow::{anyhow, Result};
 
 use wasm_bindgen::JsValue;

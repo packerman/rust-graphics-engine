@@ -41,15 +41,6 @@ where
     self::assert(!slice.is_empty(), error)
 }
 
-pub fn equal_on<T, F, K, E>(x: &T, y: &T, f: F, error: E) -> Result<()>
-where
-    F: Fn(&T) -> K,
-    K: PartialEq,
-    E: Fn() -> Error,
-{
-    self::assert(f(x) == f(y), error)
-}
-
 pub fn divisible_by<N, E>(n: N, k: N, error: E) -> Result<()>
 where
     N: Debug + Rem<Output = N> + Zero,
