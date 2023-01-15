@@ -42,7 +42,6 @@ impl Default for RendererOptions {
 
 #[derive(Debug)]
 pub struct Renderer {
-    default_light: RefCell<Light>,
     light_count: usize,
     shadow: Option<Shadow>,
     clear_color: Color,
@@ -73,10 +72,7 @@ impl Renderer {
             context.pixel_storei(WebGl2RenderingContext::UNPACK_FLIP_Y_WEBGL, 1);
         }
 
-        let default_light = RefCell::new(Light::default());
-
         Self {
-            default_light,
             light_count: options.light_count,
             shadow,
             clear_color: options.clear_color,

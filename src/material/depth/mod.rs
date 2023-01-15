@@ -9,7 +9,7 @@ use crate::core::{
 pub struct DepthMaterial;
 
 impl UpdateProgramUniforms for DepthMaterial {
-    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {}
+    fn update_program_uniforms(&self, _context: &WebGl2RenderingContext, _program: &Program) {}
 }
 
 impl GenericMaterial for DepthMaterial {

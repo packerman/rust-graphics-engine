@@ -6,7 +6,7 @@ use crate::examples::{
     e19_blend_textures, e20_distort_texture, e21_procedural_texture, e22_text_texture,
     e23_billboarding, e24_sprite_material, e25_heads_up_display, e26_render_to_texture,
     e27_compound_effect, e28_lights, e29_bump_mapping, e30_bloom_effect, e31_glow_effect,
-    e32_shadows,
+    e32_shadows, e33_gltf,
 };
 
 pub fn run_example() {
@@ -38,7 +38,7 @@ fn examples() -> Vec<Box<dyn Fn()>> {
         e30_bloom_effect::example(),
         e31_glow_effect::example(),
         e32_shadows::example(),
-        // e33_gltf::example(),
+        e33_gltf::example(),
     ]
 }
 

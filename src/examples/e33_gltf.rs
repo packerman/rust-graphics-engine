@@ -87,6 +87,10 @@ impl AsyncCreator for Example {
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "glTF"
+    }
+
     fn update(&mut self, key_state: &KeyState) {
         self.root.update(key_state)
     }

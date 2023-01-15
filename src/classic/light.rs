@@ -233,6 +233,12 @@ impl Lights {
         }
     }
 
+    pub fn ensure_light_count(&mut self, count: usize) {
+        self.light_nodes.resize_with(count, || {
+            LightNode::initialize(Node::new_empty(), RefCell::new(Light::default()))
+        });
+    }
+
     pub fn for_each_light_indexed<F>(&self, f: F)
     where
         F: Fn((usize, &RefCell<Light>)),
