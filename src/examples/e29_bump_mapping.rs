@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -9,53 +9,61 @@ use crate::{
     base::{
         application::{self, Application, AsyncCreator},
         color,
+        convert::FromWithContext,
         input::KeyState,
+        util::shared_ref::SharedRef,
+    },
+    classic::{
+        light::{Light, Lights},
+        renderer::Renderer,
+        texture::Sampler2D,
     },
     core::{
-        camera::Camera,
+        camera::{Camera, Perspective},
         mesh::Mesh,
         node::Node,
+        scene::Scene,
         texture::{Texture, TextureUnit},
     },
-    geometry::Rectangle,
-    legacy::{light::Light, renderer::Renderer, texture::Sampler2D},
+    geometry::rectangle::Rectangle,
     material::{self, lambert::LambertMaterial},
 };
 
 struct Example {
     renderer: Renderer,
-    scene: Rc<Node>,
-    camera: Rc<RefCell<Camera>>,
+    scene: Scene,
+    camera: SharedRef<Camera>,
+    lights: Lights,
 }
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::initialize(context, Default::default(), None);
-        let scene = Node::new_group();
+        let mut scene = Scene::new_empty();
+        let mut lights = Lights::new();
 
-        let camera = Camera::new_perspective(Default::default());
+        let camera = Camera::new(Perspective::default());
         {
-            let camera = Node::new_camera(Rc::clone(&camera));
-            camera.set_position(&glm::vec3(0.0, 0.0, 2.5));
-            scene.add_child(&camera);
+            let camera = Node::new_with_camera(Rc::clone(&camera));
+            camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 2.5));
+            scene.add_node(camera);
         }
 
-        let point = Node::new_light(Light::point(color::white(), glm::vec3(1.2, 1.2, 0.3)));
-
-        scene.add_child(&point);
+        let point = lights.create_node(Light::point(color::white(), glm::vec3(1.2, 1.2, 0.3)));
+        point.add_to_scene(&mut scene);
 
         {
-            let mesh = Node::new_mesh(Mesh::initialize(
+            let mesh = Node::new_with_mesh(Mesh::initialize(
                 context,
-                Rc::new(Geometry::from_with_context(
+                &Geometry::from_with_context(
                     context,
                     Rectangle {
                         width: 2.0,
                         height: 2.0,
                         ..Default::default()
                     },
-                )?),
+                )?,
                 material::lambert::create(
                     context,
                     LambertMaterial {
@@ -74,22 +82,28 @@ impl AsyncCreator for Example {
                     },
                 )?,
             )?);
-            scene.add_child(&mesh);
+            scene.add_node(mesh);
         }
 
         Ok(Box::new(Example {
             renderer,
             scene,
             camera,
+            lights,
         }))
     }
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "Bump mapping"
+    }
+
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.renderer.render(context, &self.scene, &self.camera)
+        self.renderer
+            .render_with_lights(context, &self.scene, &self.camera, &self.lights);
     }
 }
 
