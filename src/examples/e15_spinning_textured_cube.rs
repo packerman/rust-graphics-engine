@@ -71,12 +71,8 @@ impl Application for Example {
     }
 
     fn update(&mut self, _key_state: &KeyState) {
-        self.mesh
-            .borrow_mut()
-            .rotate_y(Angle::from_radians(TAU) / 450.0);
-        self.mesh
-            .borrow_mut()
-            .rotate_x(Angle::from_radians(TAU) / 600.0);
+        self.mesh.borrow_mut().rotate_y(Angle::COMPLETE / 450.0);
+        self.mesh.borrow_mut().rotate_x(Angle::COMPLETE / 600.0);
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {

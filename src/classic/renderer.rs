@@ -16,11 +16,7 @@ use crate::{
     },
 };
 
-use super::{
-    light::{Light, Lights},
-    render_target::RenderTarget,
-    shadow::Shadow,
-};
+use super::{light::Lights, render_target::RenderTarget, shadow::Shadow};
 
 pub struct RendererOptions {
     pub clear_color: Color,

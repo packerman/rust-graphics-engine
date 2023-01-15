@@ -61,23 +61,23 @@ impl Node {
     }
 
     pub fn new_empty() -> SharedRef<Self> {
-        Self::new(glm::identity(), None, None, None)
+        Self::new(matrix::identity(), None, None, None)
     }
 
     pub fn with_name(name: &str) -> SharedRef<Self> {
-        Self::new(glm::identity(), None, None, Some(String::from(name)))
+        Self::new(matrix::identity(), None, None, Some(String::from(name)))
     }
 
     pub fn with_camera_and_name(camera: SharedRef<Camera>, name: &str) -> SharedRef<Self> {
-        Self::new(glm::identity(), None, camera.into(), Some(name.into()))
+        Self::new(matrix::identity(), None, camera.into(), Some(name.into()))
     }
 
     pub fn new_with_camera(camera: SharedRef<Camera>) -> SharedRef<Self> {
-        Self::new(glm::identity(), None, camera.into(), None)
+        Self::new(matrix::identity(), None, camera.into(), None)
     }
 
     pub fn new_with_mesh(mesh: Rc<Mesh>) -> SharedRef<Self> {
-        Self::new(glm::identity(), Some(mesh), None, None)
+        Self::new(matrix::identity(), Some(mesh), None, None)
     }
 
     pub fn render(

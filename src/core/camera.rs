@@ -110,7 +110,7 @@ impl Camera {
         if let Some(node) = self.node() {
             node.borrow().global_transform()
         } else {
-            glm::identity()
+            matrix::identity()
         }
     }
 
@@ -118,7 +118,7 @@ impl Camera {
         if let Some(inverse) = self.model_matrix().try_inverse() {
             inverse
         } else {
-            glm::identity()
+            matrix::identity()
         }
     }
 
