@@ -4,11 +4,17 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         color::{self, Color},
         convert::FromWithContext,
+        util::shared_ref,
     },
-    core::{attribute::AttributeData, geometry::Geometry, material::Material, mesh::Mesh},
+    core::{
+        accessor::Accessor,
+        material::Material,
+        mesh::{self, Mesh},
+    },
     material::basic::{BasicMaterial, LineMaterial, LineType},
 };
 
@@ -28,7 +34,7 @@ impl Default for AxesHelper {
     }
 }
 
-impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
+impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Rc<Mesh> {
     fn from_with_context(
         context: &WebGl2RenderingContext,
         axes_helper: AxesHelper,
@@ -49,24 +55,27 @@ impl FromWithContext<WebGl2RenderingContext, AxesHelper> for Mesh {
             axes_helper.axis_colors[2],
             axes_helper.axis_colors[2],
         ];
-        let geometry = Rc::new(Geometry::from_with_context(
+        let geometry = Geometry::from([
+            (
+                mesh::POSITION_ATTRIBUTE,
+                Rc::new(Accessor::from_with_context(context, &position_data)?),
+            ),
+            (
+                mesh::COLOR_0_ATTRIBUTE,
+                Rc::new(Accessor::from_with_context(context, &color_data)?),
+            ),
+        ]);
+        let material = <Rc<Material>>::from_with_context(
             context,
-            [
-                ("vertexPosition", AttributeData::from(&position_data)),
-                ("vertexColor", AttributeData::from(&color_data)),
-            ],
-        )?);
-        let material = Rc::new(Material::from_with_context(
-            context,
-            LineMaterial {
+            shared_ref::new(LineMaterial {
                 basic: BasicMaterial {
                     use_vertex_colors: true,
                     ..Default::default()
                 },
                 line_width: axes_helper.line_width,
                 line_type: LineType::Segments,
-            },
-        )?);
-        Mesh::initialize(context, geometry, material)
+            }),
+        )?;
+        Mesh::initialize(context, &geometry, material)
     }
 }

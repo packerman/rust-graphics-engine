@@ -17,6 +17,7 @@ pub trait AsyncCreator {
 }
 
 pub trait Application {
+    fn name(&self) -> &str;
     fn update(&mut self, key_state: &KeyState);
     fn render(&self, context: &WebGl2RenderingContext);
 }
@@ -45,6 +46,7 @@ impl Loop {
     ) -> Result<()> {
         let context = Rc::new(web::get_webgl2_context(canvas)?);
         let mut app = C::create(&context).await?;
+        web::set_document_title(app.name())?;
         let mut state = Loop {
             previous_time: web::now()?,
             lag: 0.0,

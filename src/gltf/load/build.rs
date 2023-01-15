@@ -5,17 +5,22 @@ use glm::{Qua, Vec3, Vec4};
 use js_sys::ArrayBuffer;
 use web_sys::{HtmlImageElement, WebGl2RenderingContext};
 
-use crate::gltf::{
+use crate::{
+    base::util::shared_ref::{self, SharedRef},
     core::{
+        accessor::{Accessor, AccessorProperties, AccessorType},
+        buffer::Buffer,
+        buffer_view::BufferView,
         camera::Camera,
-        geometry::{Mesh, Primitive},
+        image::Image,
         material::{AlphaMode, Material, TextureRef},
-        scene::{Node, Scene},
-        storage::{Accessor, AccessorProperties, AccessorType, Buffer, BufferView},
-        texture_data::{Image, Sampler, Texture},
+        mesh::{Mesh, Primitive},
+        node::Node,
+        sampler::Sampler,
+        scene::Scene,
+        texture::Texture,
     },
-    material::TestMaterial,
-    util::shared_ref::SharedRef,
+    gltf::material::TestMaterial,
 };
 
 use super::data;
@@ -125,7 +130,6 @@ pub fn build_cameras(cameras: Vec<&data::Camera>) -> Vec<SharedRef<Camera>> {
             }
             _ => panic!("Unknown camera type: {}", camera.camera_type),
         })
-        .map(SharedRef::new)
         .collect()
 }
 
@@ -171,7 +175,7 @@ pub fn build_materials(
                 context,
                 material.name.clone(),
                 material.double_sided,
-                Rc::new(TestMaterial {
+                shared_ref::new(TestMaterial {
                     base_color_factor: Vec4::from(
                         material.pbr_metallic_roughness.base_color_factor,
                     ),
@@ -189,7 +193,6 @@ pub fn build_materials(
                 }),
                 alpha_mode,
             )
-            .map(Rc::new)
         })
         .collect()
 }
@@ -205,8 +208,7 @@ pub fn build_meshes(
         .map(|mesh| {
             let primitives =
                 self::build_primitives(context, &mesh.primitives, accessors, materials)?;
-            let mesh = Mesh::new(primitives, mesh.name.as_ref().map(String::from));
-            Ok(Rc::new(mesh))
+            Ok(Mesh::new(primitives, mesh.name.as_ref().map(String::from)))
         })
         .collect()
 }
@@ -327,7 +329,7 @@ pub fn build_textures(
                 .source
                 .map(|index| self::get_rc_by_u32(images, index))
                 .expect("Expected source image in texture");
-            Texture::initialize(context, sampler, source).map(Rc::new)
+            Texture::initialize(context, sampler, source)
         })
         .collect()
 }
@@ -353,10 +355,9 @@ fn default_material(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
         context,
         None,
         false,
-        Rc::<TestMaterial>::default(),
+        shared_ref::new(TestMaterial::default()),
         AlphaMode::default(),
     )
-    .map(Rc::new)
 }
 
 fn get_rc_by_u32<T>(slice: &[Rc<T>], index: u32) -> Rc<T> {

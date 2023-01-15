@@ -4,11 +4,10 @@ use anyhow::Result;
 use url::Url;
 use web_sys::WebGl2RenderingContext;
 
-use crate::gltf::{load::statistics::GltfStatistics, util::coll};
-
-use super::{
-    core::{camera::Camera, scene::Scene, storage::Buffer, texture_data::Image, Root},
-    util::shared_ref::SharedRef,
+use crate::{
+    base::util::{coll, shared_ref::SharedRef},
+    core::{buffer::Buffer, camera::Camera, image::Image, scene::Scene},
+    gltf::{core::Root, load::statistics::GltfStatistics},
 };
 
 pub mod build;

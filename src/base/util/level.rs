@@ -1,8 +1,15 @@
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub enum Level {
     Ignore,
     Warning,
     Panic,
+}
+
+impl Default for Level {
+    fn default() -> Self {
+        Self::Ignore
+    }
 }
 
 impl Level {

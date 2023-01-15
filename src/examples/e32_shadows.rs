@@ -1,58 +1,64 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::Result;
 use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
         color,
         convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
+        util::shared_ref::SharedRef,
+    },
+    classic::{
+        light::{Light, Lights},
+        renderer::{self, Renderer, RendererOptions},
+        shadow::Shadow,
+        texture::Sampler2D,
     },
     core::{
-        camera::Camera,
-        geometry::Geometry,
-        light::{shadow::Shadow, Light},
+        camera::{Camera, Perspective},
         mesh::Mesh,
         node::Node,
-        renderer::{self, Renderer, RendererOptions},
-        texture::{Texture, TextureData},
-        uniform::data::Sampler2D,
+        scene::Scene,
+        texture::{Texture, TextureUnit},
     },
-    extras::light_helpers::DirectionalLightHelper,
-    geometry::{parametric::Sphere, Rectangle},
-    gltf::core::texture_data::TextureUnit,
+    extras::{camera_controller::CameraController, light_helpers::DirectionalLightHelper},
+    geometry::{parametric::Sphere, rectangle::Rectangle},
     material::{self, phong::PhongMaterial},
 };
 
 struct Example {
-    rig: Rc<Node>,
+    controller: CameraController,
     renderer: Renderer,
-    scene: Rc<Node>,
-    camera: Rc<RefCell<Camera>>,
+    scene: Scene,
+    camera: SharedRef<Camera>,
+    lights: Lights,
 }
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
-        let scene = Node::new_group();
+        let mut scene = Scene::new_empty();
+        let mut lights = Lights::new();
 
-        let directional_light = Node::new_light(Light::directional(
+        let directional_light = lights.create_node(Light::directional(
             color::rgb(1.0, 1.0, 1.0),
             glm::vec3(-1.0, -1.0, 0.0),
         ));
         directional_light.set_position(&glm::vec3(2.0, 4.0, 0.0));
-        scene.add_child(&directional_light);
-        let directional_helper = Node::new_mesh(
+        directional_light.add_to_scene(&mut scene);
+        let directional_helper = Node::new_with_mesh(
             DirectionalLightHelper::default()
-                .create_mesh(context, &directional_light.as_light().unwrap().borrow())?,
+                .create_mesh(context, &directional_light.light().borrow())?,
         );
-        directional_light.add_child(&directional_helper);
+        directional_light.add_child(directional_helper);
 
-        let resolution = renderer::get_canvas_resolution(context);
+        let resolution = renderer::get_canvas_resolution(context).scale(1.0);
 
         let shadow = Shadow::initialize(
             context,
@@ -71,88 +77,92 @@ impl AsyncCreator for Example {
             shadow.into(),
         );
 
-        let camera = Node::new_camera(Camera::new_perspective(Default::default()));
-        scene.add_child(&camera);
-
-        let rig = Node::new_movement_rig(Default::default());
+        let camera = Node::new_with_camera(Camera::new(Perspective::default()));
         {
-            rig.add_child(&camera);
-            rig.set_position(&glm::vec3(0.0, 2.0, 5.0));
-            scene.add_child(&rig);
+            camera.borrow_mut().set_position(&glm::vec3(0.0, 2.0, 5.0));
+            scene.add_node(Rc::clone(&camera));
         }
+
+        let controller = CameraController::make_for_node(Rc::clone(&camera));
 
         let ambient_color = color::rgb(0.2, 0.2, 0.2);
 
-        let sphere_geometry = Rc::new(Geometry::from_with_context(context, Sphere::default())?);
+        let sphere_geometry = Geometry::from_with_context(context, Sphere::default())?;
         let phong_material = material::phong::create(
             context,
             PhongMaterial {
                 texture: Sampler2D::new(
-                    Texture::initialize(
-                        context,
-                        TextureData::load_from_source("images/grid.png").await?,
-                        Default::default(),
-                    )?,
+                    Texture::fetch(context, "images/grid.png").await?,
                     TextureUnit(0),
                 )
                 .into(),
                 ambient: ambient_color,
-                shadow: renderer.shadow(),
+                use_shadow: true,
                 ..Default::default()
             },
         )?;
 
-        let sphere1 = Node::new_mesh(Mesh::initialize(
+        let sphere1 = Node::new_with_mesh(Mesh::initialize(
             context,
-            Rc::clone(&sphere_geometry),
+            &sphere_geometry,
             Rc::clone(&phong_material),
         )?);
         {
-            sphere1.set_position(&glm::vec3(-2.0, 1.0, 0.0));
-            scene.add_child(&sphere1);
+            sphere1
+                .borrow_mut()
+                .set_position(&glm::vec3(-2.0, 1.0, 0.0));
+            scene.add_node(sphere1);
         }
 
-        let sphere2 = Node::new_mesh(Mesh::initialize(
+        let sphere2 = Node::new_with_mesh(Mesh::initialize(
             context,
-            Rc::clone(&sphere_geometry),
+            &sphere_geometry,
             Rc::clone(&phong_material),
         )?);
         {
-            sphere2.set_position(&glm::vec3(1.0, 2.2, -0.5));
-            scene.add_child(&sphere2);
+            sphere2
+                .borrow_mut()
+                .set_position(&glm::vec3(1.0, 2.2, -0.5));
+            scene.add_node(sphere2);
         }
 
-        let floor = Node::new_mesh(Mesh::initialize(
+        let floor = Node::new_with_mesh(Mesh::initialize(
             context,
-            Rc::new(Geometry::from_with_context(
+            &Geometry::from_with_context(
                 context,
                 Rectangle {
                     width: 20.0,
                     height: 20.0,
                     ..Default::default()
                 },
-            )?),
+            )?,
             Rc::clone(&phong_material),
         )?);
-        floor.rotate_x(-Angle::RIGHT, Default::default());
-        scene.add_child(&floor);
+        floor.borrow_mut().rotate_x(-Angle::RIGHT);
+        scene.add_node(floor);
 
         Ok(Box::new(Example {
-            rig,
+            camera: controller.camera().expect("Camera is present."),
+            controller,
             renderer,
             scene,
-            camera: Rc::clone(camera.as_camera().unwrap()),
+            lights,
         }))
     }
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "Shadows"
+    }
+
     fn update(&mut self, key_state: &KeyState) {
-        self.rig.update_key_state(key_state);
+        self.controller.update(key_state);
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.renderer.render(context, &self.scene, &self.camera)
+        self.renderer
+            .render_with_lights(context, &self.scene, &self.camera, &self.lights);
     }
 }
 

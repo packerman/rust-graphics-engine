@@ -5,28 +5,28 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
         convert::FromWithContext,
         input::KeyState,
         math::{angle::Angle, matrix},
     },
+    classic::renderer::Renderer,
     core::{
-        camera::Camera,
-        geometry::Geometry,
+        camera::{Camera, Perspective},
         mesh::Mesh,
         node::Node,
-        renderer::Renderer,
-        texture::{Texture, TextureData},
+        scene::Scene,
+        texture::{Texture, TextureUnit},
     },
     geometry::parametric::{Cone, Cylinder, Sphere},
-    gltf::core::texture_data::TextureUnit,
     material,
 };
 
 struct Example {
     renderer: Renderer,
-    scene: Rc<Node>,
+    scene: Scene,
     camera: Rc<RefCell<Camera>>,
 }
 
@@ -34,57 +34,58 @@ struct Example {
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::initialize(context, Default::default(), None);
-        let scene = Node::new_group();
+        let mut scene = Scene::new_empty();
 
-        let camera = Camera::new_perspective(Default::default());
+        let camera = Camera::new(Perspective::default());
         {
-            let camera = Node::new_camera(Rc::clone(&camera));
-            camera.rotate_x(-Angle::from_degrees(20.0), Default::default());
-            camera.set_position(&glm::vec3(0.0, 1.0, 4.0));
-            scene.add_child(&camera);
+            let camera = Node::new_with_camera(Rc::clone(&camera));
+            camera.borrow_mut().rotate_x(-Angle::from_degrees(20.0));
+            camera.borrow_mut().set_position(&glm::vec3(0.0, 1.0, 4.0));
+            scene.add_node(camera);
         }
 
-        let material = Rc::new(material::texture::create(
+        let material = material::texture::create(
             context,
-            Texture::initialize(
-                context,
-                TextureData::load_from_source("images/grid.png").await?,
-                Default::default(),
-            )?,
+            Texture::fetch(context, "images/grid.png").await?,
             TextureUnit(0),
             Default::default(),
-        )?);
+        )?;
         {
-            let geometry = Rc::new(Geometry::from_with_context(context, Sphere::default())?);
-            let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::clone(&material))?);
-            mesh.apply_matrix(&matrix::translation(-3.0, -0.5, 0.0), Default::default());
-            scene.add_child(&mesh);
+            let geometry = Geometry::from_with_context(context, Sphere::default())?;
+            let mesh =
+                Node::new_with_mesh(Mesh::initialize(context, &geometry, Rc::clone(&material))?);
+            mesh.borrow_mut()
+                .apply_transform(&matrix::translation(-3.0, -0.5, 0.0));
+            scene.add_node(mesh);
         }
         {
-            let geometry = Rc::new(Geometry::from_with_context(
+            let geometry = Geometry::from_with_context(
                 context,
                 Cone {
                     radius: 1.0,
                     height: 2.0,
                     ..Default::default()
                 },
-            )?);
-            let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::clone(&material))?);
-            mesh.apply_matrix(&matrix::translation(0.0, -0.5, 0.0), Default::default());
-            scene.add_child(&mesh);
+            )?;
+            let mesh =
+                Node::new_with_mesh(Mesh::initialize(context, &geometry, Rc::clone(&material))?);
+            mesh.borrow_mut()
+                .apply_transform(&matrix::translation(0.0, -0.5, 0.0));
+            scene.add_node(mesh);
         }
         {
-            let geometry = Rc::new(Geometry::from_with_context(
+            let geometry = Geometry::from_with_context(
                 context,
                 Cylinder {
                     radius: 0.8,
                     height: 2.0,
                     ..Default::default()
                 },
-            )?);
-            let mesh = Node::new_mesh(Mesh::initialize(context, geometry, Rc::clone(&material))?);
-            mesh.apply_matrix(&matrix::translation(3.0, -0.5, 0.0), Default::default());
-            scene.add_child(&mesh);
+            )?;
+            let mesh = Node::new_with_mesh(Mesh::initialize(context, &geometry, material)?);
+            mesh.borrow_mut()
+                .apply_transform(&matrix::translation(3.0, -0.5, 0.0));
+            scene.add_node(mesh);
         }
 
         Ok(Box::new(Example {
@@ -96,6 +97,10 @@ impl AsyncCreator for Example {
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "More textures"
+    }
+
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

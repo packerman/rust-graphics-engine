@@ -4,10 +4,10 @@ use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::{color, convert::FromWithContext},
-    core::{
-        attribute::AttributeData, geometry::Geometry, light::Light, material::Material, mesh::Mesh,
-    },
+    api::geometry::{Geometry, TypedGeometry},
+    base::{color, convert::FromWithContext, util::shared_ref},
+    classic::light::Light,
+    core::{material::Material, mesh::Mesh},
     geometry::parametric::Sphere,
     material::basic::{BasicMaterial, SurfaceMaterial},
 };
@@ -29,30 +29,30 @@ impl Default for DirectionalLightHelper {
 }
 
 impl DirectionalLightHelper {
-    pub fn create_mesh(self, context: &WebGl2RenderingContext, light: &Light) -> Result<Mesh> {
+    pub fn create_mesh(self, context: &WebGl2RenderingContext, light: &Light) -> Result<Rc<Mesh>> {
         assert!(light.is_directional());
         let color = light.color;
-        let mut mesh = Mesh::from_with_context(
-            context,
-            GridHelper {
-                size: self.size,
-                divisions: self.divisions,
-                grid_color: color,
-                center_color: color::white(),
-                ..Default::default()
-            },
+        let grid_helper = GridHelper {
+            size: self.size,
+            divisions: self.divisions,
+            grid_color: color,
+            center_color: color::white(),
+            ..Default::default()
+        };
+        let mut typed_geometry = TypedGeometry::try_from(grid_helper)?;
+        let append = TypedGeometry::new(
+            vec![glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 0.0, -10.0)],
+            None,
+            None,
+            Some(vec![color, color]),
         )?;
-        let geometry = mesh.geometry_mut().expect(
-            "DirectionalLightHelper::create_mesh: expected only one reference to the geometry",
-        );
-        geometry.attribute_mut("vertexPosition")?.concat_data_mut(
+        typed_geometry.concat_mut(&append)?;
+        let material = <Rc<Material>>::from_with_context(context, grid_helper)?;
+        Mesh::initialize(
             context,
-            &AttributeData::from(&[[0.0, 0.0, 0.0, 1.0], [0.0, 0.0, -10.0, 1.0]]),
-        )?;
-        geometry
-            .attribute_mut("vertexColor")?
-            .concat_data_mut(context, &AttributeData::from(&[color, color]))?;
-        Ok(mesh)
+            &Geometry::from_with_context(context, typed_geometry)?,
+            material,
+        )
     }
 }
 
@@ -67,27 +67,27 @@ impl Default for PointLightHelper {
 }
 
 impl PointLightHelper {
-    pub fn create_mesh(self, context: &WebGl2RenderingContext, light: &Light) -> Result<Mesh> {
+    pub fn create_mesh(self, context: &WebGl2RenderingContext, light: &Light) -> Result<Rc<Mesh>> {
         let color = light.color;
-        let geometry = Rc::new(Geometry::from_with_context(
+        let geometry = Geometry::from_with_context(
             context,
             Sphere {
                 radius: self.size,
                 radius_segments: 4,
                 height_segments: 2,
             },
-        )?);
-        let material = Rc::new(Material::from_with_context(
+        )?;
+        let material = <Rc<Material>>::from_with_context(
             context,
-            SurfaceMaterial {
+            shared_ref::new(SurfaceMaterial {
                 basic: BasicMaterial {
                     base_color: color,
                     ..Default::default()
                 },
                 ..Default::default()
-            },
-        )?);
-        Mesh::initialize(context, geometry, material)
+            }),
+        )?;
+        Mesh::initialize(context, &geometry, material)
     }
 }
 

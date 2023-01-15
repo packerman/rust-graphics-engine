@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -11,44 +11,48 @@ use crate::{
         convert::FromWithContext,
         input::KeyState,
         math::angle::Angle,
+        util::shared_ref::SharedRef,
     },
+    classic::renderer::{Renderer, RendererOptions},
     core::{
-        camera::Camera,
+        camera::{Camera, Perspective},
         mesh::Mesh,
-        node::{Node, Transform},
-        renderer::{Renderer, RendererOptions},
+        node::Node,
+        scene::Scene,
     },
     extras::{axes_helper::AxesHelper, grid_helper::GridHelper},
 };
 
 struct Example {
     renderer: Renderer,
-    scene: Rc<Node>,
-    camera: Rc<RefCell<Camera>>,
+    scene: Scene,
+    camera: SharedRef<Camera>,
 }
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::initialize(context, RendererOptions::default(), None);
-        let scene = Node::new_group();
+        let mut scene = Scene::new_empty();
 
-        let camera = Camera::new_perspective(Default::default());
-        let camera_node = Node::new_camera(Rc::clone(&camera));
-        camera_node.set_position(&glm::vec3(0.5, 1.0, 5.0));
-        scene.add_child(&camera_node);
+        let camera = Camera::new(Perspective::default());
+        let camera_node = Node::new_with_camera(Rc::clone(&camera));
+        camera_node
+            .borrow_mut()
+            .set_position(&glm::vec3(0.5, 1.0, 5.0));
+        scene.add_node(camera_node);
 
-        let axes = Mesh::from_with_context(
+        let axes = <Rc<Mesh>>::from_with_context(
             context,
             AxesHelper {
                 axis_length: 2.0,
                 ..Default::default()
             },
         )?;
-        let axes = Node::new_mesh(axes);
-        scene.add_child(&axes);
+        let axes = Node::new_with_mesh(axes);
+        scene.add_node(axes);
 
-        let grid = Mesh::from_with_context(
+        let grid = <Rc<Mesh>>::from_with_context(
             context,
             GridHelper {
                 size: 20.0,
@@ -57,9 +61,9 @@ impl AsyncCreator for Example {
                 ..Default::default()
             },
         )?;
-        let grid = Node::new_mesh(grid);
-        grid.rotate_x(-Angle::RIGHT, Transform::default());
-        scene.add_child(&grid);
+        let grid = Node::new_with_mesh(grid);
+        grid.borrow_mut().rotate_x(-Angle::RIGHT);
+        scene.add_node(grid);
 
         Ok(Box::new(Example {
             renderer,
@@ -70,6 +74,10 @@ impl AsyncCreator for Example {
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "Axes grid"
+    }
+
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {

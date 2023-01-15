@@ -1,23 +1,19 @@
 use std::rc::Rc;
 
-use anyhow::Result;
 use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
-    base::{
-        color::{self, Color},
-        convert::FromWithContext,
-    },
+    base::color::{self, Color},
     core::{
-        material::{Material, MaterialSettings, RenderSetting},
-        texture::Texture,
-        uniform::data::{Data, Sampler2D},
+        material::{GenericMaterial, Source},
+        program::{Program, UpdateProgramUniforms, UpdateUniform},
+        texture::{Texture, TextureUnit},
     },
-    gltf::core::texture_data::TextureUnit,
 };
 
-pub struct SpriteMaterial {
+#[derive(Debug)]
+pub struct Properties {
     pub base_color: Color,
     pub billboard: bool,
     pub tile_number: f32,
@@ -25,7 +21,7 @@ pub struct SpriteMaterial {
     pub double_side: bool,
 }
 
-impl Default for SpriteMaterial {
+impl Default for Properties {
     fn default() -> Self {
         Self {
             base_color: color::white(),
@@ -37,27 +33,50 @@ impl Default for SpriteMaterial {
     }
 }
 
-pub fn create(
-    context: &WebGl2RenderingContext,
-    texture: Rc<Texture>,
-    unit: TextureUnit,
-    sprite_material: SpriteMaterial,
-) -> Result<Rc<Material>> {
-    Material::from_with_context(
-        context,
-        MaterialSettings {
-            vertex_shader: include_str!("vertex.glsl"),
-            fragment_shader: include_str!("fragment.glsl"),
-            uniforms: vec![
-                ("baseColor", Data::from(sprite_material.base_color)),
-                ("texture0", Data::from(Sampler2D::new(texture, unit))),
-                ("billboard", Data::from(sprite_material.billboard)),
-                ("tileNumber", Data::from(sprite_material.tile_number)),
-                ("tileCount", Data::from(sprite_material.tile_count)),
-            ],
-            render_settings: vec![RenderSetting::CullFace(!sprite_material.double_side)],
-            draw_style: WebGl2RenderingContext::TRIANGLES,
-        },
-    )
-    .map(Rc::new)
+impl UpdateProgramUniforms for Properties {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        self.base_color
+            .update_uniform(context, "baseColor", program);
+        self.billboard.update_uniform(context, "billboard", program);
+        self.tile_number
+            .update_uniform(context, "tileNumber", program);
+        self.tile_count
+            .update_uniform(context, "tileCount", program);
+    }
+}
+
+#[derive(Debug)]
+pub struct SpriteMaterial {
+    pub properties: Properties,
+    pub texture: Rc<Texture>,
+    pub unit: TextureUnit,
+}
+
+impl SpriteMaterial {
+    pub fn set_tile_number(&mut self, tile_number: f32) {
+        self.properties.tile_number = tile_number;
+    }
+}
+
+impl UpdateProgramUniforms for SpriteMaterial {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        self.properties.update_program_uniforms(context, program);
+        self.unit.active_texture(context);
+        self.texture.bind(context);
+        self.unit.update_uniform(context, "texture0", program);
+    }
+}
+
+impl GenericMaterial for SpriteMaterial {
+    fn vertex_shader(&self) -> Source<'_> {
+        include_str!("vertex.glsl").into()
+    }
+
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("fragment.glsl").into()
+    }
+
+    fn double_sided(&self) -> bool {
+        self.properties.double_side
+    }
 }

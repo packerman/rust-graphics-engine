@@ -1,26 +1,21 @@
 use web_sys::WebGl2RenderingContext;
 
-use crate::base::input::KeyState;
-
-use self::{
-    camera::Camera,
-    renderer::Renderer,
-    scene::{Node, Scene},
+use crate::{
+    base::{
+        input::KeyState,
+        util::shared_ref::{self, SharedRef},
+    },
+    core::{
+        camera::Camera,
+        node::Node,
+        program::{Program, UpdateProgramUniforms, UpdateUniform},
+        renderer::Renderer,
+        scene::Scene,
+    },
+    extras::camera_controller::CameraController,
 };
 
-use super::{
-    program::{Program, UpdateUniform, UpdateUniforms},
-    user::{camera_controller::CameraController, light_controller::LightController},
-    util::shared_ref::SharedRef,
-};
-
-pub mod camera;
-pub mod geometry;
-pub mod material;
-pub mod renderer;
-pub mod scene;
-pub mod storage;
-pub mod texture_data;
+use super::user::light_controller::LightController;
 
 #[derive(Debug)]
 pub struct Root {
@@ -48,7 +43,7 @@ impl Root {
             "Scene depths: {:#?}",
             scenes.iter().map(|scene| scene.depth()).collect::<Vec<_>>()
         );
-        let light_controller = SharedRef::new(LightController::new(Default::default()));
+        let light_controller = shared_ref::new(LightController::new(Default::default()));
         let renderer = Renderer::initialize(
             context,
             Default::default(),
@@ -123,7 +118,7 @@ impl Root {
         if !scene.has_some_camera() {
             let camera = Self::default_camera();
             let node = Node::with_camera_and_name(camera.clone(), "Default camera");
-            scene.add_root_node(node);
+            scene.add_node(node);
             cameras.push(camera);
         }
     }
@@ -136,7 +131,6 @@ impl Root {
             Some(100.0),
             Some("Default camera".into()),
         )
-        .into()
     }
 }
 
@@ -151,8 +145,8 @@ impl GlobalUniformUpdater {
     }
 }
 
-impl UpdateUniforms for GlobalUniformUpdater {
-    fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+impl UpdateProgramUniforms for GlobalUniformUpdater {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
         let light_direction = self.light_controller.borrow().get_light_direction();
         light_direction.update_uniform(context, "u_Light", program);
     }

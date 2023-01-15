@@ -1,12 +1,7 @@
-use std::rc::Rc;
-
 use anyhow::{anyhow, Result};
-use web_sys::{HtmlImageElement, WebGl2RenderingContext, WebGlTexture};
+use web_sys::WebGl2RenderingContext;
 
-use crate::{
-    base::gl,
-    gltf::{program::UpdateUniformValue, util::validate},
-};
+use crate::base::util::validate;
 
 #[derive(Debug, Clone)]
 pub struct Sampler {
@@ -116,99 +111,5 @@ impl Sampler {
         if self.has_mipmap_filter() {
             context.generate_mipmap(WebGl2RenderingContext::TEXTURE_2D);
         }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Image {
-    html_image: HtmlImageElement,
-    #[allow(dead_code)]
-    name: Option<String>,
-    mime_type: Option<String>,
-}
-
-impl Image {
-    pub fn new(
-        html_image: HtmlImageElement,
-        name: Option<String>,
-        mime_type: Option<String>,
-    ) -> Self {
-        Self {
-            html_image,
-            name,
-            mime_type,
-        }
-    }
-
-    pub fn tex_image_2d(&self, context: &WebGl2RenderingContext) -> Result<()> {
-        context
-            .tex_image_2d_with_u32_and_u32_and_html_image_element(
-                WebGl2RenderingContext::TEXTURE_2D,
-                0,
-                WebGl2RenderingContext::RGBA as i32,
-                WebGl2RenderingContext::RGBA,
-                WebGl2RenderingContext::UNSIGNED_BYTE,
-                &self.html_image,
-            )
-            .map_err(|error| anyhow::anyhow!("Error while specifying: {:#?}", error))
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Texture {
-    texture: WebGlTexture,
-    sampler: Rc<Sampler>,
-    source: Rc<Image>,
-}
-
-impl Texture {
-    pub fn initialize(
-        context: &WebGl2RenderingContext,
-        sampler: Rc<Sampler>,
-        source: Rc<Image>,
-    ) -> Result<Self> {
-        let texture = gl::create_texture(context)?;
-        let me = Self {
-            texture,
-            sampler,
-            source,
-        };
-        me.store_data(context)?;
-        Ok(me)
-    }
-
-    pub fn bind(&self, context: &WebGl2RenderingContext) {
-        context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, Some(&self.texture));
-    }
-
-    pub fn store_data(&self, context: &WebGl2RenderingContext) -> Result<()> {
-        self.bind(context);
-        self.source.tex_image_2d(context)?;
-        self.sampler.set_texture_parameters(context);
-        self.sampler.generate_mipmap(context);
-        Ok(())
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct TextureUnit(pub u32);
-
-impl TextureUnit {
-    pub fn active_texture(&self, context: &WebGl2RenderingContext) {
-        context.active_texture(WebGl2RenderingContext::TEXTURE0 + self.0)
-    }
-}
-
-impl UpdateUniformValue for TextureUnit {
-    fn update_uniform_value(
-        &self,
-        context: &WebGl2RenderingContext,
-        location: Option<&web_sys::WebGlUniformLocation>,
-    ) {
-        context.uniform1ui(location, self.0)
-    }
-
-    fn value_type(&self) -> u32 {
-        WebGl2RenderingContext::SAMPLER_2D
     }
 }

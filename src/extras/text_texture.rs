@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use wasm_bindgen::JsValue;
 use web_sys::HtmlCanvasElement;
 
-use crate::{base::web, core::texture::TextureData};
+use crate::{base::web, core::image::Image};
 
 pub struct TextTexture<'a> {
     pub text: &'a str,
@@ -34,11 +34,11 @@ impl Default for TextTexture<'_> {
     }
 }
 
-impl<'a> TryFrom<TextTexture<'a>> for TextureData {
+impl<'a> TryFrom<TextTexture<'a>> for Image {
     type Error = anyhow::Error;
 
     fn try_from(text_texture: TextTexture) -> Result<Self> {
-        create_text_canvas(text_texture).map(TextureData::from)
+        create_text_canvas(text_texture).map(Image::from)
     }
 }
 

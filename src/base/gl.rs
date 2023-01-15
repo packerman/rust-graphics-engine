@@ -1,5 +1,3 @@
-use std::convert::TryInto;
-
 use anyhow::{anyhow, Result};
 
 use wasm_bindgen::JsValue;
@@ -113,19 +111,6 @@ pub fn create_vertex_array(context: &WebGl2RenderingContext) -> Result<WebGlVert
     context
         .create_vertex_array()
         .ok_or_else(|| anyhow!("Cannot create vertex array object"))
-}
-
-pub fn get_attrib_location(
-    context: &WebGl2RenderingContext,
-    program: &WebGlProgram,
-    variable: &str,
-) -> Option<u32> {
-    let location = context.get_attrib_location(program, variable);
-    if location == -1 {
-        None
-    } else {
-        location.try_into().ok()
-    }
 }
 
 pub fn create_texture(context: &WebGl2RenderingContext) -> Result<WebGlTexture> {

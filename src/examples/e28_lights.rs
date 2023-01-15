@@ -1,83 +1,87 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::Result;
 use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
         color,
         convert::FromWithContext,
         input::KeyState,
+        util::shared_ref::SharedRef,
         web,
     },
+    classic::{
+        light::{Light, LightNode, Lights},
+        renderer::Renderer,
+        texture::Sampler2D,
+    },
     core::{
-        camera::Camera,
-        geometry::Geometry,
-        light::Light,
+        camera::{Camera, Perspective},
         mesh::Mesh,
         node::Node,
-        renderer::Renderer,
-        texture::{Texture, TextureData},
-        uniform::data::Sampler2D,
+        scene::Scene,
+        texture::{Texture, TextureUnit},
     },
     extras::light_helpers::{DirectionalLightHelper, PointLightHelper},
     geometry::parametric::Sphere,
-    gltf::core::texture_data::TextureUnit,
     material::{self, flat::FlatMaterial, lambert::LambertMaterial, phong::PhongMaterial},
 };
 
 struct Example {
     renderer: Renderer,
-    scene: Rc<Node>,
-    camera: Rc<RefCell<Camera>>,
-    point: Rc<Node>,
-    directional: Rc<Node>,
+    scene: Scene,
+    camera: SharedRef<Camera>,
+    point: Rc<LightNode>,
+    directional: Rc<LightNode>,
+    lights: Lights,
 }
 
 #[async_trait(?Send)]
 impl AsyncCreator for Example {
     async fn create(context: &WebGl2RenderingContext) -> Result<Box<Self>> {
         let renderer = Renderer::initialize(context, Default::default(), None);
-        let scene = Node::new_group();
+        let mut scene = Scene::new_empty();
+        let mut lights = Lights::new();
 
-        let camera = Camera::new_perspective(Default::default());
+        let camera = Camera::new(Perspective::default());
         {
-            let camera = Node::new_camera(Rc::clone(&camera));
-            camera.set_position(&glm::vec3(0.0, 0.0, 6.0));
-            scene.add_child(&camera);
+            let camera = Node::new_with_camera(Rc::clone(&camera));
+            camera.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 6.0));
+            scene.add_node(camera);
         }
 
-        let directional = Node::new_light(Light::directional(
+        let directional = lights.create_node(Light::directional(
             color::rgb(0.8, 0.8, 0.8),
             glm::vec3(-1.0, -1.0, -2.0),
         ));
-        scene.add_child(&directional);
-        let point = Node::new_light(Light::point(
+        directional.add_to_scene(&mut scene);
+        let point = lights.create_node(Light::point(
             color::rgb(0.9, 0.0, 0.0),
             glm::vec3(1.0, 1.0, 0.8),
         ));
-        scene.add_child(&point);
+        point.add_to_scene(&mut scene);
 
         {
-            let direct_helper = Node::new_mesh(
+            let direct_helper = Node::new_with_mesh(
                 DirectionalLightHelper::default()
-                    .create_mesh(context, &directional.as_light().unwrap().borrow())?,
+                    .create_mesh(context, &directional.light().borrow())?,
             );
             directional.set_position(&glm::vec3(3.0, 2.0, 0.0));
-            directional.add_child(&direct_helper);
-            let point_helper = Node::new_mesh(
-                PointLightHelper::default()
-                    .create_mesh(context, &point.as_light().unwrap().borrow())?,
+            directional.add_child(direct_helper);
+            let point_helper = Node::new_with_mesh(
+                PointLightHelper::default().create_mesh(context, &point.light().borrow())?,
             );
-            point.add_child(&point_helper);
+            point.add_child(point_helper);
         }
 
         {
-            let sphere1 = Node::new_mesh(Mesh::initialize(
+            let sphere1 = Node::new_with_mesh(Mesh::initialize(
                 context,
-                Rc::new(Geometry::from_with_context(context, Sphere::default())?),
+                &Geometry::from_with_context(context, Sphere::default())?,
                 material::flat::create(
                     context,
                     FlatMaterial {
@@ -87,23 +91,21 @@ impl AsyncCreator for Example {
                     },
                 )?,
             )?);
-            sphere1.set_position(&glm::vec3(-2.2, 0.0, 0.0));
-            scene.add_child(&sphere1);
+            sphere1
+                .borrow_mut()
+                .set_position(&glm::vec3(-2.2, 0.0, 0.0));
+            scene.add_node(sphere1);
         }
         {
-            let sphere2 = Node::new_mesh(Mesh::initialize(
+            let sphere2 = Node::new_with_mesh(Mesh::initialize(
                 context,
-                Rc::new(Geometry::from_with_context(context, Sphere::default())?),
+                &Geometry::from_with_context(context, Sphere::default())?,
                 material::lambert::create(
                     context,
                     LambertMaterial {
                         ambient: color::rgb(0.1, 0.1, 0.1),
                         texture: Sampler2D::new(
-                            Texture::initialize(
-                                context,
-                                TextureData::load_from_source("images/grid.png").await?,
-                                Default::default(),
-                            )?,
+                            Texture::fetch(context, "images/grid.png").await?,
                             TextureUnit(0),
                         )
                         .into(),
@@ -111,13 +113,13 @@ impl AsyncCreator for Example {
                     },
                 )?,
             )?);
-            sphere2.set_position(&glm::vec3(0.0, 0.0, 0.0));
-            scene.add_child(&sphere2);
+            sphere2.borrow_mut().set_position(&glm::vec3(0.0, 0.0, 0.0));
+            scene.add_node(sphere2);
         }
         {
-            let sphere3 = Node::new_mesh(Mesh::initialize(
+            let sphere3 = Node::new_with_mesh(Mesh::initialize(
                 context,
-                Rc::new(Geometry::from_with_context(context, Sphere::default())?),
+                &Geometry::from_with_context(context, Sphere::default())?,
                 material::phong::create(
                     context,
                     PhongMaterial {
@@ -127,8 +129,8 @@ impl AsyncCreator for Example {
                     },
                 )?,
             )?);
-            sphere3.set_position(&glm::vec3(2.2, 0.0, 0.0));
-            scene.add_child(&sphere3);
+            sphere3.borrow_mut().set_position(&glm::vec3(2.2, 0.0, 0.0));
+            scene.add_node(sphere3);
         }
         Ok(Box::new(Example {
             renderer,
@@ -136,11 +138,16 @@ impl AsyncCreator for Example {
             camera,
             point,
             directional,
+            lights,
         }))
     }
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "Lights"
+    }
+
     fn update(&mut self, _key_state: &KeyState) {
         let time = (web::now().unwrap() / 1000.0) as f32;
         self.directional
@@ -149,7 +156,8 @@ impl Application for Example {
     }
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.renderer.render(context, &self.scene, &self.camera)
+        self.renderer
+            .render_with_lights(context, &self.scene, &self.camera, &self.lights)
     }
 }
 

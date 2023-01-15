@@ -4,9 +4,7 @@ use anyhow::Result;
 use glm::{Mat4, Vec2, Vec3, Vec4};
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlUniformLocation};
 
-use crate::base::{convert::FromWithContext, gl};
-
-use super::util::level::Level;
+use crate::base::{convert::FromWithContext, gl, util::level::Level};
 
 #[derive(Debug, Clone)]
 pub struct Uniform {
@@ -14,13 +12,13 @@ pub struct Uniform {
     pub uniform_type: u32,
 }
 
-pub trait UpdateUniforms: Debug {
-    fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program);
+pub trait UpdateProgramUniforms: Debug {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program);
 }
 
 pub trait UpdateUniform {
     fn update_uniform(&self, context: &WebGl2RenderingContext, name: &str, program: &Program) {
-        self.update_uniform_with_level(context, name, program, Level::Ignore);
+        self.update_uniform_with_level(context, name, program, Level::default());
     }
 
     fn update_uniform_with_level(
@@ -30,6 +28,20 @@ pub trait UpdateUniform {
         program: &Program,
         level: Level,
     );
+}
+
+impl<T: UpdateUniform> UpdateUniform for Option<T> {
+    fn update_uniform_with_level(
+        &self,
+        context: &WebGl2RenderingContext,
+        name: &str,
+        program: &Program,
+        level: Level,
+    ) {
+        if let Some(value) = self {
+            value.update_uniform_with_level(context, name, program, level)
+        }
+    }
 }
 
 pub trait UpdateUniformValue {
@@ -189,6 +201,10 @@ impl Program {
         self.uniforms.get(name)
     }
 
+    pub fn has_uniform(&self, name: &str) -> bool {
+        self.uniforms.contains_key(name)
+    }
+
     pub fn get_attribute_location(&self, name: &str) -> Option<&u32> {
         self.attributes.get(name)
     }
@@ -249,4 +265,8 @@ impl FromWithContext<WebGl2RenderingContext, WebGlProgram> for Program {
             attributes,
         })
     }
+}
+
+pub fn join_name(base: &str, relative: &str) -> String {
+    format!("{}.{}", base, relative)
 }

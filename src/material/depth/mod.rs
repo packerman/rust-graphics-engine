@@ -1,23 +1,27 @@
-use std::rc::Rc;
-
-use anyhow::Result;
 use web_sys::WebGl2RenderingContext;
 
-use crate::{
-    base::convert::FromWithContext,
-    core::material::{Material, MaterialSettings},
+use crate::core::{
+    material::{GenericMaterial, Source},
+    program::{Program, UpdateProgramUniforms},
 };
 
-pub fn create(context: &WebGl2RenderingContext) -> Result<Rc<Material>> {
-    Material::from_with_context(
-        context,
-        MaterialSettings {
-            vertex_shader: include_str!("vertex.glsl"),
-            fragment_shader: include_str!("fragment.glsl"),
-            uniforms: vec![],
-            render_settings: vec![],
-            draw_style: WebGl2RenderingContext::TRIANGLES,
-        },
-    )
-    .map(Rc::new)
+#[derive(Debug, Clone)]
+pub struct DepthMaterial;
+
+impl UpdateProgramUniforms for DepthMaterial {
+    fn update_program_uniforms(&self, _context: &WebGl2RenderingContext, _program: &Program) {}
+}
+
+impl GenericMaterial for DepthMaterial {
+    fn vertex_shader(&self) -> Source<'_> {
+        include_str!("vertex.glsl").into()
+    }
+
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("fragment.glsl").into()
+    }
+
+    fn preferred_mode(&self) -> Option<u32> {
+        Some(WebGl2RenderingContext::TRIANGLES)
+    }
 }

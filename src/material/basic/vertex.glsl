@@ -1,15 +1,16 @@
 #version 300 es
 
-uniform mat4 projectionMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 modelMatrix;
+in vec3 a_position;
+in vec4 a_color_0;
+
+uniform mat4 u_ModelMatrix;
+uniform mat4 u_ViewProjectionMatrix;
 uniform float pointSize;
-in vec3 vertexPosition;
-in vec4 vertexColor;
-out vec4 color;
+
+out vec4 v_Color;
 
 void main() {
     gl_PointSize = pointSize;
-    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
-    color = vertexColor;
+    gl_Position = u_ViewProjectionMatrix * u_ModelMatrix * vec4(a_position, 1.0);
+    v_Color = a_color_0;
 }

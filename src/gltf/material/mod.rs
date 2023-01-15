@@ -1,14 +1,13 @@
 use glm::Vec4;
 use web_sys::WebGl2RenderingContext;
 
-use crate::base::color;
-
-use super::{
+use crate::{
+    base::color,
     core::{
-        material::{MaterialLifecycle, TextureRef},
-        texture_data::TextureUnit,
+        material::{GenericMaterial, Source, TextureRef},
+        program::{Program, UpdateProgramUniforms, UpdateUniform},
+        texture::TextureUnit,
     },
-    program::{Program, UpdateUniform, UpdateUniforms},
 };
 
 const USE_LIGHT: bool = true;
@@ -32,18 +31,18 @@ impl Default for TestMaterial {
     }
 }
 
-impl MaterialLifecycle for TestMaterial {
-    fn vertex_shader(&self) -> &str {
-        include_str!("test.vert")
+impl GenericMaterial for TestMaterial {
+    fn vertex_shader(&self) -> Source<'_> {
+        include_str!("test.vert").into()
     }
 
-    fn fragment_shader(&self) -> &str {
-        include_str!("test.frag")
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("test.frag").into()
     }
 }
 
-impl UpdateUniforms for TestMaterial {
-    fn update_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+impl UpdateProgramUniforms for TestMaterial {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
         self.base_color_factor
             .update_uniform(context, "u_BaseColorFactor", program);
         self.use_light

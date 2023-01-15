@@ -4,27 +4,66 @@ use anyhow::Result;
 use glm::Vec2;
 use web_sys::WebGl2RenderingContext;
 
+use crate::base::convert::FromWithContext;
 use crate::{
     base::{
         color::{self, Color},
-        convert::FromWithContext,
+        util::shared_ref,
     },
+    classic::texture::Sampler2D,
     core::{
-        material::{Material, MaterialSettings, RenderSetting},
-        texture::Texture,
-        uniform::data::{Data, Sampler2D},
+        material::{GenericMaterial, Material, Source},
+        program::{Program, UpdateProgramUniforms, UpdateUniform},
+        texture::{Texture, TextureUnit},
     },
-    gltf::core::texture_data::TextureUnit,
 };
 
+#[derive(Debug)]
 pub struct TextureMaterial {
+    properties: Properties,
+    sampler: Sampler2D,
+}
+
+impl TextureMaterial {
+    pub fn new(texture: Rc<Texture>, texture_unit: TextureUnit, properties: Properties) -> Self {
+        Self {
+            properties,
+            sampler: Sampler2D::new(texture, texture_unit),
+        }
+    }
+}
+
+impl UpdateProgramUniforms for TextureMaterial {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        self.properties.update_program_uniforms(context, program);
+        self.sampler
+            .update_uniform(context, "textureSampler", program)
+    }
+}
+
+impl GenericMaterial for TextureMaterial {
+    fn vertex_shader(&self) -> Source<'_> {
+        include_str!("vertex.glsl").into()
+    }
+
+    fn fragment_shader(&self) -> Source<'_> {
+        include_str!("fragment.glsl").into()
+    }
+
+    fn double_sided(&self) -> bool {
+        self.properties.double_side
+    }
+}
+
+#[derive(Debug)]
+pub struct Properties {
     pub base_color: Color,
     pub repeat_uv: Vec2,
     pub offset_uv: Vec2,
     pub double_side: bool,
 }
 
-impl Default for TextureMaterial {
+impl Default for Properties {
     fn default() -> Self {
         Self {
             base_color: color::white(),
@@ -35,26 +74,23 @@ impl Default for TextureMaterial {
     }
 }
 
+impl UpdateProgramUniforms for Properties {
+    fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
+        self.base_color
+            .update_uniform(context, "baseColor", program);
+        self.repeat_uv.update_uniform(context, "repeatUV", program);
+        self.offset_uv.update_uniform(context, "offsetUV", program)
+    }
+}
+
 pub fn create(
     context: &WebGl2RenderingContext,
     texture: Rc<Texture>,
     unit: TextureUnit,
-    texture_material: TextureMaterial,
+    properties: Properties,
 ) -> Result<Rc<Material>> {
-    Material::from_with_context(
+    <Rc<Material>>::from_with_context(
         context,
-        MaterialSettings {
-            vertex_shader: include_str!("vertex.glsl"),
-            fragment_shader: include_str!("fragment.glsl"),
-            uniforms: vec![
-                ("baseColor", Data::from(texture_material.base_color)),
-                ("textureSampler", Data::from(Sampler2D::new(texture, unit))),
-                ("repeatUV", Data::from(texture_material.repeat_uv)),
-                ("offsetUV", Data::from(texture_material.offset_uv)),
-            ],
-            render_settings: vec![RenderSetting::CullFace(!texture_material.double_side)],
-            draw_style: WebGl2RenderingContext::TRIANGLES,
-        },
+        shared_ref::new(TextureMaterial::new(texture, unit, properties)),
     )
-    .map(Rc::new)
 }

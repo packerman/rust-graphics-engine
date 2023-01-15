@@ -5,6 +5,7 @@ use async_trait::async_trait;
 use web_sys::WebGl2RenderingContext;
 
 use crate::{
+    api::geometry::Geometry,
     base::{
         application::{self, Application, AsyncCreator},
         color,
@@ -12,18 +13,17 @@ use crate::{
         input::KeyState,
         math::{angle::Angle, resolution::Resolution},
     },
+    classic::renderer::{Renderer, RendererOptions},
     core::{
-        camera::Camera,
-        geometry::Geometry,
+        camera::{Camera, Perspective},
         mesh::Mesh,
         node::Node,
-        renderer::{Renderer, RendererOptions},
-        texture::{Texture, TextureData},
+        scene::Scene,
+        texture::{Texture, TextureUnit},
     },
     extras::{effects, postprocessor::Postprocessor},
-    geometry::{parametric::Sphere, Rectangle},
-    gltf::core::texture_data::TextureUnit,
-    material::{self, texture::TextureMaterial},
+    geometry::{parametric::Sphere, rectangle::Rectangle},
+    material,
 };
 
 struct Example {
@@ -38,82 +38,70 @@ impl AsyncCreator for Example {
             RendererOptions::default(),
             None,
         ));
-        let scene = Node::new_group();
+        let mut scene = Scene::new_empty();
 
-        let camera = Camera::new_perspective(Default::default());
+        let camera = Camera::new(Perspective::default());
         {
-            let camera = Node::new_camera(Rc::clone(&camera));
-            scene.add_child(&camera);
-            camera.set_position(&glm::vec3(0.0, 1.0, 4.0));
+            let camera = Node::new_with_camera(Rc::clone(&camera));
+            camera.borrow_mut().set_position(&glm::vec3(0.0, 1.0, 4.0));
+            scene.add_node(camera);
         }
         {
-            let sky = Node::new_mesh(Mesh::initialize(
+            let sky = Node::new_with_mesh(Mesh::initialize(
                 context,
-                Rc::new(Geometry::from_with_context(
+                &Geometry::from_with_context(
                     context,
                     Sphere {
                         radius: 50.0,
                         ..Default::default()
                     },
-                )?),
+                )?,
                 material::texture::create(
                     context,
-                    Texture::initialize(
-                        context,
-                        TextureData::load_from_source("images/sky-earth.jpg").await?,
-                        Default::default(),
-                    )?,
+                    Texture::fetch(context, "images/sky-earth.jpg").await?,
                     TextureUnit(0),
                     Default::default(),
                 )?,
             )?);
-            scene.add_child(&sky);
+            scene.add_node(sky);
         }
         {
-            let grass = Node::new_mesh(Mesh::initialize(
+            let grass = Node::new_with_mesh(Mesh::initialize(
                 context,
-                Rc::new(Geometry::from_with_context(
+                &Geometry::from_with_context(
                     context,
                     Rectangle {
                         width: 100.0,
                         height: 100.0,
                         ..Default::default()
                     },
-                )?),
+                )?,
                 material::texture::create(
                     context,
-                    Texture::initialize(
-                        context,
-                        TextureData::load_from_source("images/grass.jpg").await?,
-                        Default::default(),
-                    )?,
+                    Texture::fetch(context, "images/grass.jpg").await?,
                     TextureUnit(1),
-                    TextureMaterial {
+                    material::texture::Properties {
                         repeat_uv: glm::vec2(50.0, 50.0),
                         ..Default::default()
                     },
                 )?,
             )?);
-            grass.rotate_x(-Angle::RIGHT, Default::default());
-            scene.add_child(&grass);
+            grass.borrow_mut().rotate_x(-Angle::RIGHT);
+            scene.add_node(grass);
         }
-        let sphere = Node::new_mesh(Mesh::initialize(
+        let sphere = Node::new_with_mesh(Mesh::initialize(
             context,
-            Rc::new(Geometry::from_with_context(context, Sphere::default())?),
+            &Geometry::from_with_context(context, Sphere::default())?,
             material::texture::create(
                 context,
-                Texture::initialize(
-                    context,
-                    TextureData::load_from_source("images/grid.png").await?,
-                    Default::default(),
-                )?,
+                Texture::fetch(context, "images/grid.png").await?,
                 TextureUnit(2),
                 Default::default(),
             )?,
         )?);
         {
-            sphere.set_position(&glm::vec3(0.0, 1.0, 0.0));
-            scene.add_child(&sphere);
+            sphere.borrow_mut().set_position(&glm::vec3(0.0, 1.0, 0.0));
+            scene.add_node(sphere);
         }
 
         let mut postprocessor =
@@ -133,10 +121,14 @@ impl AsyncCreator for Example {
 }
 
 impl Application for Example {
+    fn name(&self) -> &str {
+        "Effects"
+    }
+
     fn update(&mut self, _key_state: &KeyState) {}
 
     fn render(&self, context: &WebGl2RenderingContext) {
-        self.postprocessor.render(context);
+        self.postprocessor.render(context, &Default::default());
     }
 }
 

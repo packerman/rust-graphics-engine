@@ -3,9 +3,10 @@ use std::rc::Rc;
 use anyhow::Result;
 use web_sys::{WebGl2RenderingContext, WebGlFramebuffer};
 
-use crate::base::{gl, math::resolution::Resolution};
-
-use super::texture::{Texture, TextureData, TextureProperties};
+use crate::{
+    base::{gl, math::resolution::Resolution},
+    core::{image::Image, sampler::Sampler, texture::Texture},
+};
 
 #[derive(Debug, Clone)]
 pub struct RenderTarget {
@@ -78,12 +79,14 @@ impl RenderTarget {
     ) -> Result<Rc<Texture>> {
         Texture::initialize(
             context,
-            TextureData::new_buffer(resolution),
-            TextureProperties {
-                mag_filter: WebGl2RenderingContext::LINEAR as i32,
-                min_filter: WebGl2RenderingContext::LINEAR as i32,
-                wrap: WebGl2RenderingContext::CLAMP_TO_EDGE as i32,
-            },
+            Sampler::new(
+                Some(WebGl2RenderingContext::LINEAR as i32),
+                Some(WebGl2RenderingContext::LINEAR as i32),
+                WebGl2RenderingContext::CLAMP_TO_EDGE as i32,
+                WebGl2RenderingContext::CLAMP_TO_EDGE as i32,
+            )?
+            .into(),
+            Image::from(resolution).into(),
         )
     }
 }
