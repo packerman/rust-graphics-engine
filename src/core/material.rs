@@ -98,6 +98,7 @@ impl Material {
     ) where
         T: UpdateUniform,
     {
+        self.use_program(context);
         value.update_uniform_with_level(context, name, &self.program, level);
     }
 

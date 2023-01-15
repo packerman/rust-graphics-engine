@@ -200,6 +200,7 @@ impl Renderer {
                 WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT,
             );
             let material = shadow.material();
+            shadow.update(context);
             meshes.iter().for_each(|(mesh, node)| {
                 mesh.render_triangle_based(
                     context,
