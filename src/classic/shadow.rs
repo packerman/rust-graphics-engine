@@ -73,7 +73,7 @@ impl Default for ShadowOptions {
 
 #[derive(Debug)]
 pub struct Shadow {
-    light_source: LightNode,
+    light_source: Rc<LightNode>,
     resolution: Resolution,
     options: ShadowOptions,
     camera: SharedRef<Node>,
@@ -92,7 +92,7 @@ impl Shadow {
 
     pub fn initialize(
         context: &WebGl2RenderingContext,
-        light_source: LightNode,
+        light_source: Rc<LightNode>,
         resolution: Resolution,
         texture_unit: TextureUnit,
         options: ShadowOptions,

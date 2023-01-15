@@ -65,12 +65,14 @@ impl CameraController {
 
     pub fn make_for_camera(camera: &RefCell<Camera>) -> Option<Self> {
         let node = camera.borrow().node();
-        node.map(|node| {
-            let attachment = Node::with_name("Attachment");
-            node.borrow_mut().transfer_camera(&attachment);
-            node.borrow_mut().add_child(attachment.clone());
-            Self::new(Properties::default(), node, attachment)
-        })
+        node.map(Self::make_for_node)
+    }
+
+    pub fn make_for_node(node: SharedRef<Node>) -> Self {
+        let attachment = Node::with_name("Attachment");
+        node.borrow_mut().transfer_camera(&attachment);
+        node.borrow_mut().add_child(attachment.clone());
+        Self::new(Properties::default(), node, attachment)
     }
 
     pub fn update(&self, key_state: &KeyState) {
@@ -129,6 +131,10 @@ impl CameraController {
                 .borrow_mut()
                 .apply_transform(&matrix::rotation_x(-angular_change))
         }
+    }
+
+    pub fn camera(&self) -> Option<SharedRef<Camera>> {
+        self.attachment.borrow().camera().cloned()
     }
 
     pub fn set_position(&self, position: &Vec3) {

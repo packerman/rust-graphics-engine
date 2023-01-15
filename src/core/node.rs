@@ -208,8 +208,8 @@ impl Node {
         camera.borrow_mut().set_node(&self.me);
     }
 
-    pub fn camera(&self) -> Option<&RefCell<Camera>> {
-        self.camera.as_deref()
+    pub fn camera(&self) -> Option<&SharedRef<Camera>> {
+        self.camera.as_ref()
     }
 
     pub fn mesh(&self) -> Option<&Rc<Mesh>> {
