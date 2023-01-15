@@ -71,7 +71,7 @@ impl ImageType {
                     internal_format,
                     format,
                     image_type,
-                    &html_image,
+                    html_image,
                 ),
             Self::HtmlCanvasElement(canvas) => context
                 .tex_image_2d_with_u32_and_u32_and_html_canvas_element(

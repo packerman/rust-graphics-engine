@@ -59,11 +59,11 @@ impl Default for PointMaterial {
 
 impl GenericMaterial for PointMaterial {
     fn vertex_shader(&self) -> Source<'_> {
-        self.basic.vertex_shader().into()
+        self.basic.vertex_shader()
     }
 
     fn fragment_shader(&self) -> Source<'_> {
-        self.basic.fragment_shader().into()
+        self.basic.fragment_shader()
     }
 
     fn preferred_mode(&self) -> Option<u32> {
@@ -111,11 +111,11 @@ impl UpdateProgramUniforms for LineMaterial {
 
 impl GenericMaterial for LineMaterial {
     fn vertex_shader(&self) -> Source<'_> {
-        self.basic.vertex_shader().into()
+        self.basic.vertex_shader()
     }
 
     fn fragment_shader(&self) -> Source<'_> {
-        self.basic.fragment_shader().into()
+        self.basic.fragment_shader()
     }
 
     fn preferred_mode(&self) -> Option<u32> {
@@ -127,19 +127,13 @@ impl GenericMaterial for LineMaterial {
 }
 
 #[derive(Debug)]
+#[derive(Default)]
 pub struct SurfaceMaterial {
     pub basic: BasicMaterial,
     pub double_side: bool,
 }
 
-impl Default for SurfaceMaterial {
-    fn default() -> Self {
-        Self {
-            basic: BasicMaterial::default(),
-            double_side: false,
-        }
-    }
-}
+
 
 impl UpdateProgramUniforms for SurfaceMaterial {
     fn update_program_uniforms(&self, context: &WebGl2RenderingContext, program: &Program) {
@@ -149,11 +143,11 @@ impl UpdateProgramUniforms for SurfaceMaterial {
 
 impl GenericMaterial for SurfaceMaterial {
     fn vertex_shader(&self) -> Source<'_> {
-        self.basic.vertex_shader().into()
+        self.basic.vertex_shader()
     }
 
     fn fragment_shader(&self) -> Source<'_> {
-        self.basic.fragment_shader().into()
+        self.basic.fragment_shader()
     }
 
     fn preferred_mode(&self) -> Option<u32> {

@@ -161,7 +161,7 @@ impl Renderer {
         self::viewport(context, resolution);
 
         meshes.into_iter().for_each(|(mesh, node)| {
-            Self::update_lights(context, &mesh, &lights);
+            Self::update_lights(context, &mesh, lights);
             self.update_shadow(context, &mesh);
             mesh.update_uniform(
                 context,

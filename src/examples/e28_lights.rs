@@ -68,12 +68,12 @@ impl AsyncCreator for Example {
         {
             let direct_helper = Node::new_with_mesh(
                 DirectionalLightHelper::default()
-                    .create_mesh(context, &*directional.light().borrow())?,
+                    .create_mesh(context, &directional.light().borrow())?,
             );
             directional.set_position(&glm::vec3(3.0, 2.0, 0.0));
             directional.add_child(direct_helper);
             let point_helper = Node::new_with_mesh(
-                PointLightHelper::default().create_mesh(context, &*point.light().borrow())?,
+                PointLightHelper::default().create_mesh(context, &point.light().borrow())?,
             );
             point.add_child(point_helper);
         }

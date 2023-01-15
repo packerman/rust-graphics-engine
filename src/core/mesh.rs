@@ -144,7 +144,7 @@ impl Primitive {
         WebGl2RenderingContext::LINE_STRIP,
         WebGl2RenderingContext::TRIANGLES,
         WebGl2RenderingContext::TRIANGLE_STRIP,
-        WebGl2RenderingContext::TRIANGLE_STRIP,
+        WebGl2RenderingContext::TRIANGLE_FAN,
     ];
 
     pub fn new(
@@ -273,7 +273,7 @@ impl Primitive {
     fn is_triangle_based(&self) -> bool {
         self.mode == WebGl2RenderingContext::TRIANGLES
             || self.mode == WebGl2RenderingContext::TRIANGLE_STRIP
-            || self.mode == WebGl2RenderingContext::TRIANGLE_STRIP
+            || self.mode == WebGl2RenderingContext::TRIANGLE_FAN
     }
 
     fn get_vertex_count(atttributes: &HashMap<String, Rc<Accessor>>) -> Result<i32> {

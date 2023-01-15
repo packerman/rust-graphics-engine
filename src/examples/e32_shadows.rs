@@ -54,7 +54,7 @@ impl AsyncCreator for Example {
         directional_light.add_to_scene(&mut scene);
         let directional_helper = Node::new_with_mesh(
             DirectionalLightHelper::default()
-                .create_mesh(context, &*directional_light.light().borrow())?,
+                .create_mesh(context, &directional_light.light().borrow())?,
         );
         directional_light.add_child(directional_helper);
 

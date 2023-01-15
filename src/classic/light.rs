@@ -71,7 +71,7 @@ impl Light {
     pub fn point(color: Color, position: Vec3) -> Self {
         Self::new(
             color,
-            LightType::point(position).into(),
+            LightType::point(position),
             Attenuation(1.0, 0.0, 0.1),
         )
     }
