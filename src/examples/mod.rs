@@ -19,6 +19,6 @@ pub mod e27_compound_effect;
 pub mod e28_lights;
 pub mod e29_bump_mapping;
 pub mod e30_bloom_effect;
-// pub mod e31_glow_effect;
+pub mod e31_glow_effect;
 // pub mod e32_shadows;
 // pub mod e33_gltf;

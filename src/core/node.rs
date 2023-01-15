@@ -143,6 +143,14 @@ impl Node {
         self.reset_transforms();
     }
 
+    pub fn local_transform(&self) -> &Mat4 {
+        &self.local_transform
+    }
+
+    pub fn set_local_transform(&mut self, transform: &Mat4) {
+        self.local_transform.copy_from(transform);
+    }
+
     pub fn world_position(&self) -> Vec3 {
         matrix::get_position(&self.global_transform())
     }
