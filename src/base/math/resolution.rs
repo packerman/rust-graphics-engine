@@ -11,6 +11,13 @@ impl Resolution {
         Self { width, height }
     }
 
+    pub fn scale(&self, factor: f32) -> Self {
+        Self::new(
+            (factor * self.width as f32) as i32,
+            (factor * self.height as f32) as i32,
+        )
+    }
+
     pub fn aspect_ratio(&self) -> f32 {
         self.width as f32 / self.height as f32
     }

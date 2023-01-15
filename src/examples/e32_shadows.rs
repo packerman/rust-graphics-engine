@@ -58,7 +58,7 @@ impl AsyncCreator for Example {
         );
         directional_light.add_child(directional_helper);
 
-        let resolution = renderer::get_canvas_resolution(context);
+        let resolution = renderer::get_canvas_resolution(context).scale(1.0);
 
         let shadow = Shadow::initialize(
             context,
