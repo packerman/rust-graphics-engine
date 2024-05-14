@@ -6,7 +6,7 @@ use crate::{
         util::shared_ref::{self, SharedRef},
     },
     core::{
-        camera::Camera,
+        camera::{Camera, Orthographic},
         node::Node,
         program::{Program, UpdateProgramUniforms, UpdateUniform},
         renderer::Renderer,
@@ -118,6 +118,7 @@ impl Root {
         if !scene.has_some_camera() {
             let camera = Self::default_camera();
             let node = Node::with_camera_and_name(camera.clone(), "Default camera");
+            node.borrow_mut().set_position(&glm::vec3(0.5, 0.5, 2.0));
             scene.add_node(node);
             cameras.push(camera);
         }
