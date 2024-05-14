@@ -6,7 +6,7 @@ use crate::{
         util::shared_ref::{self, SharedRef},
     },
     core::{
-        camera::{Camera, Orthographic},
+        camera::Camera,
         node::Node,
         program::{Program, UpdateProgramUniforms, UpdateUniform},
         renderer::Renderer,
